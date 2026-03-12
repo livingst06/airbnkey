@@ -1,13 +1,14 @@
+import { apartments } from "@/data/apartments"
 import { ApartmentGrid } from "./components/apartment-grid"
+import { ApartmentMap } from "./components/apartment-map"
+import { MainLayout } from "./components/main-layout"
 
 export default function HomePage() {
   return (
-    <main className="max-w-6xl mx-auto p-8">
-      <h1 className="text-3xl font-semibold mb-6">
-        Airbnkey
-      </h1>
-
-      <ApartmentGrid />
-    </main>
+    <MainLayout
+      title="Airbnkey"
+      left={<ApartmentGrid />}
+      right={<ApartmentMap apartments={apartments} />}
+    />
   )
 }

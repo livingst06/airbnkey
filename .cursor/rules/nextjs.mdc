@@ -1,0 +1,178 @@
+---
+alwaysApply: true
+---
+
+Project: Airbnkey
+
+Description:
+Airbnkey is a modern showcase website for a short-term rental management company in Cannes.
+The website displays apartments with photos, structured details, and an interactive map.
+This project must stay simple, elegant, maintainable, and ready to evolve into a more professional product later.
+
+Tech stack:
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- pnpm
+- Tailwind CSS
+- shadcn/ui
+- next/image
+
+General philosophy:
+- Prefer simple, robust, and maintainable code
+- Prefer boring, proven solutions over clever or exotic ones
+- Avoid unnecessary abstractions
+- Avoid over-engineering
+- Avoid premature optimization
+- Keep the architecture clean and easy to evolve
+- Prioritize readability and maintainability over cleverness
+
+Architecture rules:
+- Use Next.js App Router correctly
+- Prefer Server Components by default
+- Use Client Components only when interactivity requires them
+- Keep client boundaries small and explicit
+- Keep logic close to where it is used
+- Avoid global state unless there is a clear need
+- Prefer local state with React hooks
+- Reuse existing components before creating new ones
+- Keep components focused on a single responsibility
+- Favor composition over deeply nested abstractions
+
+Project structure:
+- app/: routes, layouts, page-level composition
+- app/components/: UI components specific to the app
+- data/: static or local data sources
+- types/: shared TypeScript types
+- public/apartments/: apartment images
+- lib/: only for reusable helpers or pure utility functions if needed
+
+Structure rules:
+- Do not invent new folders unless they are clearly justified
+- Do not move files unnecessarily
+- Do not create complex architectural layers for a simple feature
+- Keep the current project organization stable and predictable
+
+Component design rules:
+- Components must be small, reusable, and easy to read
+- Separate presentational concerns from stateful logic when useful
+- Do not create components that are too generic too early
+- Do not create "manager", "controller", or "provider" components unless truly necessary
+- Avoid prop drilling only when it becomes a real problem, not preemptively
+- Prefer explicit props over hidden magic
+
+React rules:
+- Use idiomatic React patterns
+- Use useState for local interactive state
+- Use useMemo or useCallback only when there is a real performance reason
+- Do not add hooks just for style
+- Avoid unnecessary effects
+- Do not use useEffect when plain render logic is sufficient
+- Avoid derived state when it can be computed directly
+- Do not duplicate source of truth
+
+TypeScript rules:
+- Use clear and strict TypeScript types
+- Prefer explicit domain types
+- Avoid any
+- Avoid overly complex generic types
+- Keep types readable and practical
+- Reuse existing domain types instead of redefining similar shapes
+- Model the domain simply and clearly
+
+Next.js rules:
+- Follow App Router best practices
+- Keep page files focused on composition
+- Keep routing simple
+- Use next/image for images unless there is a strong reason not to
+- Use next/link for navigation
+- Prefer built-in Next.js capabilities before adding third-party solutions
+- Be careful with server/client boundaries
+- For browser-only libraries, isolate them inside client components
+- When integrating browser-only tools like maps, use dynamic import if necessary to avoid SSR issues
+
+Styling rules:
+- Use Tailwind CSS for styling
+- Use shadcn/ui components when they fit the use case
+- Keep styling consistent, minimal, and elegant
+- Prefer utility classes over custom CSS unless truly needed
+- Avoid excessive visual complexity
+- Keep spacing, typography, radius, and shadows consistent
+- UI should feel modern, clean, and close to Airbnb-style simplicity
+
+Design principles:
+- Mobile-first responsive design
+- Clear visual hierarchy
+- Good spacing and alignment
+- Accessible interactions
+- Simple, polished UI over flashy UI
+- Prefer a professional product feel over a demo feel
+
+Accessibility rules:
+- Use semantic HTML
+- Ensure dialogs, buttons, and interactive elements are accessible
+- Always include required accessibility elements for shadcn/ui components
+- Respect keyboard interactions when relevant
+- Do not break focus behavior
+- Use meaningful alt text for images
+
+Image rules:
+- Always use next/image for apartment images
+- Images live in /public/apartments
+- Do not use raw img tags unless absolutely necessary
+- Keep image usage simple and predictable
+- Avoid unnecessary image wrappers
+- Use responsive image sizing when appropriate
+- Be mindful of LCP for above-the-fold images
+
+Data rules:
+- Apartment data currently comes from local files in data/
+- Keep the data model simple and structured
+- Do not introduce a database, CMS, or API layer unless explicitly requested
+- Reuse the existing apartment domain model
+- Do not scatter business data across many files without need
+
+Map rules:
+- Use MapLibre GL JS for maps
+- Do not introduce heavy or unnecessary map abstractions
+- Reuse the existing apartment data for markers
+- Keep map integration simple and isolated
+- Reuse the existing apartment dialog/modal when opening apartment details from the map
+
+Performance rules:
+- Avoid unnecessary client-side JavaScript
+- Keep dependencies minimal
+- Avoid heavy third-party libraries unless clearly justified
+- Avoid unnecessary re-renders
+- Prefer simple solutions that perform well by default
+- Be careful with image loading, hydration, and browser-only code
+
+Dependency rules:
+- Do not install a new library unless it is clearly necessary
+- Before suggesting a dependency, prefer native Next.js, React, Tailwind, or shadcn/ui solutions
+- Avoid trendy libraries when a simple local implementation is enough
+- If a library is truly needed, choose a well-known and lightweight one
+
+Code quality rules:
+- Write clean, explicit, production-minded code
+- Keep functions short and focused
+- Use clear naming
+- Avoid dead code
+- Avoid duplicated logic
+- Avoid magic values when a named constant improves clarity
+- Prefer straightforward control flow
+- Leave the codebase simpler than before
+- When modifying code, preserve consistency with the existing style
+
+Decision-making rules:
+- When proposing or implementing a solution, choose the simplest robust approach
+- Do not introduce architecture for hypothetical future needs
+- Do not optimize for scale that does not yet exist
+- Prefer incremental improvements
+- Respect the current scope of the project
+
+For any implementation:
+- First think about the simplest maintainable solution
+- Prefer clarity over novelty
+- Respect the existing architecture
+- Do not surprise the developer with unnecessary changes
