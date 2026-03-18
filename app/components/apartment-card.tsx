@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Image from "next/image"
 import { Apartment } from "@/types/apartments"
 import { Badge } from "@/components/ui/badge"
@@ -10,16 +9,27 @@ import { ApartmentDialog } from "./apartment-dialog"
 type Props = {
   apartment: Apartment
   priority?: boolean
+  selectedApartmentId: string | null
+  dialogApartmentId: string | null
+  setDialogApartmentId: (id: string | null) => void
 }
 
-export function ApartmentCard({ apartment, priority = false }: Props) {
-  const [isOpen, setIsOpen] = useState(false)
+export function ApartmentCard({
+  apartment,
+  priority = false,
+  selectedApartmentId,
+  dialogApartmentId,
+  setDialogApartmentId,
+}: Props) {
+  const isSelected = selectedApartmentId === apartment.id
 
   return (
     <>
       <Card
-        className="group overflow-hidden cursor-pointer hover:shadow-lg transition-transform duration-200 hover:-translate-y-1"
-        onClick={() => setIsOpen(true)}
+        className={`group overflow-hidden cursor-pointer hover:shadow-lg transition-transform duration-200 hover:-translate-y-1 ${
+          isSelected ? "ring-2 ring-primary" : ""
+        }`}
+        onClick={() => setDialogApartmentId(apartment.id)}
       >
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           <Image
@@ -53,8 +63,10 @@ export function ApartmentCard({ apartment, priority = false }: Props) {
 
       <ApartmentDialog
         apartment={apartment}
-        open={isOpen}
-        onOpenChange={setIsOpen}
+        open={dialogApartmentId === apartment.id}
+        onOpenChange={(open) =>
+          setDialogApartmentId(open ? apartment.id : null)
+        }
       />
     </>
   )
