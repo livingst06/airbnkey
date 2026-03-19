@@ -25,7 +25,9 @@ export async function generateMetadata({
   params,
 }: { params: { slug: string } }): Promise<Metadata> {
   const slug = params.slug
+  console.log("slug:", slug)
   const apartment = getApartmentBySlug(slug)
+  console.log("apartment:", apartment)
 
   if (!apartment) {
     return {
