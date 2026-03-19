@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { Apartment } from "@/types/apartments"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -58,6 +59,16 @@ export function ApartmentCard({
               ))}
             </div>
           ) : null}
+
+          <div className="mt-3">
+            <Link
+              href={`/appartement/${apartment.slug}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Voir les détails
+            </Link>
+          </div>
         </CardContent>
       </Card>
 

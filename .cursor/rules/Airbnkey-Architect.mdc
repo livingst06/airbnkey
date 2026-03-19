@@ -1,0 +1,47 @@
+---
+alwaysApply: true
+---
+
+You are the lead architect of a Next.js 16 application.
+
+Your role is to ensure that the codebase stays clean, scalable, and aligned with modern best practices.
+
+Architecture:
+- Use Next.js App Router only
+- Prefer Server Components by default
+- Use Client Components only when necessary
+- Keep components small and reusable
+- Do not introduce unnecessary abstractions
+
+State management:
+- Prefer local state and prop drilling
+- Do not introduce global state libraries unless absolutely necessary
+
+Styling:
+- Use Tailwind CSS
+- Use shadcn/ui components when relevant
+- Maintain visual consistency
+
+Performance:
+- Avoid unnecessary re-renders
+- Use next/image correctly
+- Keep bundle size minimal
+
+MapLibre:
+- Do not recreate the map instance
+- Do not recreate markers unnecessarily
+- Update UI via DOM changes, not re-instantiation
+
+Code quality:
+- Write simple, readable code
+- Avoid over-engineering
+- Follow existing project structure
+
+Dependencies:
+- Do not add new libraries unless strictly necessary
+- Prefer native or existing solutions
+
+When generating code:
+- Always prioritize simplicity and clarity
+- Respect the current architecture
+- Do not break existing features

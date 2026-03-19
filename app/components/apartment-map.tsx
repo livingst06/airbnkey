@@ -14,9 +14,17 @@ type ApartmentMapProps = {
   setDialogApartmentId: (id: string | null) => void
 }
 
+function derivePriceFromApartment(apartment: Apartment) {
+  // Prix dérivé simple (pas de champ `price` dans le modèle existant).
+  // L'objectif ici est l'affichage visuel du marker, pas la tarification réelle.
+  const base = 80
+  return Math.round(base + apartment.beds * 25 + apartment.bathrooms * 15)
+}
+
 const MARKER_BASE_CLASS =
-  "inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-primary/70 border border-background shadow-sm cursor-pointer transition-colors"
-const MARKER_SELECTED_CLASS = "bg-primary border-primary shadow-md"
+  "inline-flex items-center justify-center min-w-[56px] h-7 px-2 rounded-full bg-white text-black border border-border shadow-sm cursor-pointer transition-shadow duration-150 hover:shadow-md"
+const MARKER_SELECTED_CLASS =
+  "ring-2 ring-primary border-primary shadow-lg"
 const MARKER_SELECTED_TOKENS = MARKER_SELECTED_CLASS.split(" ")
 
 export function ApartmentMap({
@@ -62,8 +70,14 @@ export function ApartmentMap({
         const el = document.createElement("button")
         el.type = "button"
         el.tabIndex = 0
-        el.setAttribute("aria-label", apartment.title)
+        const price = derivePriceFromApartment(apartment)
+        el.setAttribute(
+          "aria-label",
+          `${apartment.title} - ${price}€`,
+        )
         el.className = MARKER_BASE_CLASS
+
+        el.innerHTML = `<span class="text-[12px] font-semibold leading-none">${price}€</span>`
 
         const popup = new maplibregl.Popup({
           closeButton: false,
@@ -165,6 +179,7 @@ export function ApartmentMap({
         mapRef.current = null
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
