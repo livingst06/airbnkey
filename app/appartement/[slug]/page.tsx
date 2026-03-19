@@ -24,7 +24,7 @@ function getApartmentBySlug(slug: string): Apartment | undefined {
 export async function generateMetadata({
   params,
 }: { params: { slug: string } }): Promise<Metadata> {
-  const slug = params.slug
+  const { slug } = await params
   console.log("slug:", slug)
   const apartment = getApartmentBySlug(slug)
   console.log("apartment:", apartment)
