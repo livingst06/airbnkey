@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -7,7 +8,7 @@ import { ApartmentCarousel } from "@/app/components/apartment-carousel"
 import type { Apartment } from "@/types/apartments"
 
 type PageProps = {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export function generateStaticParams() {
@@ -16,6 +17,40 @@ export function generateStaticParams() {
 
 function getApartmentBySlug(slug: string): Apartment | undefined {
   return apartments.find((apartment) => apartment.slug === slug)
+}
+
+export async function generateMetadata({
+  params,
+}: { params: { slug: string } }): Promise<Metadata> {
+  const slug = params.slug
+  const apartment = getApartmentBySlug(slug)
+
+  if (!apartment) {
+    return {
+      title: "Appartement introuvable",
+      description: "Cet appartement n'existe pas.",
+      openGraph: {
+        title: "Appartement introuvable",
+        description: "Cet appartement n'existe pas.",
+      },
+    }
+  }
+
+  return {
+    title: apartment.title,
+    description: apartment.description,
+    openGraph: {
+      title: apartment.title,
+      description: apartment.description,
+      images: [apartment.images[0]],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: apartment.title,
+      description: apartment.description,
+      images: [apartment.images[0]],
+    },
+  }
 }
 
 export default async function AppartementPage({ params }: PageProps) {
