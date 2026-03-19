@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { ApartmentCarousel } from "@/app/components/apartment-carousel"
 import type { Apartment } from "@/types/apartments"
 
+export const dynamic = "force-dynamic"
+
 type PageProps = {
   params: Promise<{ slug: string }>
 }
