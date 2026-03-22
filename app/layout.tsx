@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     default: "Airbnkey",
     template: "%s | Airbnkey",
   },
-  description: "Location d’appartements à Cannes",
+  description: "Locations d’appartements à Cannes",
 };
 
 export default function RootLayout({

@@ -27,12 +27,12 @@ export function ApartmentCard({
   return (
     <>
       <Card
-        className={`group overflow-hidden cursor-pointer hover:shadow-lg transition-transform duration-200 hover:-translate-y-1 ${
+        className={`group cursor-pointer overflow-hidden transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md ${
           isSelected ? "ring-2 ring-primary" : ""
         }`}
         onClick={() => setDialogApartmentId(apartment.id)}
       >
-        <div className="relative aspect-[4/3] w-full overflow-hidden">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl">
           <Image
             src={apartment.images[0]}
             alt={apartment.title}
@@ -64,7 +64,7 @@ export function ApartmentCard({
             <Link
               href={`/appartement/${apartment.slug}`}
               onClick={(e) => e.stopPropagation()}
-              className="text-sm font-medium text-primary underline underline-offset-4"
+              className="inline-flex rounded-xl bg-primary/5 px-4 py-2 text-sm font-medium text-primary shadow-sm transition-all duration-200 ease-out hover:bg-primary/10 hover:shadow-md hover:-translate-y-0.5 active:scale-95 active:shadow-sm"
             >
               Voir les détails
             </Link>

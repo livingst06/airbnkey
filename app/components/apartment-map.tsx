@@ -197,7 +197,7 @@ export function ApartmentMap({
   }, [selectedApartmentId])
 
   return (
-    <div className="relative w-full h-[600px] overflow-hidden rounded-xl border">
+    <div className="relative h-[600px] w-full overflow-hidden rounded-2xl border bg-white shadow-sm dark:bg-card">
       <div ref={mapContainerRef} className="w-full h-full" />
     </div>
   )

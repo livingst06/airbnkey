@@ -66,38 +66,44 @@ export default async function AppartementPage({ params }: PageProps) {
   const images = apartment.images.slice(0, 4)
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="mb-6">
         <Link
           href="/"
-          className="text-sm font-medium text-primary underline underline-offset-4"
+          className="inline-flex rounded-xl px-4 py-2 text-sm font-medium text-primary shadow-sm transition-all duration-200 ease-out hover:bg-primary/5 hover:shadow-md hover:-translate-y-0.5 active:scale-95 active:shadow-sm"
         >
           Retour à la liste
         </Link>
       </div>
 
-      <div className="space-y-6">
-        <ApartmentCarousel images={images} title={apartment.title} />
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-card">
+        <ApartmentCarousel
+          images={images}
+          title={apartment.title}
+          slug={apartment.slug}
+        />
 
-        <div>
-          <h1 className="text-2xl font-semibold">{apartment.title}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {apartment.beds} couchages • {apartment.bathrooms} salle de
-            bain
-          </p>
-        </div>
-
-        <p className="text-sm text-foreground">{apartment.description}</p>
-
-        {apartment.advantages?.length ? (
-          <div className="flex flex-wrap gap-2">
-            {apartment.advantages.map((advantage) => (
-              <Badge key={advantage} variant="secondary">
-                {advantage}
-              </Badge>
-            ))}
+        <div className="space-y-6 p-6">
+          <div>
+            <h1 className="text-2xl font-semibold">{apartment.title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {apartment.beds} couchages • {apartment.bathrooms} salle de
+              bain
+            </p>
           </div>
-        ) : null}
+
+          <p className="text-sm text-foreground">{apartment.description}</p>
+
+          {apartment.advantages?.length ? (
+            <div className="flex flex-wrap gap-2">
+              {apartment.advantages.map((advantage) => (
+                <Badge key={advantage} variant="secondary">
+                  {advantage}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   )
