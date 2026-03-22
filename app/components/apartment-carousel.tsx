@@ -3,16 +3,18 @@
 import { useState } from "react"
 import Image from "next/image"
 
+import { Button } from "@/components/ui/button"
+
 type ApartmentCarouselProps = {
   images: string[]
   title: string
   slug: string
-  /** Zoom image plus subtil dans la modale */
-  variant?: "default" | "dialog"
+  /** default: liste ; dialog: modale ; detail: page /appartement avec overlay + CTA */
+  variant?: "default" | "dialog" | "detail"
 }
 
 const navButtonClass =
-  "absolute top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white/30 text-2xl leading-none text-neutral-900 opacity-90 shadow-md backdrop-blur-md transition-all duration-200 ease-out hover:scale-105 hover:bg-white/40 active:scale-110 active:opacity-70 active:duration-150"
+  "absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/70 shadow-md backdrop-blur-md transition-all duration-150 hover:scale-105 active:scale-95 active:opacity-80 dark:bg-neutral-800/70 text-xl leading-none text-neutral-900 dark:text-neutral-100"
 
 export function ApartmentCarousel({
   images,
@@ -46,7 +48,12 @@ export function ApartmentCarousel({
     window.open(url, "_blank")
   }
 
-  return (
+  const imageClassName =
+    variant === "dialog"
+      ? "object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]"
+      : "object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+
+  const carouselBlock = (
     <div className="relative aspect-[4/3] w-full overflow-hidden">
       <button
         type="button"
@@ -58,13 +65,20 @@ export function ApartmentCarousel({
           src={safeImages[currentIndex]}
           alt={title}
           fill
-          className={
-            variant === "dialog"
-              ? "object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]"
-              : "object-cover transition-transform duration-300 ease-out group-hover:scale-105"
-          }
+          className={imageClassName}
           sizes="(min-width: 1024px) 600px, (min-width: 640px) 80vw, 100vw"
         />
+        {variant === "detail" ? (
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 z-[1] flex w-full items-center justify-between bg-black/40 px-4 py-3 text-sm font-medium text-white opacity-90 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
+            aria-hidden
+          >
+            <span>Voir sur Halldis</span>
+            <span aria-hidden className="text-base leading-none">
+              →
+            </span>
+          </div>
+        ) : null}
       </button>
 
       {hasMultipleImages && (
@@ -89,5 +103,25 @@ export function ApartmentCarousel({
       )}
     </div>
   )
+
+  if (variant === "detail") {
+    return (
+      <>
+        {carouselBlock}
+        <div className="px-6">
+          <Button
+            type="button"
+            variant="default"
+            className="mt-4 w-full"
+            onClick={openHalldis}
+          >
+            Réserver sur Halldis →
+          </Button>
+        </div>
+      </>
+    )
+  }
+
+  return carouselBlock
 }
 

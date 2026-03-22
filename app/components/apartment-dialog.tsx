@@ -31,11 +31,11 @@ export function ApartmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-lg gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-xl ring-0 dark:bg-white"
+        className="max-w-lg gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-xl ring-0 transition-colors duration-300 dark:bg-neutral-800"
       >
         <DialogClose
           aria-label="Fermer"
-          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition-all duration-200 ease-out hover:bg-white"
+          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition-all duration-200 ease-out hover:bg-neutral-100 dark:bg-neutral-800/80 dark:hover:bg-neutral-700/90"
         >
           <XIcon className="size-4 opacity-90" />
         </DialogClose>
@@ -47,9 +47,11 @@ export function ApartmentDialog({
           slug={apartment.slug}
         />
 
-        <div className="space-y-6 p-8">
-          <DialogHeader className="space-y-2">
-            <DialogTitle className="text-lg">{apartment.title}</DialogTitle>
+        <div className="space-y-8 p-8">
+          <DialogHeader className="space-y-3">
+            <DialogTitle className="text-xl font-semibold tracking-tight">
+              {apartment.title}
+            </DialogTitle>
             <p className="text-sm text-muted-foreground">
               {apartment.beds} couchages • {apartment.bathrooms} salle
               {apartment.bathrooms > 1 ? "s" : ""} de bain

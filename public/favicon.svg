@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Airbnkey">
+  <rect width="32" height="32" rx="8" fill="#0f172a"/>
+  <!-- Forme 1 : A (traits épais, centré) -->
+  <path
+    d="M16 9.2 10.6 24 M16 9.2 21.4 24 M12 17.4h8"
+    fill="none"
+    stroke="#e5e7eb"
+    stroke-width="2.35"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Forme 2 : suggestion de clé (diagonale + tête circulaire) -->
+  <g stroke-linecap="round">
+    <path
+      fill="none"
+      stroke="#e5e7eb"
+      stroke-width="1.75"
+      d="M10.4 10.3 22.6 23.6"
+    />
+    <circle cx="22.6" cy="23.6" r="2.35" fill="#e5e7eb"/>
+  </g>
+</svg>

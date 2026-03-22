@@ -27,31 +27,61 @@ export function ApartmentCard({
   return (
     <>
       <Card
-        className={`group cursor-pointer overflow-hidden transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md ${
+        className={`group cursor-pointer gap-0 overflow-hidden rounded-2xl p-0 ${
           isSelected ? "ring-2 ring-primary" : ""
         }`}
         onClick={() => setDialogApartmentId(apartment.id)}
       >
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl">
+        <div
+          className="relative aspect-[4/3] w-full shrink-0 cursor-pointer overflow-hidden rounded-t-2xl"
+          role="button"
+          tabIndex={0}
+          aria-label="Voir cet appartement sur Halldis"
+          onClick={(e) => {
+            e.stopPropagation()
+            window.open(
+              `https://www.halldis.com/${apartment.slug}`,
+              "_blank",
+            )
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              e.stopPropagation()
+              window.open(
+                `https://www.halldis.com/${apartment.slug}`,
+                "_blank",
+              )
+            }
+          }}
+        >
           <Image
             src={apartment.images[0]}
             alt={apartment.title}
             fill
-            className="object-cover transition-transform duration-200 group-hover:scale-105"
+            className="m-0 h-full w-full object-cover p-0 transition-[transform,filter] duration-200 group-hover:scale-105 group-hover:brightness-105"
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
             priority={priority}
           />
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 w-full bg-black/40 px-3 py-2 text-sm font-medium text-white opacity-80 backdrop-blur-sm transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100"
+            aria-hidden
+          >
+            Voir sur Halldis →
+          </div>
         </div>
 
-        <CardContent className="p-4">
-          <h3 className="font-semibold">{apartment.title}</h3>
+        <CardContent className="space-y-3 p-5">
+          <h3 className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+            {apartment.title}
+          </h3>
 
           <p className="text-sm text-muted-foreground">
             {apartment.beds} couchages • {apartment.bathrooms} salle de bain
           </p>
 
           {apartment.advantages?.length ? (
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {apartment.advantages.map((advantage: string) => (
                 <Badge key={advantage} variant="secondary">
                   {advantage}
@@ -60,11 +90,11 @@ export function ApartmentCard({
             </div>
           ) : null}
 
-          <div className="mt-3">
+          <div>
             <Link
               href={`/appartement/${apartment.slug}`}
               onClick={(e) => e.stopPropagation()}
-              className="inline-flex rounded-xl bg-primary/5 px-4 py-2 text-sm font-medium text-primary shadow-sm transition-all duration-200 ease-out hover:bg-primary/10 hover:shadow-md hover:-translate-y-0.5 active:scale-95 active:shadow-sm"
+              className="inline-flex rounded-xl bg-primary/5 px-5 py-2.5 text-sm font-medium text-primary shadow-sm transition-all duration-200 ease-out hover:bg-primary/10 hover:shadow-md hover:-translate-y-0.5 active:scale-95 active:shadow-sm"
             >
               Voir les détails
             </Link>

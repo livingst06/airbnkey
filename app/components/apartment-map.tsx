@@ -22,7 +22,7 @@ function derivePriceFromApartment(apartment: Apartment) {
 }
 
 const MARKER_BASE_CLASS =
-  "inline-flex items-center justify-center min-w-[56px] h-7 px-2 rounded-full bg-white text-black border border-border shadow-sm cursor-pointer transition-shadow duration-150 hover:shadow-md"
+  "inline-flex items-center justify-center min-w-[56px] h-7 px-2 rounded-full border border-neutral-200 bg-white text-neutral-900 shadow-sm cursor-pointer transition-all duration-300 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
 const MARKER_SELECTED_CLASS =
   "ring-2 ring-primary border-primary shadow-lg"
 const MARKER_SELECTED_TOKENS = MARKER_SELECTED_CLASS.split(" ")
@@ -89,7 +89,7 @@ export function ApartmentMap({
 
         const popupContent = document.createElement("div")
         popupContent.className =
-          "w-[200px] overflow-hidden rounded-xl border bg-background shadow-lg cursor-pointer"
+          "w-[200px] overflow-hidden rounded-xl border border-neutral-200 bg-white/95 shadow-lg backdrop-blur-sm cursor-pointer dark:border-neutral-700 dark:bg-neutral-800/95"
         popupContent.innerHTML = `
           <img
             src="${apartment.images[0]}"
@@ -98,7 +98,7 @@ export function ApartmentMap({
           />
           <div class="p-3 space-y-1">
             <div class="font-semibold leading-tight">${apartment.title}</div>
-            <div class="text-sm text-muted-foreground">
+            <div class="text-sm text-neutral-500 dark:text-neutral-400">
               ${apartment.beds} couchages • ${apartment.bathrooms} salle de bain
             </div>
           </div>
@@ -197,7 +197,7 @@ export function ApartmentMap({
   }, [selectedApartmentId])
 
   return (
-    <div className="relative h-[600px] w-full overflow-hidden rounded-2xl border bg-white shadow-sm dark:bg-card">
+    <div className="relative h-[600px] w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-colors duration-300 dark:border-neutral-700 dark:bg-neutral-800">
       <div ref={mapContainerRef} className="w-full h-full" />
     </div>
   )

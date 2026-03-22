@@ -48,18 +48,19 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  /* Neutres premium (proche neutral-50 / neutral-900), pas de blanc/noir purs */
+  --background: #f5efe6; /* beige clair */
+  --foreground: #1a1a1a;
+  --card: oklch(0.995 0 0);
+  --card-foreground: oklch(0.205 0 0);
+  --popover: oklch(0.995 0 0);
+  --popover-foreground: oklch(0.205 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.45 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -83,18 +84,18 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  --background: #0f172a; /* bleu nuit */
+  --foreground: #e2e8f0;
+  --card: oklch(0.27 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.27 0 0);
+  --popover-foreground: oklch(0.97 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  --muted: oklch(0.32 0 0);
+  --muted-foreground: oklch(0.65 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
@@ -121,9 +122,14 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-neutral-50 text-foreground dark:bg-background;
+    background-color: var(--background);
+    color: var(--foreground);
+    transition:
+      background-color 0.3s,
+      color 0.3s;
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
   }
 }
