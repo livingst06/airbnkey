@@ -4,7 +4,6 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
 import { Navbar } from "@/app/components/navbar";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -38,9 +37,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
-        <div className="fixed top-4 right-4 z-50">
-          <ThemeToggle />
-        </div>
         <Navbar />
         {children}
         <Toaster />

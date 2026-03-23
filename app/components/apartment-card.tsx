@@ -27,7 +27,7 @@ export function ApartmentCard({
   return (
     <>
       <Card
-        className={`group cursor-pointer gap-0 overflow-hidden rounded-2xl p-0 ${
+        className={`group mx-4 cursor-pointer gap-0 overflow-hidden rounded-2xl p-0 md:mx-0 ${
           isSelected ? "ring-2 ring-primary" : ""
         }`}
         onClick={() => setDialogApartmentId(apartment.id)}
@@ -64,14 +64,14 @@ export function ApartmentCard({
             priority={priority}
           />
           <div
-            className="pointer-events-none absolute bottom-0 left-0 w-full bg-black/40 px-3 py-2 text-sm font-medium text-white opacity-80 backdrop-blur-sm transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100"
+            className="pointer-events-none absolute bottom-0 left-0 w-full bg-black/40 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm transition-opacity duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
             aria-hidden
           >
             Voir sur Halldis →
           </div>
         </div>
 
-        <CardContent className="space-y-3 p-5">
+        <CardContent className="space-y-3 p-4">
           <h3 className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
             {apartment.title}
           </h3>

@@ -1,6 +1,8 @@
 import Image from "next/image"
 import Link from "next/link"
 
+import { ThemeToggle } from "@/components/theme-toggle"
+
 const navLinks = [
   { href: "#appartements", label: "Appartements" },
   { href: "#about", label: "À propos" },
@@ -9,8 +11,8 @@ const navLinks = [
 
 export function Navbar() {
   return (
-    <header className="fixed top-0 left-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 pr-14">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/60 backdrop-blur-md dark:border-white/5 dark:bg-neutral-900/60">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:h-16">
         <Link
           href="/"
           className="transition-opacity hover:opacity-80"
@@ -24,17 +26,23 @@ export function Navbar() {
             className="rounded-md"
           />
         </Link>
-        <nav className="flex items-center gap-6" aria-label="Navigation principale">
-          {navLinks.map(({ href, label }) => (
-            <a
-              key={href}
-              href={href}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
+        <div className="flex items-center gap-4 md:gap-6">
+          <nav
+            className="hidden items-center gap-6 md:flex"
+            aria-label="Navigation principale"
+          >
+            {navLinks.map(({ href, label }) => (
+              <a
+                key={href}
+                href={href}
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:opacity-80"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   )

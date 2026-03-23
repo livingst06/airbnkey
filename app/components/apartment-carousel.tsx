@@ -65,12 +65,12 @@ export function ApartmentCarousel({
           src={safeImages[currentIndex]}
           alt={title}
           fill
-          className={imageClassName}
+          className={`h-full w-full ${imageClassName}`}
           sizes="(min-width: 1024px) 600px, (min-width: 640px) 80vw, 100vw"
         />
         {variant === "detail" ? (
           <div
-            className="pointer-events-none absolute bottom-0 left-0 z-[1] flex w-full items-center justify-between bg-black/40 px-4 py-3 text-sm font-medium text-white opacity-90 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
+            className="pointer-events-none absolute bottom-0 left-0 z-[1] flex w-full items-center justify-between bg-black/40 px-3 py-2 text-sm font-medium text-white opacity-90 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
             aria-hidden
           >
             <span>Voir sur Halldis</span>

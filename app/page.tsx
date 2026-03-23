@@ -44,10 +44,13 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-6xl px-4 pb-8 pt-20">
-      <div className="space-y-8">
-        <section className="mt-6">
-          <p className="text-sm leading-relaxed text-muted-foreground">
+    <main className="mx-auto min-h-screen max-w-6xl px-4 pb-8 pt-6">
+      <div className="space-y-10 md:space-y-16">
+        <section className="mt-6 text-center md:text-left">
+          <h1 className="text-2xl font-semibold text-foreground">
+            Airbnkey
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             Locations d’appartements à Cannes
           </p>
         </section>
@@ -77,10 +80,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="about" className="scroll-mt-20">
-          <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">
+        <section id="about" className="scroll-mt-20 py-16">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div className="max-w-lg space-y-4">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
                 À propos
               </h2>
               <p className="text-sm leading-relaxed text-muted-foreground">
@@ -94,7 +97,7 @@ export default function HomePage() {
                 transparente de chaque bien.
               </p>
             </div>
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-border">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-lg transition-transform duration-300 hover:scale-[1.01]">
               <Image
                 src="/apartments/apt1/1.png"
                 alt="Salon lumineux d’un appartement à Cannes"
@@ -107,7 +110,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="contact" className="scroll-mt-20">
+        <section id="contact" className="scroll-mt-20 py-16">
           <h2 className="text-xl font-semibold tracking-tight text-foreground">
             Contact
           </h2>
@@ -117,7 +120,7 @@ export default function HomePage() {
           </p>
           <form
             onSubmit={handleSubmit}
-            className="mt-6 flex max-w-xl flex-col gap-3"
+            className="mt-6 max-w-xl space-y-4"
           >
             <Textarea
               id="contact-message"
@@ -128,8 +131,13 @@ export default function HomePage() {
               required
               rows={5}
               aria-label="Message"
+              className="rounded-xl border border-border bg-background/50 backdrop-blur focus:ring-2 focus:ring-primary/20"
             />
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full rounded-xl disabled:cursor-not-allowed disabled:opacity-50"
+            >
               {isSubmitting ? "Envoi…" : "Envoyer"}
             </Button>
           </form>
