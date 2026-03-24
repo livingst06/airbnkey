@@ -130,6 +130,108 @@
   }
   html {
     @apply font-sans;
+  }
+
+  html[data-scroll-behavior="smooth"] {
     scroll-behavior: smooth;
+  }
+}
+
+/* MapLibre : chrome par défaut neutralisé pour popups « custom-popup » uniquement */
+.custom-popup .maplibregl-popup-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.custom-popup .maplibregl-popup-tip {
+  display: none;
+}
+
+.popup-card {
+  position: relative;
+  width: 220px;
+  border-radius: 16px;
+  overflow: hidden;
+
+  backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.85);
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.18),
+    0 8px 16px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: popupFadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.popup-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.05)
+  );
+
+  pointer-events: none;
+}
+
+.dark .popup-card {
+  background: rgba(30, 30, 30, 0.8);
+}
+
+.popup-card:hover {
+  transform: scale(1.02);
+}
+
+.popup-image {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  filter: saturate(1.05) contrast(1.05);
+}
+
+.popup-body {
+  padding: 12px 14px;
+}
+
+.popup-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: rgba(20, 20, 20, 0.95);
+}
+
+.dark .popup-title {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.popup-meta {
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-top: 2px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.dark .popup-meta {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

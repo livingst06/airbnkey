@@ -4,6 +4,11 @@ import { useState } from "react"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
+import {
+  carouselChevronIconClass,
+  carouselNavButtonClass,
+} from "@/lib/carousel-nav"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 type ApartmentCarouselProps = {
   images: string[]
@@ -12,9 +17,6 @@ type ApartmentCarouselProps = {
   /** default: liste ; dialog: modale ; detail: page /appartement avec overlay + CTA */
   variant?: "default" | "dialog" | "detail"
 }
-
-const navButtonClass =
-  "absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/70 shadow-md backdrop-blur-md transition-all duration-150 hover:scale-105 active:scale-95 active:opacity-80 dark:bg-neutral-800/70 text-xl leading-none text-neutral-900 dark:text-neutral-100"
 
 export function ApartmentCarousel({
   images,
@@ -67,6 +69,7 @@ export function ApartmentCarousel({
           fill
           className={`h-full w-full ${imageClassName}`}
           sizes="(min-width: 1024px) 600px, (min-width: 640px) 80vw, 100vw"
+          priority={variant === "detail" && currentIndex === 0}
         />
         {variant === "detail" ? (
           <div
@@ -87,17 +90,17 @@ export function ApartmentCarousel({
             type="button"
             onClick={goToPrevious}
             aria-label="Image précédente"
-            className={`left-3 ${navButtonClass}`}
+            className={`${carouselNavButtonClass} left-3`}
           >
-            ‹
+            <ChevronLeft className={carouselChevronIconClass} />
           </button>
           <button
             type="button"
             onClick={goToNext}
             aria-label="Image suivante"
-            className={`right-3 ${navButtonClass}`}
+            className={`${carouselNavButtonClass} right-3`}
           >
-            ›
+            <ChevronRight className={carouselChevronIconClass} />
           </button>
         </>
       )}

@@ -3,6 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useRef } from "react"
+import type { HoverSource } from "@/types/hover"
 import { Apartment } from "@/types/apartments"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -15,6 +16,7 @@ type Props = {
   dialogApartmentId: string | null
   setDialogApartmentId: (id: string | null) => void
   hoveredApartmentId: string | null
+  hoverSource: HoverSource
 }
 
 export function ApartmentCard({
@@ -24,15 +26,16 @@ export function ApartmentCard({
   dialogApartmentId,
   setDialogApartmentId,
   hoveredApartmentId,
+  hoverSource,
 }: Props) {
-  const isMapHovered = hoveredApartmentId === apartment.id
-  /** Survol liste (sans survol pin carte) : ring seulement */
+  const isSyncedHover = hoveredApartmentId === apartment.id
+  /** Survol liste sans hover synchronisé (ex. état transitoire) : ring seulement */
   const isListHoverHighlight =
-    selectedApartmentId === apartment.id && !isMapHovered
+    selectedApartmentId === apartment.id && !isSyncedHover
   const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!isMapHovered) return
+    if (hoverSource !== "map" || hoveredApartmentId !== apartment.id) return
     const el = cardRef.current
     if (!el) return
 
@@ -59,14 +62,14 @@ export function ApartmentCard({
     )
 
     scrollRoot.scrollTo({ top: nextTop, behavior: "smooth" })
-  }, [isMapHovered, apartment.id])
+  }, [hoverSource, hoveredApartmentId, apartment.id])
 
   return (
     <>
       <div ref={cardRef} className="h-full">
         <Card
           className={`group mx-4 h-full cursor-pointer gap-0 overflow-hidden rounded-2xl p-0 transition-all duration-200 ease-out md:mx-0 ${
-            isMapHovered
+            isSyncedHover
               ? "scale-[1.02] shadow-xl ring-2 ring-primary"
               : isListHoverHighlight
                 ? "ring-2 ring-primary"

@@ -3,16 +3,35 @@
 import { useEffect, useRef } from "react"
 import maplibregl from "maplibre-gl"
 import type { Apartment } from "@/types/apartments"
+import type { HoverSource } from "@/types/hover"
 
 const MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json"
 
 type ApartmentMapProps = {
   apartments: Apartment[]
   selectedApartmentId: string | null
+  hoveredApartmentId: string | null
+  hoverLock: boolean
   dialogApartmentId: string | null
   setSelectedApartmentId: (id: string | null) => void
   setDialogApartmentId: (id: string | null) => void
   setHoveredApartmentId: (id: string | null) => void
+  setHoverSource: (source: HoverSource) => void
+  setHoverLock: (locked: boolean) => void
+}
+
+type MarkerSlot = {
+  marker: maplibregl.Marker
+  root: HTMLElement
+  inner: HTMLElement
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
 }
 
 function derivePriceFromApartment(apartment: Apartment) {
@@ -22,22 +41,34 @@ function derivePriceFromApartment(apartment: Apartment) {
   return Math.round(base + apartment.beds * 25 + apartment.bathrooms * 15)
 }
 
-const MARKER_BASE_CLASS =
-  "inline-flex items-center justify-center min-w-[56px] h-7 px-2 rounded-full border border-neutral-200 bg-white text-neutral-900 shadow-sm cursor-pointer transition-all duration-300 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+/** Root : aucune classe transform/scale — MapLibre garde translate(...) sur ce nœud */
+const MARKER_ROOT_CLASS =
+  "relative inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+/** Inner : apparence du pill + transitions (scale/hover emphasis uniquement ici) */
+const MARKER_INNER_CLASS =
+  "relative z-[1] inline-flex items-center justify-center min-w-[56px] h-7 px-2 rounded-full border border-neutral-200 bg-white text-neutral-900 shadow-sm transition-all duration-300 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
 const MARKER_SELECTED_CLASS =
   "ring-2 ring-primary border-primary shadow-lg"
 const MARKER_SELECTED_TOKENS = MARKER_SELECTED_CLASS.split(" ")
+/** Emphase sync hover : uniquement sur inner (scale autorisé) */
+const MARKER_HOVER_EMPHASIS_CLASS =
+  "scale-[1.2] border-primary bg-primary/15 text-primary shadow-md dark:bg-primary/20"
+const MARKER_HOVER_EMPHASIS_TOKENS = MARKER_HOVER_EMPHASIS_CLASS.split(" ")
 
 export function ApartmentMap({
   apartments,
   selectedApartmentId,
+  hoveredApartmentId,
   setSelectedApartmentId,
   setDialogApartmentId,
   setHoveredApartmentId,
+  setHoverSource,
+  setHoverLock,
 }: ApartmentMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
-  const markersByIdRef = useRef<Record<string, maplibregl.Marker>>({})
+  const markersByIdRef = useRef<Record<string, MarkerSlot>>({})
+  const previousHoveredIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     const container = mapContainerRef.current
@@ -77,32 +108,32 @@ export function ApartmentMap({
           "aria-label",
           `${apartment.title} - ${price}€`,
         )
-        el.className = MARKER_BASE_CLASS
+        el.className = MARKER_ROOT_CLASS
 
-        el.innerHTML = `<span class="text-[12px] font-semibold leading-none">${price}€</span>`
+        const inner = document.createElement("div")
+        inner.className = MARKER_INNER_CLASS
+        inner.innerHTML = `<span class="text-[12px] font-semibold leading-none">${price}€</span>`
+        el.appendChild(inner)
 
         const popup = new maplibregl.Popup({
           closeButton: false,
           closeOnClick: false,
-          offset: 25,
-          // Les popups MapLibre doivent être cliquables ; on force un contenu "pointer-friendly".
-          className: "airbnb-popup",
+          offset: 16,
+          className: "custom-popup",
         })
 
+        const meta = `${apartment.beds} couchages • ${apartment.bathrooms} salle de bain`
         const popupContent = document.createElement("div")
-        popupContent.className =
-          "w-[200px] overflow-hidden rounded-xl border border-neutral-200 bg-white/95 shadow-lg backdrop-blur-sm cursor-pointer dark:border-neutral-700 dark:bg-neutral-800/95"
+        popupContent.className = "popup-card cursor-pointer"
         popupContent.innerHTML = `
           <img
             src="${apartment.images[0]}"
-            alt="${apartment.title.replaceAll('"', "&quot;")}"
-            class="h-[120px] w-full object-cover"
+            alt="${escapeHtml(apartment.title)}"
+            class="popup-image"
           />
-          <div class="p-3 space-y-1">
-            <div class="font-semibold leading-tight">${apartment.title}</div>
-            <div class="text-sm text-neutral-500 dark:text-neutral-400">
-              ${apartment.beds} couchages • ${apartment.bathrooms} salle de bain
-            </div>
+          <div class="popup-body">
+            <div class="popup-title">${escapeHtml(apartment.title)}</div>
+            <div class="popup-meta">${escapeHtml(meta)}</div>
           </div>
         `
 
@@ -132,6 +163,8 @@ export function ApartmentMap({
         el.addEventListener("mouseenter", () => {
           setSelectedApartmentId(apartment.id)
           setHoveredApartmentId(apartment.id)
+          setHoverSource("map")
+          setHoverLock(true)
           if (hideTimer) window.clearTimeout(hideTimer)
           hideTimer = null
 
@@ -144,6 +177,8 @@ export function ApartmentMap({
         el.addEventListener("mouseleave", () => {
           setSelectedApartmentId(null)
           setHoveredApartmentId(null)
+          setHoverSource(null)
+          setHoverLock(false)
           if (hideTimer) window.clearTimeout(hideTimer)
           hideTimer = window.setTimeout(() => {
             popup.remove()
@@ -171,9 +206,8 @@ export function ApartmentMap({
           .setPopup(popup)
           .addTo(map)
 
-        markersByIdRef.current[apartment.id] = marker
+        markersByIdRef.current[apartment.id] = { marker, root: el, inner }
       })
-
     })
 
     return () => {
@@ -182,6 +216,8 @@ export function ApartmentMap({
         mapRef.current.remove()
         mapRef.current = null
       }
+      markersByIdRef.current = {}
+      previousHoveredIdRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -189,16 +225,45 @@ export function ApartmentMap({
   useEffect(() => {
     const markersById = markersByIdRef.current
 
-    for (const [id, marker] of Object.entries(markersById)) {
-      const element = marker.getElement()
+    for (const [id, slot] of Object.entries(markersById)) {
+      const { inner } = slot
       const isSelected = id === selectedApartmentId
-
-      // Highlight uniquement via classes CSS, sans toucher à la position du marker.
       for (const token of MARKER_SELECTED_TOKENS) {
-        element.classList.toggle(token, isSelected)
+        inner.classList.toggle(token, isSelected)
       }
     }
   }, [selectedApartmentId])
+
+  useEffect(() => {
+    const markersById = markersByIdRef.current
+    const prevId = previousHoveredIdRef.current
+    const nextId = hoveredApartmentId
+
+    const clearEmphasis = (id: string) => {
+      const slot = markersById[id]
+      if (!slot) return
+      const { inner } = slot
+      for (const token of MARKER_HOVER_EMPHASIS_TOKENS) {
+        inner.classList.remove(token)
+      }
+      inner.style.zIndex = ""
+    }
+
+    const addEmphasis = (id: string) => {
+      const slot = markersById[id]
+      if (!slot) return
+      const { inner } = slot
+      for (const token of MARKER_HOVER_EMPHASIS_TOKENS) {
+        inner.classList.add(token)
+      }
+      inner.style.zIndex = "30"
+    }
+
+    if (prevId && prevId !== nextId) clearEmphasis(prevId)
+    if (nextId && nextId !== prevId) addEmphasis(nextId)
+
+    previousHoveredIdRef.current = nextId
+  }, [hoveredApartmentId])
 
   return (
     <div className="relative h-full min-h-0 w-full overflow-hidden bg-white dark:bg-neutral-800">
@@ -206,4 +271,3 @@ export function ApartmentMap({
     </div>
   )
 }
-

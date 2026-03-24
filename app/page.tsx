@@ -5,6 +5,7 @@ import { type FormEvent, useState } from "react"
 import { toast } from "sonner"
 
 import { apartments } from "@/data/apartments"
+import type { HoverSource } from "@/types/hover"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -21,6 +22,8 @@ export default function HomePage() {
   const [hoveredApartmentId, setHoveredApartmentId] = useState<string | null>(
     null,
   )
+  const [hoverSource, setHoverSource] = useState<HoverSource>(null)
+  const [hoverLock, setHoverLock] = useState(false)
   const [message, setMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -70,6 +73,10 @@ export default function HomePage() {
                 dialogApartmentId={dialogApartmentId}
                 setDialogApartmentId={setDialogApartmentId}
                 hoveredApartmentId={hoveredApartmentId}
+                setHoveredApartmentId={setHoveredApartmentId}
+                hoverSource={hoverSource}
+                setHoverSource={setHoverSource}
+                hoverLock={hoverLock}
               />
             </section>
 
@@ -78,10 +85,14 @@ export default function HomePage() {
                 <ApartmentMap
                   apartments={apartments}
                   selectedApartmentId={selectedApartmentId}
+                  hoveredApartmentId={hoveredApartmentId}
                   setSelectedApartmentId={setSelectedApartmentId}
                   dialogApartmentId={dialogApartmentId}
                   setDialogApartmentId={setDialogApartmentId}
                   setHoveredApartmentId={setHoveredApartmentId}
+                  setHoverSource={setHoverSource}
+                  hoverLock={hoverLock}
+                  setHoverLock={setHoverLock}
                 />
               </div>
             </section>
