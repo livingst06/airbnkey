@@ -12,6 +12,7 @@ type ApartmentMapProps = {
   dialogApartmentId: string | null
   setSelectedApartmentId: (id: string | null) => void
   setDialogApartmentId: (id: string | null) => void
+  setHoveredApartmentId: (id: string | null) => void
 }
 
 function derivePriceFromApartment(apartment: Apartment) {
@@ -32,6 +33,7 @@ export function ApartmentMap({
   selectedApartmentId,
   setSelectedApartmentId,
   setDialogApartmentId,
+  setHoveredApartmentId,
 }: ApartmentMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -129,6 +131,7 @@ export function ApartmentMap({
 
         el.addEventListener("mouseenter", () => {
           setSelectedApartmentId(apartment.id)
+          setHoveredApartmentId(apartment.id)
           if (hideTimer) window.clearTimeout(hideTimer)
           hideTimer = null
 
@@ -140,6 +143,7 @@ export function ApartmentMap({
         })
         el.addEventListener("mouseleave", () => {
           setSelectedApartmentId(null)
+          setHoveredApartmentId(null)
           if (hideTimer) window.clearTimeout(hideTimer)
           hideTimer = window.setTimeout(() => {
             popup.remove()
@@ -197,8 +201,8 @@ export function ApartmentMap({
   }, [selectedApartmentId])
 
   return (
-    <div className="relative h-full min-h-[600px] w-full overflow-hidden bg-white dark:bg-neutral-800 lg:min-h-[700px] xl:min-h-[760px]">
-      <div ref={mapContainerRef} className="h-full w-full" />
+    <div className="relative h-full min-h-0 w-full overflow-hidden bg-white dark:bg-neutral-800">
+      <div ref={mapContainerRef} className="h-full w-full min-h-0" />
     </div>
   )
 }

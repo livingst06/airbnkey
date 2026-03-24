@@ -18,6 +18,9 @@ export default function HomePage() {
   const [dialogApartmentId, setDialogApartmentId] = useState<string | null>(
     null,
   )
+  const [hoveredApartmentId, setHoveredApartmentId] = useState<string | null>(
+    null,
+  )
   const [message, setMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -56,24 +59,29 @@ export default function HomePage() {
         </section>
 
         <section id="appartements" className="scroll-mt-20">
-          <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[1fr_2fr] xl:gap-12">
-            <section className="min-h-0 min-w-0 lg:h-full">
+          <div className="grid min-h-0 grid-cols-1 items-stretch gap-8 lg:h-[calc(100vh-6rem)] lg:grid-cols-[1fr_2fr] lg:overflow-hidden xl:gap-12">
+            <section
+              className="min-h-0 min-w-0 overflow-y-auto pr-2 scroll-smooth lg:h-full"
+              data-list-scroll
+            >
               <ApartmentGrid
                 selectedApartmentId={selectedApartmentId}
                 setSelectedApartmentId={setSelectedApartmentId}
                 dialogApartmentId={dialogApartmentId}
                 setDialogApartmentId={setDialogApartmentId}
+                hoveredApartmentId={hoveredApartmentId}
               />
             </section>
 
-            <section className="hidden h-full min-h-[600px] min-w-0 w-full lg:block lg:min-h-[700px] xl:min-h-[760px]">
-              <div className="sticky top-24 h-full min-h-[600px] w-full overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5 lg:min-h-[700px] xl:min-h-[760px]">
+            <section className="hidden min-h-0 h-full min-w-0 w-full lg:block">
+              <div className="h-full w-full min-h-0 overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5">
                 <ApartmentMap
                   apartments={apartments}
                   selectedApartmentId={selectedApartmentId}
                   setSelectedApartmentId={setSelectedApartmentId}
                   dialogApartmentId={dialogApartmentId}
                   setDialogApartmentId={setDialogApartmentId}
+                  setHoveredApartmentId={setHoveredApartmentId}
                 />
               </div>
             </section>

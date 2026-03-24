@@ -9,6 +9,7 @@ type ApartmentGridProps = {
   dialogApartmentId: string | null
   setSelectedApartmentId: (id: string | null) => void
   setDialogApartmentId: (id: string | null) => void
+  hoveredApartmentId: string | null
 }
 
 export function ApartmentGrid({
@@ -16,6 +17,7 @@ export function ApartmentGrid({
   dialogApartmentId,
   setSelectedApartmentId,
   setDialogApartmentId,
+  hoveredApartmentId,
 }: ApartmentGridProps) {
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -32,6 +34,7 @@ export function ApartmentGrid({
             selectedApartmentId={selectedApartmentId}
             dialogApartmentId={dialogApartmentId}
             setDialogApartmentId={setDialogApartmentId}
+            hoveredApartmentId={hoveredApartmentId}
           />
         </div>
       ))}
