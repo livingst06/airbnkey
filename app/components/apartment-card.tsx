@@ -27,7 +27,7 @@ export function ApartmentCard({
   return (
     <>
       <Card
-        className={`group mx-4 cursor-pointer gap-0 overflow-hidden rounded-2xl p-0 md:mx-0 ${
+        className={`group mx-4 h-full cursor-pointer gap-0 overflow-hidden rounded-2xl p-0 transition-transform duration-300 hover:scale-[1.02] md:mx-0 ${
           isSelected ? "ring-2 ring-primary" : ""
         }`}
         onClick={() => setDialogApartmentId(apartment.id)}

@@ -44,7 +44,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-6xl px-4 pb-8 pt-6">
+    <main className="mx-auto min-h-screen max-w-[1400px] px-4 pb-8 pt-6 xl:max-w-[1600px] xl:px-12">
       <div className="space-y-10 md:space-y-16">
         <section className="mt-6 text-center md:text-left">
           <h1 className="text-2xl font-semibold text-foreground">
@@ -56,8 +56,8 @@ export default function HomePage() {
         </section>
 
         <section id="appartements" className="scroll-mt-20">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <section>
+          <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[1fr_2fr] xl:gap-12">
+            <section className="min-h-0 min-w-0 lg:h-full">
               <ApartmentGrid
                 selectedApartmentId={selectedApartmentId}
                 setSelectedApartmentId={setSelectedApartmentId}
@@ -66,8 +66,8 @@ export default function HomePage() {
               />
             </section>
 
-            <section className="hidden lg:block">
-              <div className="sticky top-20 h-[calc(100vh-7rem)]">
+            <section className="hidden h-full min-h-[600px] min-w-0 w-full lg:block lg:min-h-[700px] xl:min-h-[760px]">
+              <div className="sticky top-24 h-full min-h-[600px] w-full overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5 lg:min-h-[700px] xl:min-h-[760px]">
                 <ApartmentMap
                   apartments={apartments}
                   selectedApartmentId={selectedApartmentId}
@@ -110,17 +110,17 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="contact" className="scroll-mt-20 py-16">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground">
+        <section id="contact" className="scroll-mt-20 space-y-5 py-16">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
             Contact
           </h2>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
             Une question sur un logement ou une disponibilité ? Laissez-nous un
             message, nous vous répondrons dans les meilleurs délais.
           </p>
           <form
             onSubmit={handleSubmit}
-            className="mt-6 max-w-xl space-y-4"
+            className="max-w-xl space-y-4"
           >
             <Textarea
               id="contact-message"
@@ -131,12 +131,12 @@ export default function HomePage() {
               required
               rows={5}
               aria-label="Message"
-              className="rounded-xl border border-border bg-background/50 backdrop-blur focus:ring-2 focus:ring-primary/20"
+              className="text-base placeholder:text-muted-foreground/70 rounded-xl border border-border bg-background/50 backdrop-blur focus:ring-2 focus:ring-primary/20"
             />
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl text-base font-medium disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? "Envoi…" : "Envoyer"}
             </Button>
