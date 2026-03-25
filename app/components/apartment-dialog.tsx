@@ -98,7 +98,9 @@ export function ApartmentDialog({
 
     setIsDragging(false)
 
-    if (dragYRef.current > 120) {
+    const finalDrag = dragYRef.current
+
+    if (finalDrag > 120) {
       onOpenChange(false)
     } else {
       setDragY(0)
