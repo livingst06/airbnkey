@@ -6,6 +6,7 @@ import "./globals.css";
 import { Navbar } from "@/app/components/navbar";
 import { ApartmentsProvider } from "@/app/components/apartments-context";
 import { Toaster } from "@/components/ui/sonner";
+import { getApartmentsDb } from "@/lib/apartments-db";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,11 +36,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+/** Données appartements lues en BDD : pas de snapshot statique figé au build. */
+export const dynamic = "force-dynamic"
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialApartments = await getApartmentsDb().catch(() => [])
+
   return (
     <html
       lang="en"
@@ -50,7 +56,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
         <Navbar />
-        <ApartmentsProvider>{children}</ApartmentsProvider>
+        <ApartmentsProvider initialApartments={initialApartments}>
+          {children}
+        </ApartmentsProvider>
         <Toaster />
       </body>
     </html>

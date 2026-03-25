@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef } from "react"
 import maplibregl from "maplibre-gl"
 import type { Apartment, DialogAnchorRect } from "@/types/apartments"
 import type { HoverSource } from "@/types/hover"
-
-const MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json"
+import { getMapStyleUrl } from "@/lib/map-style"
 /** Délai avant fermeture : évite les boucles enter/leave au moindre pixel si l’état était vidé tout de suite. */
 const MAP_POPUP_HOVER_LEAVE_MS = 280
 
@@ -82,6 +81,7 @@ export function ApartmentMap({
 }: ApartmentMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
+  const mapResizeObserverRef = useRef<ResizeObserver | null>(null)
   const mapHoverLeaveTimerRef = useRef<number | null>(null)
   const markersByIdRef = useRef<Record<string, MarkerSlot>>({})
   const previousHoveredIdRef = useRef<string | null>(null)
@@ -248,7 +248,7 @@ export function ApartmentMap({
     const frameId = requestAnimationFrame(() => {
       const map = new maplibregl.Map({
         container,
-        style: MAP_STYLE_URL,
+        style: getMapStyleUrl(),
         center: [first.longitude, first.latitude],
         zoom: 13,
       })
@@ -265,6 +265,12 @@ export function ApartmentMap({
 
       mapRef.current = map
 
+      mapResizeObserverRef.current?.disconnect()
+      mapResizeObserverRef.current = new ResizeObserver(() => {
+        mapRef.current?.resize()
+      })
+      mapResizeObserverRef.current.observe(container)
+
       apartments.forEach((apartment) => {
         bounds.extend([apartment.longitude, apartment.latitude])
         createMarkerForApartment(apartment, map)
@@ -273,6 +279,8 @@ export function ApartmentMap({
 
     return () => {
       cancelAnimationFrame(frameId)
+      mapResizeObserverRef.current?.disconnect()
+      mapResizeObserverRef.current = null
       if (mapHoverLeaveTimerRef.current != null) {
         window.clearTimeout(mapHoverLeaveTimerRef.current)
         mapHoverLeaveTimerRef.current = null

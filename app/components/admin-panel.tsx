@@ -51,10 +51,14 @@ export function AdminPanel() {
     setDeleteApartmentId(null)
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteVictim) return
-    deleteApartmentById(deleteVictim.id)
-    closeDeleteDialog()
+    try {
+      await deleteApartmentById(deleteVictim.id)
+      closeDeleteDialog()
+    } catch {
+      // toast côté contexte
+    }
   }
 
   return (

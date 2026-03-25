@@ -191,7 +191,7 @@ export default function HomePage() {
           >
             <section
               className={cn(
-                "flex min-h-0 min-w-0 flex-col pr-0 sm:pr-1 lg:h-full lg:pr-2",
+                "order-1 flex min-h-0 min-w-0 flex-col pr-0 sm:pr-1 lg:h-full lg:pr-2",
                 "max-lg:min-h-0 lg:flex-1",
               )}
             >
@@ -242,8 +242,13 @@ export default function HomePage() {
               </div>
             </section>
 
-            <section className="hidden min-h-0 h-full min-w-0 w-full lg:block">
-              <div className="h-full w-full min-h-0 overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5">
+            <section
+              className={cn(
+                "order-2 flex min-h-0 w-full min-w-0 flex-col lg:order-none lg:h-full",
+                "min-h-[min(52vh,28rem)] shrink-0 lg:min-h-0",
+              )}
+            >
+              <div className="h-full min-h-[min(52vh,28rem)] w-full min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5 lg:min-h-0">
                 <ApartmentMap
                   apartments={sortedApartments}
                   selectedApartmentId={selectedApartmentId}

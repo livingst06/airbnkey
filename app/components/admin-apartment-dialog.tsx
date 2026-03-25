@@ -18,10 +18,9 @@ import { XIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Apartment } from "@/types/apartments"
-import type { ApartmentFormInput } from "./apartments-context"
+import type { ApartmentFormInput } from "@/lib/apartment-zod"
+import { getMapStyleUrl } from "@/lib/map-style"
 import { useApartments } from "./apartments-context"
-
-const MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json"
 
 /** Délai après ouverture du dialog : l’anim zoom + layout doivent être stabilisés avant `new Map()`. */
 const MINI_MAP_INIT_DELAY_MS = 200
@@ -32,7 +31,7 @@ function isBlobOrData(src: string | undefined) {
 }
 
 const MAX_IMAGES = 8
-/** Réduit la taille base64 pour tenir dans localStorage (~5 Mo) tout en restant net pour le web. */
+/** Réduit la taille base64 pour limiter le poids en base et le temps de réponse API. */
 const IMAGE_MAX_LONG_SIDE_PX = 1600
 const IMAGE_JPEG_QUALITY = 0.82
 
@@ -210,7 +209,7 @@ export function AdminApartmentDialog({
 
       const map = new maplibregl.Map({
         container,
-        style: MAP_STYLE_URL,
+        style: getMapStyleUrl(),
         center: [longitudeRef.current, latitudeRef.current],
         zoom: 14,
       })
@@ -340,7 +339,7 @@ export function AdminApartmentDialog({
     return true
   }, [title, description, images, beds, bathrooms, latitude, longitude])
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return
 
     const input: ApartmentFormInput = {
@@ -354,14 +353,17 @@ export function AdminApartmentDialog({
       images: [...images],
     }
 
-    if (apartment) {
-      updateApartment(apartment.id, input)
-    } else {
-      addApartment(input)
+    try {
+      if (apartment) {
+        await updateApartment(apartment.id, input)
+      } else {
+        await addApartment(input)
+      }
+      committedRef.current = true
+      onOpenChange(false)
+    } catch {
+      // toasts déjà émis par le contexte
     }
-
-    committedRef.current = true
-    onOpenChange(false)
   }
 
   return (

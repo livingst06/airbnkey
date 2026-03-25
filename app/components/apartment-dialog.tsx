@@ -27,6 +27,8 @@ import { ApartmentCarousel } from "./apartment-carousel"
 
 const MAX_DIALOG_WIDTH_PX = 42 * 16 // max-w-2xl
 const DIALOG_MARGIN = 12
+/** En dessous : pas d’ancrage (centrage classique), cohérent avec mise en page une colonne / téléphone. */
+const VIEWPORT_MIN_PX_FOR_ANCHORED_DIALOG = 1024 // tailwind `lg`
 
 function anchoredDialogPosition(
   anchor: DialogAnchorRect,
@@ -81,6 +83,7 @@ export function ApartmentDialog({
 
   const anchorPosition = useMemo(() => {
     if (!open || !anchorRect || typeof window === "undefined") return null
+    if (window.innerWidth < VIEWPORT_MIN_PX_FOR_ANCHORED_DIALOG) return null
     return anchoredDialogPosition(
       anchorRect,
       window.innerWidth,
