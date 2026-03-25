@@ -61,11 +61,9 @@ export function ApartmentDialog({
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const el = scrollContainerRef.current
     if (!el) return
-    const scrollTop = el.scrollTop ?? 0
-
-    // autoriser drag UNIQUEMENT si scroll en haut
-    canDragRef.current = scrollTop <= 0
-    if (!canDragRef.current) return
+    // Autoriser le calcul du delta pour DOWN et UP.
+    // La contrainte "DOWN bloqué si scrollTop > 5" est gérée dans `handleTouchMove`.
+    canDragRef.current = true
 
     startYRef.current = e.touches[0].clientY
     dragYRef.current = 0
@@ -81,7 +79,14 @@ export function ApartmentDialog({
 
     const currentY = e.touches[0].clientY
     const delta = currentY - startYRef.current
-    if (delta <= 0) return
+    if (delta === 0) return
+
+    const scrollTop = el.scrollTop ?? 0
+
+    // Swipe DOWN : bloqué si scroll pas en haut.
+    if (delta > 0 && scrollTop > 5) return
+
+    const absDelta = Math.abs(delta)
 
     dragYRef.current = delta
     setDragY(delta)
@@ -89,8 +94,12 @@ export function ApartmentDialog({
     // Pendant le drag actif, éviter les scroll/bounces parasites.
     if (e.nativeEvent.cancelable) e.preventDefault()
 
-    // Pendant drag, on garde le canal "canDrag" ouvert.
-    // (On le coupe au touchEnd.)
+    // Swipe UP ou DOWN (selon signe) : fermeture si on dépasse le seuil.
+    if (absDelta > 120) {
+      canDragRef.current = false
+      onOpenChange(false)
+      return
+    }
   }
 
   const handleTouchEnd = () => {
@@ -100,7 +109,7 @@ export function ApartmentDialog({
 
     const finalDrag = dragYRef.current
 
-    if (finalDrag > 120) {
+    if (Math.abs(finalDrag) > 120) {
       onOpenChange(false)
     } else {
       setDragY(0)
