@@ -3,9 +3,9 @@
 import type { HoverSource } from "@/types/hover"
 import type { Apartment } from "@/types/apartments"
 import { ApartmentCard } from "./apartment-card"
-import { useApartments } from "./apartments-context"
 
 type ApartmentGridProps = {
+  apartments: Apartment[]
   selectedApartmentId: string | null
   dialogApartmentId: string | null
   setSelectedApartmentId: (id: string | null) => void
@@ -18,6 +18,7 @@ type ApartmentGridProps = {
 }
 
 export function ApartmentGrid({
+  apartments,
   selectedApartmentId,
   dialogApartmentId,
   setSelectedApartmentId,
@@ -28,7 +29,13 @@ export function ApartmentGrid({
   setHoverSource,
   hoverLock,
 }: ApartmentGridProps) {
-  const { apartments } = useApartments()
+  if (apartments.length === 0) {
+    return (
+      <p className="rounded-xl border border-dashed border-border/60 bg-muted/20 px-4 py-10 text-center text-sm text-muted-foreground">
+        Aucun appartement ne correspond à ces critères.
+      </p>
+    )
+  }
 
   return (
     <div className="grid grid-cols-1 gap-6">

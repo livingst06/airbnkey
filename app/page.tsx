@@ -1,7 +1,14 @@
 "use client"
 
 import Image from "next/image"
-import { type FormEvent, useState } from "react"
+import {
+  type FormEvent,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import { toast } from "sonner"
 
 import type { HoverSource } from "@/types/hover"
@@ -10,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 
 import { ApartmentGrid } from "./components/apartment-grid"
 import { ApartmentMap } from "./components/apartment-map"
+import { FilterBar } from "./components/filter-bar"
 import { useApartments } from "./components/apartments-context"
 
 export default function HomePage() {
@@ -28,6 +36,80 @@ export default function HomePage() {
   const [hoverLock, setHoverLock] = useState(false)
   const [message, setMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [search, setSearch] = useState("")
+  const deferredSearch = useDeferredValue(search)
+  const [bedsMin, setBedsMin] = useState<number | null>(null)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
+  const availableTags = useMemo(() => {
+    const seen = new Map<string, string>()
+    for (const a of apartments) {
+      for (const raw of a.advantages) {
+        const trimmed = raw.trim()
+        if (!trimmed) continue
+        const key = trimmed.toLowerCase()
+        if (!seen.has(key)) seen.set(key, trimmed)
+      }
+    }
+    return Array.from(seen.entries())
+      .sort(([a], [b]) => a.localeCompare(b, "fr"))
+      .map(([key, label]) => ({ key, label }))
+  }, [apartments])
+
+  const filteredApartments = useMemo(() => {
+    const q = deferredSearch.trim().toLowerCase()
+    return apartments.filter((a) => {
+      if (q) {
+        const title = a.title.toLowerCase()
+        const desc = a.description.toLowerCase()
+        if (!title.includes(q) && !desc.includes(q)) return false
+      }
+      if (bedsMin !== null && a.beds < bedsMin) return false
+      if (selectedTags.length > 0) {
+        const advKeys = new Set(
+          a.advantages
+            .map((t) => t.trim().toLowerCase())
+            .filter(Boolean),
+        )
+        const matches = selectedTags.some((t) => advKeys.has(t))
+        if (!matches) return false
+      }
+      return true
+    })
+  }, [apartments, deferredSearch, bedsMin, selectedTags])
+
+  useEffect(() => {
+    const ids = new Set(filteredApartments.map((a) => a.id))
+    if (selectedApartmentId && !ids.has(selectedApartmentId)) {
+      setSelectedApartmentId(null)
+    }
+    if (dialogApartmentId && !ids.has(dialogApartmentId)) {
+      setDialogApartmentId(null)
+      setHoverLock(false)
+    }
+    if (hoveredApartmentId && !ids.has(hoveredApartmentId)) {
+      setHoveredApartmentId(null)
+      setHoverSource(null)
+    }
+  }, [
+    filteredApartments,
+    selectedApartmentId,
+    dialogApartmentId,
+    hoveredApartmentId,
+  ])
+
+  const toggleTag = useCallback((key: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    )
+  }, [])
+
+  const resetFilters = useCallback(() => {
+    setSearch("")
+    setBedsMin(null)
+    setSelectedTags([])
+  }, [])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -69,7 +151,18 @@ export default function HomePage() {
               className="min-h-0 min-w-0 overflow-y-auto pr-2 scroll-smooth lg:h-full"
               data-list-scroll
             >
+              <FilterBar
+                search={search}
+                onSearchChange={setSearch}
+                bedsMin={bedsMin}
+                onBedsMinChange={setBedsMin}
+                selectedTags={selectedTags}
+                onToggleTag={toggleTag}
+                availableTags={availableTags}
+                onReset={resetFilters}
+              />
               <ApartmentGrid
+                apartments={filteredApartments}
                 selectedApartmentId={selectedApartmentId}
                 setSelectedApartmentId={setSelectedApartmentId}
                 dialogApartmentId={dialogApartmentId}
@@ -85,7 +178,7 @@ export default function HomePage() {
             <section className="hidden min-h-0 h-full min-w-0 w-full lg:block">
               <div className="h-full w-full min-h-0 overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5">
                 <ApartmentMap
-                  apartments={apartments}
+                  apartments={filteredApartments}
                   selectedApartmentId={selectedApartmentId}
                   hoveredApartmentId={hoveredApartmentId}
                   setSelectedApartmentId={setSelectedApartmentId}

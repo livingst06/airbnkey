@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { XIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import type { Apartment } from "@/types/apartments"
 import type { ApartmentFormInput } from "./apartments-context"
@@ -31,6 +32,9 @@ function isBlobOrData(src: string | undefined) {
 }
 
 const MAX_IMAGES = 8
+/** Réduit la taille base64 pour tenir dans localStorage (~5 Mo) tout en restant net pour le web. */
+const IMAGE_MAX_LONG_SIDE_PX = 1600
+const IMAGE_JPEG_QUALITY = 0.82
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -39,6 +43,56 @@ function fileToDataUrl(file: File): Promise<string> {
     reader.onerror = () =>
       reject(reader.error ?? new Error("FileReader failed"))
     reader.readAsDataURL(file)
+  })
+}
+
+/**
+ * Encode une image bitmap en JPEG redimensionné (data URL).
+ * SVG et types non pris en charge passent par le data URL brut.
+ */
+function compressImageFileToDataUrl(file: File): Promise<string> {
+  if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+    return fileToDataUrl(file)
+  }
+
+  const objectUrl = URL.createObjectURL(file)
+  return new Promise((resolve, reject) => {
+    const img = new window.Image()
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      try {
+        const nw = img.naturalWidth
+        const nh = img.naturalHeight
+        if (nw < 1 || nh < 1) {
+          void fileToDataUrl(file).then(resolve).catch(reject)
+          return
+        }
+        const maxSide = Math.max(nw, nh)
+        const scale =
+          maxSide > IMAGE_MAX_LONG_SIDE_PX
+            ? IMAGE_MAX_LONG_SIDE_PX / maxSide
+            : 1
+        const w = Math.max(1, Math.round(nw * scale))
+        const h = Math.max(1, Math.round(nh * scale))
+        const canvas = document.createElement("canvas")
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext("2d")
+        if (!ctx) {
+          void fileToDataUrl(file).then(resolve).catch(reject)
+          return
+        }
+        ctx.drawImage(img, 0, 0, w, h)
+        resolve(canvas.toDataURL("image/jpeg", IMAGE_JPEG_QUALITY))
+      } catch {
+        void fileToDataUrl(file).then(resolve).catch(reject)
+      }
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      void fileToDataUrl(file).then(resolve).catch(reject)
+    }
+    img.src = objectUrl
   })
 }
 
@@ -76,6 +130,9 @@ export function AdminApartmentDialog({
   const [latitude, setLatitude] = useState(43.5528)
   const [longitude, setLongitude] = useState(7.0174)
   const [images, setImages] = useState<string[]>([])
+  const [imageImportBusy, setImageImportBusy] = useState(false)
+  const imagesRef = useRef(images)
+  imagesRef.current = images
 
   const latitudeRef = useRef(latitude)
   const longitudeRef = useRef(longitude)
@@ -105,7 +162,6 @@ export function AdminApartmentDialog({
     [images],
   )
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!open) return
 
@@ -131,7 +187,6 @@ export function AdminApartmentDialog({
       setImages([])
     }
   }, [open, apartment])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (open) return
@@ -219,17 +274,26 @@ export function AdminApartmentDialog({
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return
     const fileArr = Array.from(files)
+    const room = Math.max(0, MAX_IMAGES - imagesRef.current.length)
+    const toProcess = fileArr.slice(0, room)
+    if (toProcess.length === 0) return
 
     void (async () => {
-      const dataUrls = await Promise.all(
-        fileArr.slice(0, MAX_IMAGES).map(fileToDataUrl),
-      )
-      setImages((p) => {
-        const room = Math.max(0, MAX_IMAGES - p.length)
-        if (room === 0) return p
-        const toAdd = dataUrls.slice(0, room)
-        return [...p, ...toAdd]
-      })
+      setImageImportBusy(true)
+      try {
+        const dataUrls: string[] = []
+        for (const file of toProcess) {
+          try {
+            dataUrls.push(await compressImageFileToDataUrl(file))
+          } catch {
+            toast.error(`Image ignorée : ${file.name}`)
+          }
+        }
+        if (dataUrls.length === 0) return
+        setImages((p) => [...p, ...dataUrls])
+      } finally {
+        setImageImportBusy(false)
+      }
     })()
   }
 
@@ -423,7 +487,7 @@ export function AdminApartmentDialog({
                   isDraggingImages
                     ? "border-primary/40 bg-primary/5"
                     : "border-border/40 bg-background/40 hover:bg-background/60"
-                }`}
+                } ${imageImportBusy ? "pointer-events-none opacity-70" : ""}`}
                 onDragOver={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -435,6 +499,7 @@ export function AdminApartmentDialog({
                 role="button"
                 tabIndex={0}
                 aria-label="Ajouter des photos"
+                aria-busy={imageImportBusy}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault()
@@ -443,10 +508,14 @@ export function AdminApartmentDialog({
                 }}
               >
                 <div className="text-sm font-medium text-foreground/90">
-                  Glissez-déposez des images ici
+                  {imageImportBusy
+                    ? "Optimisation des images pour le stockage…"
+                    : "Glissez-déposez des images ici"}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  ou cliquez pour sélectionner
+                  {imageImportBusy
+                    ? "Quelques secondes si les fichiers sont lourds."
+                    : "ou cliquez pour sélectionner — redimensionnement auto pour tenir dans le navigateur."}
                 </div>
               </div>
 

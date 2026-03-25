@@ -33,6 +33,9 @@ export function ApartmentCard({
   const isListHoverHighlight =
     selectedApartmentId === apartment.id && !isSyncedHover
   const cardRef = useRef<HTMLDivElement>(null)
+  const firstImage = apartment.images[0]
+  const imageUnoptimized =
+    firstImage?.startsWith("blob:") || firstImage?.startsWith("data:")
 
   useEffect(() => {
     if (hoverSource !== "map" || hoveredApartmentId !== apartment.id) return
@@ -101,13 +104,14 @@ export function ApartmentCard({
             }}
           >
             <Image
-              src={apartment.images[0]}
+              src={firstImage}
               alt={apartment.title}
               fill
               style={{ willChange: "transform" }}
               className="m-0 h-full w-full object-cover p-0 transition-[transform,filter] duration-500 ease-out group-hover:scale-[1.03] group-hover:brightness-105"
               sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
               priority={priority}
+              unoptimized={imageUnoptimized}
             />
             <div
               className="pointer-events-none absolute bottom-0 left-0 w-full bg-black/40 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm transition-opacity duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
