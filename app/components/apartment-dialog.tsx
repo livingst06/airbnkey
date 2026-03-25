@@ -1,6 +1,6 @@
 "use client"
 
-import { type ComponentPropsWithoutRef } from "react"
+import { useRef, useState, type ComponentPropsWithoutRef } from "react"
 
 import { Apartment } from "@/types/apartments"
 import { Badge } from "@/components/ui/badge"
@@ -51,6 +51,63 @@ export function ApartmentDialog({
   onOpenChange,
 }: ApartmentDialogProps) {
   const images = apartment.images.slice(0, 4)
+  const [dragY, setDragY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const startYRef = useRef<number | null>(null)
+  const dragYRef = useRef(0)
+  const canDragRef = useRef(false)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    const scrollTop = el.scrollTop ?? 0
+
+    // autoriser drag UNIQUEMENT si scroll en haut
+    canDragRef.current = scrollTop <= 0
+    if (!canDragRef.current) return
+
+    startYRef.current = e.touches[0].clientY
+    dragYRef.current = 0
+    setDragY(0)
+    setIsDragging(true)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    if (!canDragRef.current) return
+    if (startYRef.current === null) return
+
+    const currentY = e.touches[0].clientY
+    const delta = currentY - startYRef.current
+    if (delta <= 0) return
+
+    dragYRef.current = delta
+    setDragY(delta)
+
+    // Pendant le drag actif, éviter les scroll/bounces parasites.
+    if (e.nativeEvent.cancelable) e.preventDefault()
+
+    // Pendant drag, on garde le canal "canDrag" ouvert.
+    // (On le coupe au touchEnd.)
+  }
+
+  const handleTouchEnd = () => {
+    if (!canDragRef.current) return
+
+    setIsDragging(false)
+
+    if (dragYRef.current > 120) {
+      onOpenChange(false)
+    } else {
+      setDragY(0)
+    }
+
+    startYRef.current = null
+    dragYRef.current = 0
+    canDragRef.current = false
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,7 +122,17 @@ export function ApartmentDialog({
           <XIcon className="size-4 opacity-90" />
         </DialogClose>
 
-        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+        <div
+          ref={scrollContainerRef}
+          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto touch-pan-y"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            transform: `translateY(${dragY}px)`,
+            transition: isDragging ? "none" : "transform 0.25s ease",
+          }}
+        >
           <div className="sticky top-4 z-50 flex w-full justify-center px-4">
             <BackToListButton />
           </div>
