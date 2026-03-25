@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef } from "react"
 import maplibregl from "maplibre-gl"
-import type { Apartment } from "@/types/apartments"
+import type { Apartment, DialogAnchorRect } from "@/types/apartments"
 import type { HoverSource } from "@/types/hover"
 
 const MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json"
+/** Délai avant fermeture : évite les boucles enter/leave au moindre pixel si l’état était vidé tout de suite. */
+const MAP_POPUP_HOVER_LEAVE_MS = 280
 
 type ApartmentMapProps = {
   apartments: Apartment[]
@@ -14,7 +16,7 @@ type ApartmentMapProps = {
   hoverLock: boolean
   dialogApartmentId: string | null
   setSelectedApartmentId: (id: string | null) => void
-  setDialogApartmentId: (id: string | null) => void
+  openApartmentDialog: (id: string | null, anchor?: DialogAnchorRect | null) => void
   setHoveredApartmentId: (id: string | null) => void
   setHoverSource: (source: HoverSource) => void
   setHoverLock: (locked: boolean) => void
@@ -33,6 +35,18 @@ function escapeHtml(text: string): string {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
+}
+
+/** Ancre modale côté carte : viewport du root du marker MapLibre, centrage horizontal sur le pin. */
+function mapPinAnchorFromMarkerRoot(el: HTMLElement): DialogAnchorRect {
+  const r = el.getBoundingClientRect()
+  return {
+    top: r.top,
+    left: r.left,
+    width: r.width,
+    height: r.height,
+    align: "center",
+  }
 }
 
 function derivePriceFromApartment(apartment: Apartment) {
@@ -61,19 +75,27 @@ export function ApartmentMap({
   selectedApartmentId,
   hoveredApartmentId,
   setSelectedApartmentId,
-  setDialogApartmentId,
+  openApartmentDialog,
   setHoveredApartmentId,
   setHoverSource,
   setHoverLock,
 }: ApartmentMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
+  const mapHoverLeaveTimerRef = useRef<number | null>(null)
   const markersByIdRef = useRef<Record<string, MarkerSlot>>({})
   const previousHoveredIdRef = useRef<string | null>(null)
   const lastFlyToIdRef = useRef<string | null>(null)
   const apartmentsByIdRef = useRef<Map<string, Apartment>>(new Map())
   const selectedApartmentIdRef = useRef<string | null>(selectedApartmentId)
   const hoveredApartmentIdRef = useRef<string | null>(hoveredApartmentId)
+
+  const clearMapHoverLeaveTimer = useCallback(() => {
+    if (mapHoverLeaveTimerRef.current != null) {
+      window.clearTimeout(mapHoverLeaveTimerRef.current)
+      mapHoverLeaveTimerRef.current = null
+    }
+  }, [])
 
   const createMarkerForApartment = useCallback(
     (
@@ -115,23 +137,34 @@ export function ApartmentMap({
       </div>
     `
 
-    let hideTimer: number | null = null
+    const scheduleMapHoverLeave = () => {
+      clearMapHoverLeaveTimer()
+      mapHoverLeaveTimerRef.current = window.setTimeout(() => {
+        mapHoverLeaveTimerRef.current = null
+        setSelectedApartmentId(null)
+        setHoveredApartmentId(null)
+        setHoverSource(null)
+        setHoverLock(false)
+        try {
+          popup.remove()
+        } catch {
+          // noop
+        }
+      }, MAP_POPUP_HOVER_LEAVE_MS)
+    }
 
     popupContent.addEventListener("mouseenter", () => {
-      if (hideTimer) window.clearTimeout(hideTimer)
-      hideTimer = null
+      clearMapHoverLeaveTimer()
     })
 
     popupContent.addEventListener("mouseleave", () => {
-      if (hideTimer) window.clearTimeout(hideTimer)
-      hideTimer = window.setTimeout(() => {
-        popup.remove()
-      }, 120)
+      scheduleMapHoverLeave()
     })
 
     popupContent.addEventListener("click", (e) => {
       e.stopPropagation()
-      setDialogApartmentId(apartment.id)
+      clearMapHoverLeaveTimer()
+      openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
       setSelectedApartmentId(apartment.id)
       popup.remove()
     })
@@ -139,12 +172,20 @@ export function ApartmentMap({
     popup.setDOMContent(popupContent)
 
     el.addEventListener("mouseenter", () => {
+      clearMapHoverLeaveTimer()
+      for (const [id, slot] of Object.entries(markersByIdRef.current)) {
+        if (id === apartment.id) continue
+        try {
+          slot.popup.remove()
+        } catch {
+          // noop
+        }
+      }
+
       setSelectedApartmentId(apartment.id)
       setHoveredApartmentId(apartment.id)
       setHoverSource("map")
       setHoverLock(true)
-      if (hideTimer) window.clearTimeout(hideTimer)
-      hideTimer = null
 
       // Popup doit avoir une position valide au moment de l’affichage.
       popup.setLngLat([apartment.longitude, apartment.latitude])
@@ -152,19 +193,13 @@ export function ApartmentMap({
     })
 
     el.addEventListener("mouseleave", () => {
-      setSelectedApartmentId(null)
-      setHoveredApartmentId(null)
-      setHoverSource(null)
-      setHoverLock(false)
-      if (hideTimer) window.clearTimeout(hideTimer)
-      hideTimer = window.setTimeout(() => {
-        popup.remove()
-      }, 120)
+      scheduleMapHoverLeave()
     })
 
     el.addEventListener("click", (e) => {
       e.stopPropagation()
-      setDialogApartmentId(apartment.id)
+      clearMapHoverLeaveTimer()
+      openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
       setSelectedApartmentId(apartment.id)
       popup.remove()
     })
@@ -173,8 +208,10 @@ export function ApartmentMap({
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault()
         e.stopPropagation()
-        setDialogApartmentId(apartment.id)
+        clearMapHoverLeaveTimer()
+        openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
         setSelectedApartmentId(apartment.id)
+        popup.remove()
       }
     })
 
@@ -191,7 +228,8 @@ export function ApartmentMap({
     }
     },
     [
-      setDialogApartmentId,
+      clearMapHoverLeaveTimer,
+      openApartmentDialog,
       setSelectedApartmentId,
       setHoveredApartmentId,
       setHoverSource,
@@ -235,6 +273,10 @@ export function ApartmentMap({
 
     return () => {
       cancelAnimationFrame(frameId)
+      if (mapHoverLeaveTimerRef.current != null) {
+        window.clearTimeout(mapHoverLeaveTimerRef.current)
+        mapHoverLeaveTimerRef.current = null
+      }
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
@@ -254,6 +296,11 @@ export function ApartmentMap({
   useEffect(() => {
     const m = mapRef.current
     if (!m) return
+
+    if (mapHoverLeaveTimerRef.current != null) {
+      window.clearTimeout(mapHoverLeaveTimerRef.current)
+      mapHoverLeaveTimerRef.current = null
+    }
 
     // Supprimer markers + popups existants.
     const existing = markersByIdRef.current

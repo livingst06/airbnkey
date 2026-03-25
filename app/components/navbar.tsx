@@ -162,66 +162,70 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/60 backdrop-blur-md dark:border-white/5 dark:bg-neutral-900/60">
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 md:h-16 xl:max-w-[1600px] xl:px-12">
-        <Link
-          href="/"
-          className="transition-opacity hover:opacity-80"
-          aria-label="Airbnkey — accueil"
-        >
-          <Image
-            src="/favicon.svg"
-            alt="Airbnkey"
-            width={28}
-            height={28}
-            className="rounded-md"
-          />
-        </Link>
-        <div className="flex items-center gap-4 md:gap-6">
-          <nav
-            className="hidden items-center md:flex md:gap-8"
-            aria-label="Navigation principale"
+      <div className="grid h-14 w-full grid-cols-[auto_1fr_auto] items-center md:h-16">
+        <div className="flex items-center pl-4 xl:pl-8">
+          <Link
+            href="/"
+            className="transition-opacity hover:opacity-80"
+            aria-label="Airbnkey — accueil"
           >
-            <div
-              ref={linksWrapperRef}
-              className="relative flex items-center gap-6 md:gap-8"
-            >
-              <span
-                ref={indicatorRef}
-                aria-hidden
-                className={`absolute top-1/2 left-0 z-0 -translate-y-1/2 rounded-lg ${indicatorBgClass} transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-none`}
-              />
+            <Image
+              src="/favicon.svg"
+              alt="Airbnkey"
+              width={28}
+              height={28}
+              className="rounded-md"
+            />
+          </Link>
+        </div>
 
-              {navLinks.map(({ id, href, label }) => {
-                const isActive = id === activeNavId
-                const isAdminLink = id === "admin"
-                const className =
-                  isActive
-                    ? isAdminLink
-                      ? "text-red-500 font-medium opacity-100 relative z-10"
-                      : "text-foreground font-medium opacity-100 relative z-10"
-                    : isAdminLink
-                      ? "text-red-500/70 hover:text-red-500 transition-colors duration-200 relative z-10"
-                      : "text-foreground/70 hover:text-foreground transition-colors duration-200 relative z-10"
-                return (
-                  <Link
-                    key={href}
-                    ref={(el) => {
-                      linkRefs.current[id] = el
-                    }}
-                    href={href}
-                    onClick={() => {
-                      if (id !== "admin") setActiveSection(id)
-                    }}
-                    className={className}
-                  >
-                    <span className="text-[15px] tracking-tight md:text-base">
-                      {label}
-                    </span>
-                  </Link>
-                )
-              })}
-            </div>
-          </nav>
+        <nav
+          className="hidden min-w-0 justify-self-center md:flex"
+          aria-label="Navigation principale"
+        >
+          <div
+            ref={linksWrapperRef}
+            className="relative flex items-center gap-6 md:gap-8"
+          >
+            <span
+              ref={indicatorRef}
+              aria-hidden
+              className={`pointer-events-none absolute top-1/2 left-0 z-0 -translate-y-1/2 rounded-lg ${indicatorBgClass} transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]`}
+            />
+
+            {navLinks.map(({ id, href, label }) => {
+              const isActive = id === activeNavId
+              const isAdminLink = id === "admin"
+              const className =
+                isActive
+                  ? isAdminLink
+                    ? "relative z-10 font-medium text-red-500 opacity-100"
+                    : "relative z-10 font-medium text-foreground opacity-100"
+                  : isAdminLink
+                    ? "relative z-10 text-red-500/70 transition-colors duration-200 hover:text-red-500"
+                    : "relative z-10 text-foreground/70 transition-colors duration-200 hover:text-foreground"
+              return (
+                <Link
+                  key={href}
+                  ref={(el) => {
+                    linkRefs.current[id] = el
+                  }}
+                  href={href}
+                  onClick={() => {
+                    if (id !== "admin") setActiveSection(id)
+                  }}
+                  className={className}
+                >
+                  <span className="text-[15px] tracking-tight md:text-base">
+                    {label}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        </nav>
+
+        <div className="flex items-center justify-end pr-4 xl:pr-8">
           <ThemeToggle />
         </div>
       </div>

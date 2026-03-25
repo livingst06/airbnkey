@@ -47,13 +47,20 @@ function DialogOverlay({
   )
 }
 
+const dialogContentBaseClass =
+  "fixed z-50 grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-2xl border border-neutral-200 bg-white/90 p-4 text-sm text-neutral-900 shadow-lg backdrop-blur-md transition-colors duration-300 outline-none dark:border-neutral-700 dark:bg-neutral-800/90 dark:text-neutral-100 sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  anchorPosition,
+  style,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  /** Si défini, remplace le centrage viewport (px, bord haut-gauche du contenu, centré verticalement via -translate-y-1/2). */
+  anchorPosition?: { left: number; top: number } | null
 }) {
   return (
     <DialogPortal>
@@ -61,9 +68,18 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border border-neutral-200 bg-white/90 p-4 text-sm text-neutral-900 shadow-lg backdrop-blur-md transition-colors duration-300 outline-none dark:border-neutral-700 dark:bg-neutral-800/90 dark:text-neutral-100 sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-          className
+          dialogContentBaseClass,
+          anchorPosition
+            ? "translate-x-0 -translate-y-1/2"
+            : "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+          className,
         )}
+        style={{
+          ...style,
+          ...(anchorPosition
+            ? { left: anchorPosition.left, top: anchorPosition.top }
+            : {}),
+        }}
         {...props}
       >
         {children}

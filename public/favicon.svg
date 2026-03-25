@@ -1,22 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Airbnkey">
-  <rect width="32" height="32" rx="8" fill="#0f172a"/>
-  <!-- Forme 1 : A (traits épais, centré) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 32" role="img" aria-label="Airbnkey">
+  <rect width="36" height="32" rx="8" fill="#0f172a"/>
+  <!-- A (même typo : traits arrondis, décalé pour laisser place au K) -->
   <path
-    d="M16 9.2 10.6 24 M16 9.2 21.4 24 M12 17.4h8"
+    d="M11 9.2 5.6 24 M11 9.2 16.4 24 M7 17.4h8"
     fill="none"
     stroke="#e5e7eb"
     stroke-width="2.35"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-  <!-- Forme 2 : suggestion de clé (diagonale + tête circulaire) -->
+  <!-- Clé : diagonale + tête (recadrée sur le A) -->
   <g stroke-linecap="round">
     <path
       fill="none"
       stroke="#e5e7eb"
       stroke-width="1.75"
-      d="M10.4 10.3 22.6 23.6"
+      d="M6.2 10.4 19.8 23.4"
     />
-    <circle cx="22.6" cy="23.6" r="2.35" fill="#e5e7eb"/>
+    <circle cx="19.8" cy="23.4" r="2.35" fill="#e5e7eb"/>
   </g>
+  <!-- K : même poids de trait que le A -->
+  <path
+    d="M17.85 9.2V24 M17.85 16.15 25.2 9.2 M17.85 16.15 25.2 24"
+    fill="none"
+    stroke="#e5e7eb"
+    stroke-width="2.35"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
 </svg>

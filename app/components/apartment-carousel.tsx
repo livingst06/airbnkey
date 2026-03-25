@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Image from "next/image"
 
-import { Button } from "@/components/ui/button"
 import {
   carouselChevronIconClass,
   carouselNavButtonClass,
@@ -14,8 +13,8 @@ type ApartmentCarouselProps = {
   images: string[]
   title: string
   slug: string
-  /** default: liste ; dialog: modale ; detail: page /appartement avec overlay + CTA */
-  variant?: "default" | "dialog" | "detail"
+  /** default: grille liste ; dialog: modale détail */
+  variant?: "default" | "dialog"
 }
 
 export function ApartmentCarousel({
@@ -72,20 +71,9 @@ export function ApartmentCarousel({
           fill
           className={`h-full w-full ${imageClassName}`}
           sizes="(min-width: 1024px) 600px, (min-width: 640px) 80vw, 100vw"
-          priority={variant === "detail" && currentIndex === 0}
+          priority={variant === "dialog" && currentIndex === 0}
           unoptimized={unoptimized}
         />
-        {variant === "detail" ? (
-          <div
-            className="pointer-events-none absolute bottom-0 left-0 z-[1] flex w-full items-center justify-between bg-black/40 px-3 py-2 text-sm font-medium text-white opacity-90 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
-            aria-hidden
-          >
-            <span>Voir sur Halldis</span>
-            <span aria-hidden className="text-base leading-none">
-              →
-            </span>
-          </div>
-        ) : null}
       </button>
 
       {hasMultipleImages && (
@@ -110,24 +98,6 @@ export function ApartmentCarousel({
       )}
     </div>
   )
-
-  if (variant === "detail") {
-    return (
-      <>
-        {carouselBlock}
-        <div className="px-6">
-          <Button
-            type="button"
-            variant="default"
-            className="mt-4 w-full"
-            onClick={openHalldis}
-          >
-            Réserver sur Halldis →
-          </Button>
-        </div>
-      </>
-    )
-  }
 
   return carouselBlock
 }

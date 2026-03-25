@@ -1,11 +1,11 @@
 "use client"
 
-import { useRef, useState, type ComponentPropsWithoutRef } from "react"
+import { useMemo, useRef, useState } from "react"
 
-import { Apartment } from "@/types/apartments"
+import type { Apartment, DialogAnchorRect } from "@/types/apartments"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { ArrowLeft, XIcon } from "lucide-react"
+import { XIcon } from "lucide-react"
 
 import {
   Dialog,
@@ -15,40 +15,58 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  listingDetailBody,
+  listingDetailMeta,
+  listingDetailTitle,
+  listingHalldisCtaClassName,
+  listingSectionLabel,
+  listingTagBadgeClass,
+} from "@/lib/listing-ui"
 import { ApartmentCarousel } from "./apartment-carousel"
 
-const backToListButtonClass =
-  "flex h-11 items-center justify-center gap-2 rounded-full border border-white/30 bg-white/80 px-5 text-base font-medium text-black/80 shadow-md ring-1 ring-black/5 backdrop-blur-lg transition-all duration-200 ease-out hover:scale-[1.02] hover:bg-white/90 active:scale-95 dark:border-white/10 dark:bg-neutral-800/80 dark:text-white/90 dark:ring-white/10 dark:hover:bg-neutral-800/90"
+const MAX_DIALOG_WIDTH_PX = 42 * 16 // max-w-2xl
+const DIALOG_MARGIN = 12
+
+function anchoredDialogPosition(
+  anchor: DialogAnchorRect,
+  vw: number,
+  vh: number,
+): { left: number; top: number } {
+  const maxW = Math.min(vw - 2 * DIALOG_MARGIN, MAX_DIALOG_WIDTH_PX)
+  const pinCenterX = anchor.left + anchor.width / 2
+  const left =
+    anchor.align === "center"
+      ? Math.max(
+          DIALOG_MARGIN,
+          Math.min(pinCenterX - maxW / 2, vw - maxW - DIALOG_MARGIN),
+        )
+      : Math.max(
+          DIALOG_MARGIN,
+          Math.min(anchor.left, vw - maxW - DIALOG_MARGIN),
+        )
+  const cardCenterY = anchor.top + anchor.height / 2
+  const halfEst = Math.min(vh * 0.45, 28 * 16)
+  const top = Math.max(
+    DIALOG_MARGIN + halfEst,
+    Math.min(vh - DIALOG_MARGIN - halfEst, cardCenterY),
+  )
+  return { left, top }
+}
 
 type ApartmentDialogProps = {
   apartment: Apartment
   open: boolean
   onOpenChange: (open: boolean) => void
-}
-
-function BackToListButton({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<"button">) {
-  return (
-    <DialogClose asChild>
-      <button
-        type="button"
-        aria-label="Retour à la liste"
-        className={cn(backToListButtonClass, className)}
-        {...props}
-      >
-        <ArrowLeft className="h-4 w-4 opacity-70" />
-        <span>Retour à la liste</span>
-      </button>
-    </DialogClose>
-  )
+  /** Détail ouvert depuis la grille : ancrer la modale sur la carte cliquée. */
+  anchorRect?: DialogAnchorRect | null
 }
 
 export function ApartmentDialog({
   apartment,
   open,
   onOpenChange,
+  anchorRect = null,
 }: ApartmentDialogProps) {
   const images = apartment.images.slice(0, 4)
   const [dragY, setDragY] = useState(0)
@@ -60,6 +78,15 @@ export function ApartmentDialog({
   const lastYRef = useRef(0)
   const lastTimeRef = useRef(0)
   const velocityRef = useRef(0)
+
+  const anchorPosition = useMemo(() => {
+    if (!open || !anchorRect || typeof window === "undefined") return null
+    return anchoredDialogPosition(
+      anchorRect,
+      window.innerWidth,
+      window.innerHeight,
+    )
+  }, [open, anchorRect])
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const el = scrollContainerRef.current
@@ -165,6 +192,7 @@ export function ApartmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
+        anchorPosition={anchorPosition}
         className="flex max-h-[min(90dvh,56rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-xl ring-0 transition-colors duration-300 dark:bg-neutral-800"
       >
         <DialogClose
@@ -185,10 +213,6 @@ export function ApartmentDialog({
           transition: isDragging ? "none" : "transform 0.2s ease-out",
           }}
         >
-          <div className="sticky top-4 z-50 flex w-full justify-center px-4">
-            <BackToListButton />
-          </div>
-
           <ApartmentCarousel
             variant="dialog"
             images={images}
@@ -196,33 +220,53 @@ export function ApartmentDialog({
             slug={apartment.slug}
           />
 
-          <div className="space-y-4 p-8 md:space-y-6">
-            <DialogHeader className="space-y-3">
-              <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+          <div className="flex flex-col gap-8 px-4 pb-8 pt-2 sm:px-6 sm:pb-10 sm:pt-4">
+            <a
+              href={`https://www.halldis.com/${apartment.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={listingHalldisCtaClassName()}
+            >
+              Réserver sur Halldis
+              <span aria-hidden className="text-lg leading-none opacity-90">
+                →
+              </span>
+            </a>
+
+            <DialogHeader className="space-y-0 gap-0 text-left">
+              <DialogTitle className={listingDetailTitle}>
                 {apartment.title}
               </DialogTitle>
-              <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
+              <p className={listingDetailMeta}>
                 {apartment.beds} couchages • {apartment.bathrooms} salle
                 {apartment.bathrooms > 1 ? "s" : ""} de bain
               </p>
             </DialogHeader>
 
-            <DialogDescription className="text-base leading-relaxed text-foreground/90 md:text-lg">
+            <DialogDescription
+              className={cn(
+                listingDetailBody,
+                "text-foreground dark:text-foreground",
+              )}
+            >
               {apartment.description}
             </DialogDescription>
 
             {apartment.advantages?.length ? (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {apartment.advantages.map((advantage) => (
-                  <Badge
-                    key={advantage}
-                    variant="secondary"
-                    className="h-auto min-h-0 rounded-full border-transparent bg-muted px-3 py-1 text-sm font-medium text-muted-foreground"
-                  >
-                    {advantage}
-                  </Badge>
-                ))}
-              </div>
+              <section className="space-y-0">
+                <h3 className={listingSectionLabel}>Équipements</h3>
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  {apartment.advantages.map((advantage) => (
+                    <Badge
+                      key={advantage}
+                      variant="outline"
+                      className={listingTagBadgeClass}
+                    >
+                      {advantage}
+                    </Badge>
+                  ))}
+                </div>
+              </section>
             ) : null}
           </div>
         </div>

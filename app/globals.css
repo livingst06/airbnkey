@@ -161,9 +161,6 @@
     0 20px 40px rgba(0, 0, 0, 0.18),
     0 8px 16px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
-
-  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-  animation: popupFadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .popup-card::before {
@@ -183,10 +180,6 @@
 
 .dark .popup-card {
   background: rgba(30, 30, 30, 0.8);
-}
-
-.popup-card:hover {
-  transform: scale(1.02);
 }
 
 .popup-image {
@@ -223,15 +216,4 @@
 
 .dark .popup-meta {
   color: rgba(255, 255, 255, 0.6);
-}
-
-@keyframes popupFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }

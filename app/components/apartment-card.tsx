@@ -1,20 +1,19 @@
 "use client"
 
 import Image from "next/image"
-import Link from "next/link"
 import { useEffect, useRef } from "react"
 import type { HoverSource } from "@/types/hover"
-import { Apartment } from "@/types/apartments"
+import type { Apartment, DialogAnchorRect } from "@/types/apartments"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { ApartmentDialog } from "./apartment-dialog"
+import { listingTagBadgeClass } from "@/lib/listing-ui"
+import { cn } from "@/lib/utils"
 
 type Props = {
   apartment: Apartment
   priority?: boolean
   selectedApartmentId: string | null
-  dialogApartmentId: string | null
-  setDialogApartmentId: (id: string | null) => void
+  openApartmentDialog: (id: string | null, anchor?: DialogAnchorRect | null) => void
   hoveredApartmentId: string | null
   hoverSource: HoverSource
 }
@@ -23,8 +22,7 @@ export function ApartmentCard({
   apartment,
   priority = false,
   selectedApartmentId,
-  dialogApartmentId,
-  setDialogApartmentId,
+  openApartmentDialog,
   hoveredApartmentId,
   hoverSource,
 }: Props) {
@@ -36,6 +34,9 @@ export function ApartmentCard({
   const firstImage = apartment.images[0]
   const imageUnoptimized =
     firstImage?.startsWith("blob:") || firstImage?.startsWith("data:")
+  const advantages = apartment.advantages ?? []
+  const visibleAdvantages = advantages.slice(0, 3)
+  const extraAdvantageCount = advantages.length - 3
 
   useEffect(() => {
     if (hoverSource !== "map" || hoveredApartmentId !== apartment.id) return
@@ -46,8 +47,26 @@ export function ApartmentCard({
     if (!(scrollRoot instanceof HTMLElement)) return
 
     const er = el.getBoundingClientRect()
-    const sr = scrollRoot.getBoundingClientRect()
     const margin = 8
+    const maxScroll = Math.max(
+      0,
+      scrollRoot.scrollHeight - scrollRoot.clientHeight,
+    )
+
+    if (maxScroll <= 0) {
+      const vh = typeof window !== "undefined" ? window.innerHeight : 0
+      const fullyVisible =
+        er.top >= -margin && er.bottom <= vh + margin
+      if (fullyVisible) return
+      el.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+        inline: "nearest",
+      })
+      return
+    }
+
+    const sr = scrollRoot.getBoundingClientRect()
     const fullyVisible =
       er.top >= sr.top - margin && er.bottom <= sr.bottom + margin
     if (fullyVisible) return
@@ -55,10 +74,6 @@ export function ApartmentCard({
     const elCenter = er.top + er.height / 2
     const srCenter = sr.top + sr.height / 2
     const delta = elCenter - srCenter
-    const maxScroll = Math.max(
-      0,
-      scrollRoot.scrollHeight - scrollRoot.clientHeight,
-    )
     const nextTop = Math.min(
       maxScroll,
       Math.max(0, scrollRoot.scrollTop + delta),
@@ -68,98 +83,99 @@ export function ApartmentCard({
   }, [hoverSource, hoveredApartmentId, apartment.id])
 
   return (
-    <>
-      <div ref={cardRef} className="h-full">
-        <Card
-          className={`group mx-4 h-full cursor-pointer gap-0 overflow-hidden rounded-2xl p-0 transition-all duration-200 ease-out md:mx-0 ${
-            isSyncedHover
-              ? "scale-[1.02] shadow-xl ring-2 ring-primary"
-              : isListHoverHighlight
-                ? "ring-2 ring-primary"
-                : "hover:scale-[1.02]"
-          }`}
-          onClick={() => setDialogApartmentId(apartment.id)}
-        >
-          <div
-            className="relative aspect-[4/3] w-full shrink-0 cursor-pointer overflow-hidden rounded-t-2xl"
-            role="button"
-            tabIndex={0}
-            aria-label="Voir cet appartement sur Halldis"
-            onClick={(e) => {
-              e.stopPropagation()
-              window.open(
-                `https://www.halldis.com/${apartment.slug}`,
-                "_blank",
-              )
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault()
-                e.stopPropagation()
-                window.open(
-                  `https://www.halldis.com/${apartment.slug}`,
-                  "_blank",
-                )
-              }
-            }}
-          >
-            <Image
-              src={firstImage}
-              alt={apartment.title}
-              fill
-              style={{ willChange: "transform" }}
-              className="m-0 h-full w-full object-cover p-0 transition-[transform,filter] duration-500 ease-out group-hover:scale-[1.03] group-hover:brightness-105"
-              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-              priority={priority}
-              unoptimized={imageUnoptimized}
-            />
-            <div
-              className="pointer-events-none absolute bottom-0 left-0 w-full bg-black/40 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm transition-opacity duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-              aria-hidden
-            >
-              Voir sur Halldis →
-            </div>
-          </div>
+    <div ref={cardRef} className="h-full">
+      <Card
+        role="button"
+        tabIndex={0}
+        aria-label={`Voir les détails : ${apartment.title}`}
+        className={`group h-full cursor-pointer gap-0 overflow-hidden rounded-xl p-0 shadow-sm transition-all duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+          isSyncedHover
+            ? "shadow-lg ring-2 ring-primary md:scale-[1.01]"
+            : isListHoverHighlight
+              ? "ring-2 ring-primary"
+              : "hover:shadow-md md:hover:scale-[1.01]"
+        }`}
+        onClick={() => {
+          const el = cardRef.current
+          const r = el?.getBoundingClientRect()
+          openApartmentDialog(
+            apartment.id,
+            r
+              ? {
+                  top: r.top,
+                  left: r.left,
+                  width: r.width,
+                  height: r.height,
+                }
+              : null,
+          )
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            const el = cardRef.current
+            const r = el?.getBoundingClientRect()
+            openApartmentDialog(
+              apartment.id,
+              r
+                ? {
+                    top: r.top,
+                    left: r.left,
+                    width: r.width,
+                    height: r.height,
+                  }
+                : null,
+            )
+          }
+        }}
+      >
+        <div className="relative aspect-[3/2] w-full shrink-0 overflow-hidden rounded-t-xl">
+          <Image
+            src={firstImage}
+            alt={apartment.title}
+            fill
+            style={{ willChange: "transform" }}
+            className="m-0 h-full w-full object-cover p-0 transition-[transform,filter] duration-500 ease-out group-hover:scale-[1.03] group-hover:brightness-105"
+            sizes="(min-width: 1536px) 14vw, (min-width: 1024px) 18vw, (min-width: 640px) 42vw, 100vw"
+            priority={priority}
+            unoptimized={imageUnoptimized}
+          />
+        </div>
 
-          <CardContent className="space-y-3 p-4">
-            <h3 className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+        <CardContent className="flex flex-col px-4 pt-4 pb-5">
+          <div className="flex flex-col gap-3">
+            <h3 className="line-clamp-2 text-[1.0625rem] font-semibold leading-snug tracking-tight text-foreground lg:text-[1.125rem]">
               {apartment.title}
             </h3>
 
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[0.8125rem] font-normal leading-normal text-muted-foreground">
               {apartment.beds} couchages • {apartment.bathrooms} salle de bain
             </p>
 
-            {apartment.advantages?.length ? (
+            {advantages.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {apartment.advantages.map((advantage: string) => (
-                  <Badge key={advantage} variant="secondary">
+                {visibleAdvantages.map((advantage: string) => (
+                  <Badge key={advantage} variant="outline" className={listingTagBadgeClass}>
                     {advantage}
                   </Badge>
                 ))}
+                {extraAdvantageCount > 0 ? (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      listingTagBadgeClass,
+                      "bg-muted/20 dark:bg-white/[0.04]",
+                    )}
+                    title={`${extraAdvantageCount} autre${extraAdvantageCount > 1 ? "s" : ""}`}
+                  >
+                    +{extraAdvantageCount}
+                  </Badge>
+                ) : null}
               </div>
             ) : null}
-
-            <div>
-              <Link
-                href={`/appartement/${apartment.slug}`}
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex rounded-xl bg-primary/5 px-5 py-2.5 text-sm font-medium text-primary shadow-sm transition-all duration-200 ease-out hover:bg-primary/10 hover:shadow-md hover:-translate-y-0.5 active:scale-95 active:shadow-sm"
-              >
-                Voir les détails
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <ApartmentDialog
-        apartment={apartment}
-        open={dialogApartmentId === apartment.id}
-        onOpenChange={(open) =>
-          setDialogApartmentId(open ? apartment.id : null)
-        }
-      />
-    </>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
