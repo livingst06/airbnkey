@@ -104,7 +104,8 @@ export function ApartmentCard({
               src={apartment.images[0]}
               alt={apartment.title}
               fill
-              className="m-0 h-full w-full object-cover p-0 transition-[transform,filter] duration-200 group-hover:scale-105 group-hover:brightness-105"
+              style={{ willChange: "transform" }}
+              className="m-0 h-full w-full object-cover p-0 transition-[transform,filter] duration-500 ease-out group-hover:scale-[1.03] group-hover:brightness-105"
               sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
               priority={priority}
             />

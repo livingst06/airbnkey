@@ -69,6 +69,7 @@ export function ApartmentMap({
   const mapRef = useRef<maplibregl.Map | null>(null)
   const markersByIdRef = useRef<Record<string, MarkerSlot>>({})
   const previousHoveredIdRef = useRef<string | null>(null)
+  const lastFlyToIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     const container = mapContainerRef.current
@@ -261,6 +262,44 @@ export function ApartmentMap({
 
     if (prevId && prevId !== nextId) clearEmphasis(prevId)
     if (nextId && nextId !== prevId) addEmphasis(nextId)
+
+    // Premium UX: when hovering a card in the list, subtly re-center the map on the pin.
+    if (nextId && nextId !== prevId) {
+      const m = mapRef.current
+      if (m) {
+        const apartment = apartments.find((a) => a.id === nextId)
+        if (apartment && lastFlyToIdRef.current !== nextId) {
+          const point = m.project([
+            apartment.longitude,
+            apartment.latitude,
+          ])
+          const container = m.getContainer()
+          const width = container.clientWidth
+          const height = container.clientHeight
+
+          // Safe zone : on ne recadre que si le pin est trop proche des bords.
+          const marginX = width * 0.2
+          const marginY = height * 0.2
+          const isInsideSafeZone =
+            point.x > marginX &&
+            point.x < width - marginX &&
+            point.y > marginY &&
+            point.y < height - marginY
+
+          if (!isInsideSafeZone) {
+            lastFlyToIdRef.current = nextId
+            m.flyTo({
+              center: [
+                apartment.longitude,
+                apartment.latitude,
+              ],
+              zoom: m.getZoom(), // important : pas de zoom auto
+              duration: 600,
+            })
+          }
+        }
+      }
+    }
 
     previousHoveredIdRef.current = nextId
   }, [hoveredApartmentId])

@@ -155,9 +155,9 @@ export default function HomePage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl text-base font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl text-base font-medium disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Envoi…" : "Envoyer"}
+              {isSubmitting ? "Envoi..." : "Envoyer"}
             </Button>
           </form>
         </section>

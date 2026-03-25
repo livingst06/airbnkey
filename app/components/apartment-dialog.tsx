@@ -57,6 +57,9 @@ export function ApartmentDialog({
   const dragYRef = useRef(0)
   const canDragRef = useRef(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  const lastYRef = useRef(0)
+  const lastTimeRef = useRef(0)
+  const velocityRef = useRef(0)
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const el = scrollContainerRef.current
@@ -66,6 +69,9 @@ export function ApartmentDialog({
     canDragRef.current = true
 
     startYRef.current = e.touches[0].clientY
+    lastYRef.current = e.touches[0].clientY
+    lastTimeRef.current = Date.now()
+    velocityRef.current = 0
     dragYRef.current = 0
     setDragY(0)
     setIsDragging(true)
@@ -81,24 +87,59 @@ export function ApartmentDialog({
     const delta = currentY - startYRef.current
     if (delta === 0) return
 
+    // Estimation vitesse (px/ms) pour déclencher la fermeture même sur swipe court.
+    const now = Date.now()
+    const dy = currentY - lastYRef.current
+    const dt = now - lastTimeRef.current
+    if (dt > 0) {
+      velocityRef.current = dy / dt
+    }
+    lastYRef.current = currentY
+    lastTimeRef.current = now
+
     const scrollTop = el.scrollTop ?? 0
 
     // Swipe DOWN : bloqué si scroll pas en haut.
-    if (delta > 0 && scrollTop > 5) return
+    if (delta > 0) {
+      if (scrollTop > 5) return
 
-    const absDelta = Math.abs(delta)
+      dragYRef.current = delta
+      setDragY(delta)
 
-    dragYRef.current = delta
-    setDragY(delta)
+      const absDelta = Math.abs(delta)
+      const shouldClose =
+        absDelta > 120 || Math.abs(velocityRef.current) > 0.5
 
-    // Pendant le drag actif, éviter les scroll/bounces parasites.
-    if (e.nativeEvent.cancelable) e.preventDefault()
+      if (shouldClose) {
+        canDragRef.current = false
+        onOpenChange(false)
+        return
+      }
 
-    // Swipe UP ou DOWN (selon signe) : fermeture si on dépasse le seuil.
-    if (absDelta > 120) {
-      canDragRef.current = false
-      onOpenChange(false)
+      // Pendant le drag actif, éviter les scroll/bounces parasites.
+      if (e.nativeEvent.cancelable) e.preventDefault()
       return
+    }
+
+    // Swipe UP : autorisé seulement si scroll en haut.
+    if (delta < 0) {
+      if (scrollTop > 5) return
+
+      const absDelta = Math.abs(delta)
+
+      dragYRef.current = delta
+      setDragY(delta)
+
+      const shouldClose =
+        absDelta > 120 || Math.abs(velocityRef.current) > 0.5
+
+      if (shouldClose) {
+        canDragRef.current = false
+        onOpenChange(false)
+        return
+      }
+
+      if (e.nativeEvent.cancelable) e.preventDefault()
     }
   }
 
@@ -141,7 +182,7 @@ export function ApartmentDialog({
           onTouchEnd={handleTouchEnd}
           style={{
             transform: `translateY(${dragY}px)`,
-            transition: isDragging ? "none" : "transform 0.25s ease",
+          transition: isDragging ? "none" : "transform 0.2s ease-out",
           }}
         >
           <div className="sticky top-4 z-50 flex w-full justify-center px-4">
