@@ -1,9 +1,9 @@
 "use client"
 
-import { apartments } from "@/data/apartments"
 import type { HoverSource } from "@/types/hover"
 import type { Apartment } from "@/types/apartments"
 import { ApartmentCard } from "./apartment-card"
+import { useApartments } from "./apartments-context"
 
 type ApartmentGridProps = {
   selectedApartmentId: string | null
@@ -28,6 +28,8 @@ export function ApartmentGrid({
   setHoverSource,
   hoverLock,
 }: ApartmentGridProps) {
+  const { apartments } = useApartments()
+
   return (
     <div className="grid grid-cols-1 gap-6">
       {apartments.map((apartment: Apartment, index: number) => (

@@ -4,15 +4,17 @@ import Image from "next/image"
 import { type FormEvent, useState } from "react"
 import { toast } from "sonner"
 
-import { apartments } from "@/data/apartments"
 import type { HoverSource } from "@/types/hover"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 
 import { ApartmentGrid } from "./components/apartment-grid"
 import { ApartmentMap } from "./components/apartment-map"
+import { useApartments } from "./components/apartments-context"
 
 export default function HomePage() {
+  const { apartments } = useApartments()
+
   const [selectedApartmentId, setSelectedApartmentId] = useState<
     string | null
   >(null)

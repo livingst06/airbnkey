@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import maplibregl from "maplibre-gl"
 import type { Apartment } from "@/types/apartments"
 import type { HoverSource } from "@/types/hover"
@@ -22,6 +22,7 @@ type ApartmentMapProps = {
 
 type MarkerSlot = {
   marker: maplibregl.Marker
+  popup: maplibregl.Popup
   root: HTMLElement
   inner: HTMLElement
 }
@@ -70,6 +71,133 @@ export function ApartmentMap({
   const markersByIdRef = useRef<Record<string, MarkerSlot>>({})
   const previousHoveredIdRef = useRef<string | null>(null)
   const lastFlyToIdRef = useRef<string | null>(null)
+  const apartmentsByIdRef = useRef<Map<string, Apartment>>(new Map())
+  const selectedApartmentIdRef = useRef<string | null>(selectedApartmentId)
+  const hoveredApartmentIdRef = useRef<string | null>(hoveredApartmentId)
+
+  const createMarkerForApartment = useCallback(
+    (
+      apartment: Apartment,
+      map: maplibregl.Map,
+    ) => {
+    const el = document.createElement("button")
+    el.type = "button"
+    el.tabIndex = 0
+
+    const price = derivePriceFromApartment(apartment)
+    el.setAttribute("aria-label", `${apartment.title} - ${price}€`)
+    el.className = MARKER_ROOT_CLASS
+
+    const inner = document.createElement("div")
+    inner.className = MARKER_INNER_CLASS
+    inner.innerHTML = `<span class="text-[12px] font-semibold leading-none">${price}€</span>`
+    el.appendChild(inner)
+
+    const popup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: 16,
+      className: "custom-popup",
+    })
+
+    const meta = `${apartment.beds} couchages • ${apartment.bathrooms} salle de bain`
+    const popupContent = document.createElement("div")
+    popupContent.className = "popup-card cursor-pointer"
+    popupContent.innerHTML = `
+      <img
+        src="${apartment.images[0]}"
+        alt="${escapeHtml(apartment.title)}"
+        class="popup-image"
+      />
+      <div class="popup-body">
+        <div class="popup-title">${escapeHtml(apartment.title)}</div>
+        <div class="popup-meta">${escapeHtml(meta)}</div>
+      </div>
+    `
+
+    let hideTimer: number | null = null
+
+    popupContent.addEventListener("mouseenter", () => {
+      if (hideTimer) window.clearTimeout(hideTimer)
+      hideTimer = null
+    })
+
+    popupContent.addEventListener("mouseleave", () => {
+      if (hideTimer) window.clearTimeout(hideTimer)
+      hideTimer = window.setTimeout(() => {
+        popup.remove()
+      }, 120)
+    })
+
+    popupContent.addEventListener("click", (e) => {
+      e.stopPropagation()
+      setDialogApartmentId(apartment.id)
+      setSelectedApartmentId(apartment.id)
+      popup.remove()
+    })
+
+    popup.setDOMContent(popupContent)
+
+    el.addEventListener("mouseenter", () => {
+      setSelectedApartmentId(apartment.id)
+      setHoveredApartmentId(apartment.id)
+      setHoverSource("map")
+      setHoverLock(true)
+      if (hideTimer) window.clearTimeout(hideTimer)
+      hideTimer = null
+
+      // Popup doit avoir une position valide au moment de l’affichage.
+      popup.setLngLat([apartment.longitude, apartment.latitude])
+      popup.addTo(map)
+    })
+
+    el.addEventListener("mouseleave", () => {
+      setSelectedApartmentId(null)
+      setHoveredApartmentId(null)
+      setHoverSource(null)
+      setHoverLock(false)
+      if (hideTimer) window.clearTimeout(hideTimer)
+      hideTimer = window.setTimeout(() => {
+        popup.remove()
+      }, 120)
+    })
+
+    el.addEventListener("click", (e) => {
+      e.stopPropagation()
+      setDialogApartmentId(apartment.id)
+      setSelectedApartmentId(apartment.id)
+      popup.remove()
+    })
+
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        e.stopPropagation()
+        setDialogApartmentId(apartment.id)
+        setSelectedApartmentId(apartment.id)
+      }
+    })
+
+    const marker = new maplibregl.Marker({ element: el })
+      .setLngLat([apartment.longitude, apartment.latitude])
+      .setPopup(popup)
+      .addTo(map)
+
+    markersByIdRef.current[apartment.id] = {
+      marker,
+      popup,
+      root: el,
+      inner,
+    }
+    },
+    [
+      setDialogApartmentId,
+      setSelectedApartmentId,
+      setHoveredApartmentId,
+      setHoverSource,
+      setHoverLock,
+    ],
+  )
 
   useEffect(() => {
     const container = mapContainerRef.current
@@ -101,113 +229,7 @@ export function ApartmentMap({
 
       apartments.forEach((apartment) => {
         bounds.extend([apartment.longitude, apartment.latitude])
-        const el = document.createElement("button")
-        el.type = "button"
-        el.tabIndex = 0
-        const price = derivePriceFromApartment(apartment)
-        el.setAttribute(
-          "aria-label",
-          `${apartment.title} - ${price}€`,
-        )
-        el.className = MARKER_ROOT_CLASS
-
-        const inner = document.createElement("div")
-        inner.className = MARKER_INNER_CLASS
-        inner.innerHTML = `<span class="text-[12px] font-semibold leading-none">${price}€</span>`
-        el.appendChild(inner)
-
-        const popup = new maplibregl.Popup({
-          closeButton: false,
-          closeOnClick: false,
-          offset: 16,
-          className: "custom-popup",
-        })
-
-        const meta = `${apartment.beds} couchages • ${apartment.bathrooms} salle de bain`
-        const popupContent = document.createElement("div")
-        popupContent.className = "popup-card cursor-pointer"
-        popupContent.innerHTML = `
-          <img
-            src="${apartment.images[0]}"
-            alt="${escapeHtml(apartment.title)}"
-            class="popup-image"
-          />
-          <div class="popup-body">
-            <div class="popup-title">${escapeHtml(apartment.title)}</div>
-            <div class="popup-meta">${escapeHtml(meta)}</div>
-          </div>
-        `
-
-        let hideTimer: number | null = null
-
-        popupContent.addEventListener("mouseenter", () => {
-          if (hideTimer) window.clearTimeout(hideTimer)
-          hideTimer = null
-        })
-
-        popupContent.addEventListener("mouseleave", () => {
-          if (hideTimer) window.clearTimeout(hideTimer)
-          hideTimer = window.setTimeout(() => {
-            popup.remove()
-          }, 120)
-        })
-
-        popupContent.addEventListener("click", (e) => {
-          e.stopPropagation()
-          setDialogApartmentId(apartment.id)
-          setSelectedApartmentId(apartment.id)
-          popup.remove()
-        })
-
-        popup.setDOMContent(popupContent)
-
-        el.addEventListener("mouseenter", () => {
-          setSelectedApartmentId(apartment.id)
-          setHoveredApartmentId(apartment.id)
-          setHoverSource("map")
-          setHoverLock(true)
-          if (hideTimer) window.clearTimeout(hideTimer)
-          hideTimer = null
-
-          // Le popup doit avoir une position valide au moment de l’affichage.
-          const m = mapRef.current
-          if (!m) return
-          popup.setLngLat([apartment.longitude, apartment.latitude])
-          popup.addTo(m)
-        })
-        el.addEventListener("mouseleave", () => {
-          setSelectedApartmentId(null)
-          setHoveredApartmentId(null)
-          setHoverSource(null)
-          setHoverLock(false)
-          if (hideTimer) window.clearTimeout(hideTimer)
-          hideTimer = window.setTimeout(() => {
-            popup.remove()
-          }, 120)
-        })
-
-        el.addEventListener("click", (e) => {
-          e.stopPropagation()
-          setDialogApartmentId(apartment.id)
-          setSelectedApartmentId(apartment.id)
-          popup.remove()
-        })
-
-        el.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault()
-            e.stopPropagation()
-            setDialogApartmentId(apartment.id)
-            setSelectedApartmentId(apartment.id)
-          }
-        })
-
-        const marker = new maplibregl.Marker({ element: el })
-          .setLngLat([apartment.longitude, apartment.latitude])
-          .setPopup(popup)
-          .addTo(map)
-
-        markersByIdRef.current[apartment.id] = { marker, root: el, inner }
+        createMarkerForApartment(apartment, map)
       })
     })
 
@@ -224,6 +246,64 @@ export function ApartmentMap({
   }, [])
 
   useEffect(() => {
+    apartmentsByIdRef.current = new Map(apartments.map((a) => [a.id, a]))
+  }, [apartments])
+
+  // Sync des markers uniquement quand la liste d’appartements change.
+  // On ne recrée JAMAIS l’instance MapLibre (mapRef reste stable).
+  useEffect(() => {
+    const m = mapRef.current
+    if (!m) return
+
+    // Supprimer markers + popups existants.
+    const existing = markersByIdRef.current
+    for (const slot of Object.values(existing)) {
+      try {
+        slot.popup.remove()
+      } catch {
+        // noop
+      }
+      try {
+        slot.marker.remove()
+      } catch {
+        // noop
+      }
+    }
+    markersByIdRef.current = {}
+
+    apartments.forEach((apartment) => {
+      createMarkerForApartment(apartment, m)
+    })
+
+    // Re-apply l’état courant (selection/hover) sur les nouveaux markers.
+    const markersById = markersByIdRef.current
+    const selectedId = selectedApartmentIdRef.current
+    const hoveredId = hoveredApartmentIdRef.current
+
+    for (const [id, slot] of Object.entries(markersById)) {
+      const isSelected = id === selectedId
+      for (const token of MARKER_SELECTED_TOKENS) {
+        slot.inner.classList.toggle(token, isSelected)
+      }
+
+      for (const token of MARKER_HOVER_EMPHASIS_TOKENS) {
+        slot.inner.classList.remove(token)
+      }
+      slot.inner.style.zIndex = ""
+
+      if (hoveredId && id === hoveredId) {
+        for (const token of MARKER_HOVER_EMPHASIS_TOKENS) {
+          slot.inner.classList.add(token)
+        }
+        slot.inner.style.zIndex = "30"
+      }
+    }
+
+    previousHoveredIdRef.current = hoveredId
+  }, [apartments, createMarkerForApartment])
+
+  useEffect(() => {
+    selectedApartmentIdRef.current = selectedApartmentId
     const markersById = markersByIdRef.current
 
     for (const [id, slot] of Object.entries(markersById)) {
@@ -236,6 +316,7 @@ export function ApartmentMap({
   }, [selectedApartmentId])
 
   useEffect(() => {
+    hoveredApartmentIdRef.current = hoveredApartmentId
     const markersById = markersByIdRef.current
     const prevId = previousHoveredIdRef.current
     const nextId = hoveredApartmentId
@@ -267,7 +348,7 @@ export function ApartmentMap({
     if (nextId && nextId !== prevId) {
       const m = mapRef.current
       if (m) {
-        const apartment = apartments.find((a) => a.id === nextId)
+        const apartment = apartmentsByIdRef.current.get(nextId)
         if (apartment && lastFlyToIdRef.current !== nextId) {
           const point = m.project([
             apartment.longitude,

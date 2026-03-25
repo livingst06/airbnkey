@@ -29,6 +29,9 @@ export function ApartmentCarousel({
 
   const hasMultipleImages = safeImages.length > 1
 
+  const currentSrc = safeImages[currentIndex]
+  const unoptimized = currentSrc?.startsWith("blob:") || currentSrc?.startsWith("data:")
+
   const goToPrevious = () => {
     if (!hasMultipleImages) return
 
@@ -64,12 +67,13 @@ export function ApartmentCarousel({
         className="group absolute inset-0 z-0 cursor-pointer"
       >
         <Image
-          src={safeImages[currentIndex]}
+          src={currentSrc}
           alt={title}
           fill
           className={`h-full w-full ${imageClassName}`}
           sizes="(min-width: 1024px) 600px, (min-width: 640px) 80vw, 100vw"
           priority={variant === "detail" && currentIndex === 0}
+          unoptimized={unoptimized}
         />
         {variant === "detail" ? (
           <div

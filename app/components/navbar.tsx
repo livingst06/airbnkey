@@ -3,28 +3,42 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react"
+import { usePathname } from "next/navigation"
 
 import { ThemeToggle } from "@/components/theme-toggle"
 
-const navLinks = [
-  { id: "appartements", href: "#appartements", label: "Appartements" },
-  { id: "about", href: "#about", label: "À propos" },
-  { id: "contact", href: "#contact", label: "Contact" },
+/** Toujours ancrer sur la home (`/#id`) pour que les liens restent valides depuis `/admin` ou toute autre route. */
+const sectionNavLinks = [
+  { id: "appartements", href: "/#appartements", label: "Appartements" },
+  { id: "about", href: "/#about", label: "À propos" },
+  { id: "contact", href: "/#contact", label: "Contact" },
 ] as const
 
+type SectionId = (typeof sectionNavLinks)[number]["id"]
+type NavId = SectionId | "admin"
+
 export function Navbar() {
-  const sections = useMemo(() => navLinks.map((l) => l.id), [])
-  const [activeSection, setActiveSection] = useState<(typeof sections)[number]>(
-    "appartements",
-  )
-  const activeSectionRef = useRef(activeSection)
+  const pathname = usePathname()
+  const isAdmin = process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
+
+  const navLinks = useMemo(() => {
+    if (!isAdmin) return sectionNavLinks
+    return [
+      ...sectionNavLinks,
+      { id: "admin" as const, href: "/admin", label: "Modifier" },
+    ] as const
+  }, [isAdmin])
+
+  const [activeSection, setActiveSection] = useState<SectionId>("appartements")
+  const activeNavIdRef = useRef<NavId>("appartements")
 
   const indicatorRef = useRef<HTMLSpanElement | null>(null)
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
   const linksWrapperRef = useRef<HTMLDivElement | null>(null)
+
   const updateIndicator = useCallback(() => {
     const indicator = indicatorRef.current
-    const el = linkRefs.current[activeSectionRef.current]
+    const el = linkRefs.current[activeNavIdRef.current]
     const wrapper = linksWrapperRef.current
     if (!indicator || !el || !wrapper) return
 
@@ -47,10 +61,13 @@ export function Navbar() {
     indicator.style.height = `${height}px`
   }, [])
 
+  const activeNavId: NavId =
+    isAdmin && pathname === "/admin" ? "admin" : activeSection
+
   useLayoutEffect(() => {
-    activeSectionRef.current = activeSection
+    activeNavIdRef.current = activeNavId
     updateIndicator()
-  }, [activeSection, updateIndicator])
+  }, [activeNavId, updateIndicator])
 
   useEffect(() => {
     let raf = 0
@@ -66,8 +83,9 @@ export function Navbar() {
   }, [updateIndicator])
 
   useEffect(() => {
-    // IntersectionObserver (IDs string uniquement, sans logique index).
-    const ids = ["appartements", "about", "contact"] as const
+    if (pathname === "/admin") return
+
+    const ids = sectionNavLinks.map((l) => l.id) as SectionId[]
     const idsSet = new Set(ids)
 
     const observer = new IntersectionObserver(
@@ -83,14 +101,15 @@ export function Navbar() {
             }
           })
           .filter(
-            (item): item is { id: (typeof ids)[number]; ratio: number; top: number } =>
-              idsSet.has(item.id as (typeof ids)[number]),
+            (item): item is {
+              id: SectionId
+              ratio: number
+              top: number
+            } => idsSet.has(item.id as SectionId),
           )
 
         if (intersecting.length === 0) return
 
-        // Déterministe: section la plus "visible" (intersectionRatio), puis
-        // tie-break stable par position.
         intersecting.sort((a, b) => {
           if (b.ratio !== a.ratio) return b.ratio - a.ratio
           if (Math.abs(a.top) !== Math.abs(b.top)) {
@@ -114,20 +133,32 @@ export function Navbar() {
     })
 
     return () => observer.disconnect()
-  }, [])
+  }, [pathname])
 
   useEffect(() => {
+    if (pathname === "/admin") return
+
     const handleHashChange = () => {
       const hash = window.location.hash.replace("#", "")
-      if (sections.includes(hash as (typeof sections)[number])) {
-        setActiveSection(hash as (typeof sections)[number])
+      const maybeId = hash as SectionId
+      if (
+        (sectionNavLinks as readonly { id: SectionId }[]).some(
+          (l) => l.id === maybeId,
+        )
+      ) {
+        setActiveSection(maybeId)
       }
     }
 
     handleHashChange()
     window.addEventListener("hashchange", handleHashChange)
     return () => window.removeEventListener("hashchange", handleHashChange)
-  }, [sections])
+  }, [pathname])
+
+  const indicatorBgClass =
+    isAdmin && activeNavId === "admin"
+      ? "bg-red-500/15 dark:bg-red-400/15"
+      : "bg-foreground/10 dark:bg-white/10"
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/60 backdrop-blur-md dark:border-white/5 dark:bg-neutral-900/60">
@@ -150,31 +181,43 @@ export function Navbar() {
             className="hidden items-center md:flex md:gap-8"
             aria-label="Navigation principale"
           >
-            <div ref={linksWrapperRef} className="relative flex items-center gap-6 md:gap-8">
+            <div
+              ref={linksWrapperRef}
+              className="relative flex items-center gap-6 md:gap-8"
+            >
               <span
                 ref={indicatorRef}
                 aria-hidden
-                className="absolute top-1/2 left-0 z-0 -translate-y-1/2 rounded-lg bg-foreground/10 dark:bg-white/10 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-none"
+                className={`absolute top-1/2 left-0 z-0 -translate-y-1/2 rounded-lg ${indicatorBgClass} transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-none`}
               />
 
               {navLinks.map(({ id, href, label }) => {
-                const isActive = id === activeSection
+                const isActive = id === activeNavId
+                const isAdminLink = id === "admin"
+                const className =
+                  isActive
+                    ? isAdminLink
+                      ? "text-red-500 font-medium opacity-100 relative z-10"
+                      : "text-foreground font-medium opacity-100 relative z-10"
+                    : isAdminLink
+                      ? "text-red-500/70 hover:text-red-500 transition-colors duration-200 relative z-10"
+                      : "text-foreground/70 hover:text-foreground transition-colors duration-200 relative z-10"
                 return (
-                  <a
+                  <Link
                     key={href}
                     ref={(el) => {
                       linkRefs.current[id] = el
                     }}
                     href={href}
-                    onClick={() => setActiveSection(id)}
-                    className={
-                      isActive
-                        ? "text-foreground font-medium opacity-100 relative z-10"
-                        : "text-foreground/70 hover:text-foreground transition-colors duration-200 relative z-10"
-                    }
+                    onClick={() => {
+                      if (id !== "admin") setActiveSection(id)
+                    }}
+                    className={className}
                   >
-                    <span className="text-[15px] tracking-tight md:text-base">{label}</span>
-                  </a>
+                    <span className="text-[15px] tracking-tight md:text-base">
+                      {label}
+                    </span>
+                  </Link>
                 )
               })}
             </div>
