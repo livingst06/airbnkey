@@ -6,7 +6,7 @@ import "./globals.css";
 import { Navbar } from "@/app/components/navbar";
 import { ApartmentsProvider } from "@/app/components/apartments-context";
 import { Toaster } from "@/components/ui/sonner";
-import { getApartmentsDb } from "@/lib/apartments-db";
+import { getApartmentsCached } from "@/lib/apartments-db";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,15 +36,13 @@ export const metadata: Metadata = {
   },
 };
 
-/** Données appartements lues en BDD : pas de snapshot statique figé au build. */
-export const dynamic = "force-dynamic"
-
+/** Liste appartements via `unstable_cache` + tag `apartments` (invalidée par les server actions). */
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialApartments = await getApartmentsDb().catch(() => [])
+  const initialApartments = await getApartmentsCached().catch(() => [])
 
   return (
     <html

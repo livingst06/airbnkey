@@ -21,5 +21,8 @@ export type Apartment = {
     description: string
     latitude: number
     longitude: number
+    /** URLs absolues, chemins sous /public, ou anciennes valeurs `data:image/...`. */
     images: string[]
+    /** Lien externe de réservation (optionnel). */
+    bookingUrl?: string | null
   }

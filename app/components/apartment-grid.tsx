@@ -104,7 +104,6 @@ export function ApartmentGrid({
               apartment={apartment}
               priority={index === 0}
               selectedApartmentId={selectedApartmentId}
-              openApartmentDialog={openApartmentDialog}
               hoveredApartmentId={hoveredApartmentId}
               hoverSource={hoverSource}
             />

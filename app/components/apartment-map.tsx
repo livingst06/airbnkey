@@ -82,6 +82,9 @@ export function ApartmentMap({
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapResizeObserverRef = useRef<ResizeObserver | null>(null)
+  const mapIntersectionObserverRef = useRef<IntersectionObserver | null>(null)
+  /** Liste à jour pour l’init (effet carte en `[]` — évite de recréer la map au refetch). */
+  const apartmentsForMapInitRef = useRef(apartments)
   const mapHoverLeaveTimerRef = useRef<number | null>(null)
   const markersByIdRef = useRef<Record<string, MarkerSlot>>({})
   const previousHoveredIdRef = useRef<string | null>(null)
@@ -237,15 +240,44 @@ export function ApartmentMap({
     ],
   )
 
+  apartmentsForMapInitRef.current = apartments
+
   useEffect(() => {
     const container = mapContainerRef.current
     if (!container) return
-    if (mapRef.current) return
-    if (!apartments.length) return
 
-    const first = apartments[0]
+    let cancelled = false
+    let rafId = 0
+    let layoutWaitFrames = 0
+    const MAX_LAYOUT_WAIT_FRAMES = 90
 
-    const frameId = requestAnimationFrame(() => {
+    const scheduleResize = () => {
+      requestAnimationFrame(() => {
+        if (!cancelled) mapRef.current?.resize()
+      })
+    }
+
+    const onViewportResize = () => scheduleResize()
+
+    const tryInitMap = () => {
+      if (cancelled) return
+      if (mapRef.current) return
+
+      const list = apartmentsForMapInitRef.current
+      if (!list.length) {
+        rafId = requestAnimationFrame(tryInitMap)
+        return
+      }
+
+      const cw = container.clientWidth
+      const ch = container.clientHeight
+      if ((cw < 2 || ch < 2) && layoutWaitFrames < MAX_LAYOUT_WAIT_FRAMES) {
+        layoutWaitFrames += 1
+        rafId = requestAnimationFrame(tryInitMap)
+        return
+      }
+
+      const first = list[0]
       const map = new maplibregl.Map({
         container,
         style: getMapStyleUrl(),
@@ -256,9 +288,9 @@ export function ApartmentMap({
       const bounds = new maplibregl.LngLatBounds()
 
       map.on("load", () => {
-        map.resize()
+        scheduleResize()
 
-        if (apartments.length > 1) {
+        if (list.length > 1) {
           map.fitBounds(bounds, { padding: 80, maxZoom: 15 })
         }
       })
@@ -271,14 +303,37 @@ export function ApartmentMap({
       })
       mapResizeObserverRef.current.observe(container)
 
-      apartments.forEach((apartment) => {
+      mapIntersectionObserverRef.current?.disconnect()
+      mapIntersectionObserverRef.current = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) scheduleResize()
+          }
+        },
+        { threshold: 0 },
+      )
+      mapIntersectionObserverRef.current.observe(container)
+
+      window.addEventListener("resize", onViewportResize)
+      window.addEventListener("orientationchange", onViewportResize)
+      window.visualViewport?.addEventListener("resize", onViewportResize)
+
+      list.forEach((apartment) => {
         bounds.extend([apartment.longitude, apartment.latitude])
         createMarkerForApartment(apartment, map)
       })
-    })
+    }
+
+    rafId = requestAnimationFrame(tryInitMap)
 
     return () => {
-      cancelAnimationFrame(frameId)
+      cancelled = true
+      cancelAnimationFrame(rafId)
+      mapIntersectionObserverRef.current?.disconnect()
+      mapIntersectionObserverRef.current = null
+      window.removeEventListener("resize", onViewportResize)
+      window.removeEventListener("orientationchange", onViewportResize)
+      window.visualViewport?.removeEventListener("resize", onViewportResize)
       mapResizeObserverRef.current?.disconnect()
       mapResizeObserverRef.current = null
       if (mapHoverLeaveTimerRef.current != null) {
@@ -292,6 +347,7 @@ export function ApartmentMap({
       markersByIdRef.current = {}
       previousHoveredIdRef.current = null
     }
+    // Carte : une instance ; markers mis à jour par l’effet dédié.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

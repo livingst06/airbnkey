@@ -13,6 +13,7 @@ import { toast } from "sonner"
 import {
   createApartmentAction,
   deleteApartmentAction,
+  listApartmentsAction,
   updateApartmentAction,
 } from "@/app/actions/apartments"
 import type { ApartmentFormInput } from "@/lib/apartment-zod"
@@ -38,15 +39,25 @@ export function ApartmentsProvider({
 }) {
   const [apartments, setApartments] = useState<Apartment[]>(initialApartments)
 
-  const addApartment = useCallback(async (input: ApartmentFormInput) => {
-    const r = await createApartmentAction(input)
-    if (!r.ok) {
-      toast.error("error" in r && r.error ? r.error : "Création impossible")
-      throw new Error("createApartmentAction failed")
-    }
-    setApartments((prev) => [r.apartment, ...prev])
-    return r.apartment
+  const syncFromDb = useCallback(async () => {
+    const list = await listApartmentsAction()
+    setApartments(list)
+    return list
   }, [])
+
+  const addApartment = useCallback(
+    async (input: ApartmentFormInput) => {
+      const r = await createApartmentAction(input)
+      if (!r.ok) {
+        toast.error("error" in r && r.error ? r.error : "Création impossible")
+        throw new Error("createApartmentAction failed")
+      }
+      const list = await syncFromDb()
+      const created = list.find((a) => a.id === r.apartment.id) ?? r.apartment
+      return created
+    },
+    [syncFromDb],
+  )
 
   const updateApartment = useCallback(
     async (id: string, input: ApartmentFormInput) => {
@@ -55,21 +66,22 @@ export function ApartmentsProvider({
         toast.error(r.error ?? "Mise à jour impossible")
         throw new Error("updateApartmentAction failed")
       }
-      setApartments((prev) =>
-        prev.map((a) => (a.id === id ? r.apartment : a)),
-      )
+      await syncFromDb()
     },
-    [],
+    [syncFromDb],
   )
 
-  const deleteApartment = useCallback(async (id: string) => {
-    const r = await deleteApartmentAction(id)
-    if (!r.ok) {
-      toast.error(r.error ?? "Suppression impossible")
-      throw new Error("deleteApartmentAction failed")
-    }
-    setApartments((prev) => prev.filter((a) => a.id !== id))
-  }, [])
+  const deleteApartment = useCallback(
+    async (id: string) => {
+      const r = await deleteApartmentAction(id)
+      if (!r.ok) {
+        toast.error(r.error ?? "Suppression impossible")
+        throw new Error("deleteApartmentAction failed")
+      }
+      await syncFromDb()
+    },
+    [syncFromDb],
+  )
 
   const value = useMemo<ApartmentsContextValue>(
     () => ({

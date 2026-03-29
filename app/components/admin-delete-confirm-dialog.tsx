@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 
+import { imageNeedsUnoptimized } from "@/lib/image-src"
 import type { Apartment } from "@/types/apartments"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,11 +23,6 @@ type AdminDeleteConfirmDialogProps = {
   onConfirm: () => void
 }
 
-function isBlobOrData(src: string | undefined) {
-  if (!src) return false
-  return src.startsWith("blob:") || src.startsWith("data:")
-}
-
 export function AdminDeleteConfirmDialog({
   open,
   onOpenChange,
@@ -35,7 +31,7 @@ export function AdminDeleteConfirmDialog({
 }: AdminDeleteConfirmDialogProps) {
   const firstImage = apartment?.images?.[0]
   const unoptimized = useMemo(
-    () => isBlobOrData(firstImage),
+    () => imageNeedsUnoptimized(firstImage),
     [firstImage],
   )
 
@@ -86,9 +82,9 @@ export function AdminDeleteConfirmDialog({
                 </div>
                 {apartment.advantages?.length ? (
                   <div className="flex flex-wrap gap-2 pt-2">
-                    {apartment.advantages.slice(0, 4).map((adv) => (
+                    {apartment.advantages.slice(0, 4).map((adv, idx) => (
                       <span
-                        key={adv}
+                        key={`adv-${idx}-${adv}`}
                         className="rounded-full bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground"
                       >
                         {adv}

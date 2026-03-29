@@ -18,89 +18,31 @@ import { XIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Apartment } from "@/types/apartments"
-import type { ApartmentFormInput } from "@/lib/apartment-zod"
+import { apartmentFormSchema } from "@/lib/apartment-zod"
+import { imageNeedsUnoptimized } from "@/lib/image-src"
 import { getMapStyleUrl } from "@/lib/map-style"
+import { uploadImage } from "@/lib/upload-image"
 import { useApartments } from "./apartments-context"
 
 /** Délai après ouverture du dialog : l’anim zoom + layout doivent être stabilisés avant `new Map()`. */
 const MINI_MAP_INIT_DELAY_MS = 200
 
-function isBlobOrData(src: string | undefined) {
-  if (!src) return false
-  return src.startsWith("blob:") || src.startsWith("data:")
-}
-
 const MAX_IMAGES = 8
-/** Réduit la taille base64 pour limiter le poids en base et le temps de réponse API. */
-const IMAGE_MAX_LONG_SIDE_PX = 1600
-const IMAGE_JPEG_QUALITY = 0.82
-
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () =>
-      reject(reader.error ?? new Error("FileReader failed"))
-    reader.readAsDataURL(file)
-  })
-}
-
-/**
- * Encode une image bitmap en JPEG redimensionné (data URL).
- * SVG et types non pris en charge passent par le data URL brut.
- */
-function compressImageFileToDataUrl(file: File): Promise<string> {
-  if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
-    return fileToDataUrl(file)
-  }
-
-  const objectUrl = URL.createObjectURL(file)
-  return new Promise((resolve, reject) => {
-    const img = new window.Image()
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl)
-      try {
-        const nw = img.naturalWidth
-        const nh = img.naturalHeight
-        if (nw < 1 || nh < 1) {
-          void fileToDataUrl(file).then(resolve).catch(reject)
-          return
-        }
-        const maxSide = Math.max(nw, nh)
-        const scale =
-          maxSide > IMAGE_MAX_LONG_SIDE_PX
-            ? IMAGE_MAX_LONG_SIDE_PX / maxSide
-            : 1
-        const w = Math.max(1, Math.round(nw * scale))
-        const h = Math.max(1, Math.round(nh * scale))
-        const canvas = document.createElement("canvas")
-        canvas.width = w
-        canvas.height = h
-        const ctx = canvas.getContext("2d")
-        if (!ctx) {
-          void fileToDataUrl(file).then(resolve).catch(reject)
-          return
-        }
-        ctx.drawImage(img, 0, 0, w, h)
-        resolve(canvas.toDataURL("image/jpeg", IMAGE_JPEG_QUALITY))
-      } catch {
-        void fileToDataUrl(file).then(resolve).catch(reject)
-      }
-    }
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl)
-      void fileToDataUrl(file).then(resolve).catch(reject)
-    }
-    img.src = objectUrl
-  })
-}
 
 function parseTags(tagsText: string): string[] {
-  return tagsText
+  const parts = tagsText
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean)
-    .slice(0, 12)
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const t of parts) {
+    if (seen.has(t)) continue
+    seen.add(t)
+    out.push(t)
+    if (out.length >= 12) break
+  }
+  return out
 }
 
 function formatLatLng(value: number) {
@@ -129,6 +71,7 @@ export function AdminApartmentDialog({
   const [latitude, setLatitude] = useState(43.5528)
   const [longitude, setLongitude] = useState(7.0174)
   const [images, setImages] = useState<string[]>([])
+  const [bookingUrl, setBookingUrl] = useState("")
   const [imageImportBusy, setImageImportBusy] = useState(false)
   const imagesRef = useRef(images)
   imagesRef.current = images
@@ -157,7 +100,7 @@ export function AdminApartmentDialog({
   )
 
   const unoptimizedForImages = useMemo(
-    () => images.map((src) => isBlobOrData(src)),
+    () => images.map((src) => imageNeedsUnoptimized(src)),
     [images],
   )
 
@@ -175,6 +118,7 @@ export function AdminApartmentDialog({
       setLatitude(apartment.latitude)
       setLongitude(apartment.longitude)
       setImages([...apartment.images])
+      setBookingUrl(apartment.bookingUrl?.trim() ? apartment.bookingUrl : "")
     } else {
       setTitle("")
       setDescription("")
@@ -184,6 +128,7 @@ export function AdminApartmentDialog({
       setLatitude(43.5528)
       setLongitude(7.0174)
       setImages([])
+      setBookingUrl("")
     }
   }, [open, apartment])
 
@@ -280,16 +225,16 @@ export function AdminApartmentDialog({
     void (async () => {
       setImageImportBusy(true)
       try {
-        const dataUrls: string[] = []
+        const urls: string[] = []
         for (const file of toProcess) {
           try {
-            dataUrls.push(await compressImageFileToDataUrl(file))
+            urls.push(await uploadImage(file))
           } catch {
             toast.error(`Image ignorée : ${file.name}`)
           }
         }
-        if (dataUrls.length === 0) return
-        setImages((p) => [...p, ...dataUrls])
+        if (urls.length === 0) return
+        setImages((p) => [...p, ...urls])
       } finally {
         setImageImportBusy(false)
       }
@@ -342,7 +287,7 @@ export function AdminApartmentDialog({
   const submit = async () => {
     if (!canSubmit) return
 
-    const input: ApartmentFormInput = {
+    const input = {
       title: title.trim(),
       description: description.trim(),
       beds,
@@ -351,13 +296,26 @@ export function AdminApartmentDialog({
       latitude: formatLatLng(latitude),
       longitude: formatLatLng(longitude),
       images: [...images],
+      bookingUrl: bookingUrl.trim() || undefined,
+    } satisfies Parameters<typeof apartmentFormSchema.safeParse>[0]
+
+    const parsed = apartmentFormSchema.safeParse(input)
+    if (!parsed.success) {
+      const fe = parsed.error.flatten().fieldErrors
+      const msg =
+        fe.bookingUrl?.[0] ??
+        fe.title?.[0] ??
+        fe.images?.[0] ??
+        "Données invalides"
+      toast.error(msg)
+      return
     }
 
     try {
       if (apartment) {
-        await updateApartment(apartment.id, input)
+        await updateApartment(apartment.id, parsed.data)
       } else {
-        await addApartment(input)
+        await addApartment(parsed.data)
       }
       committedRef.current = true
       onOpenChange(false)
@@ -422,6 +380,18 @@ export function AdminApartmentDialog({
                   className="rounded-xl"
                 />
               </div>
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-foreground/90">
+                  Lien de réservation
+                </label>
+                <input
+                  type="url"
+                  value={bookingUrl}
+                  onChange={(e) => setBookingUrl(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="https://..."
+                />
+              </div>
             </section>
 
             <section className="space-y-4 rounded-2xl border border-white/10 bg-white/60 p-4 backdrop-blur-md">
@@ -467,9 +437,9 @@ export function AdminApartmentDialog({
                 />
                 {advantages.length ? (
                   <div className="flex flex-wrap gap-2 pt-1">
-                    {advantages.slice(0, 6).map((tag) => (
+                    {advantages.slice(0, 6).map((tag, idx) => (
                       <Badge
-                        key={tag}
+                        key={`tag-${idx}-${tag}`}
                         variant="secondary"
                         className="bg-muted/70"
                       >
@@ -533,7 +503,7 @@ export function AdminApartmentDialog({
               {images.length ? (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {images.map((src, idx) => (
-                    <div key={`${src}-${idx}`} className="relative">
+                    <div key={`preview-${idx}-${src.slice(0, 48)}`} className="relative">
                       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10 bg-white/50">
                         <Image
                           src={src}

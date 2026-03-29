@@ -78,7 +78,10 @@ export default function HomePage() {
         const desc = a.description.toLowerCase()
         if (!title.includes(q) && !desc.includes(q)) return false
       }
-      if (bedsMin !== null && a.beds < bedsMin) return false
+      if (bedsMin !== null) {
+        const b = Number(a.beds)
+        if (!Number.isFinite(b) || b < bedsMin) return false
+      }
       if (selectedTags.length > 0) {
         const advKeys = new Set(
           a.advantages
@@ -244,11 +247,18 @@ export default function HomePage() {
 
             <section
               className={cn(
-                "order-2 flex min-h-0 w-full min-w-0 flex-col lg:order-none lg:h-full",
-                "min-h-[min(52vh,28rem)] shrink-0 lg:min-h-0",
+                "order-2 flex w-full min-w-0 shrink-0 flex-col lg:order-none lg:h-full lg:min-h-0",
+                /* Mobile : pas de hauteur % sur l’outer — l’inner porte une hauteur explicite pour MapLibre. */
               )}
             >
-              <div className="h-full min-h-[min(52vh,28rem)] w-full min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5 lg:min-h-0">
+              <div
+                className={cn(
+                  "w-full overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5",
+                  /* Hauteur explicite < lg : évite h-full + min-h-0 (twMerge) → canvas 0×0. */
+                  "h-[min(52vh,28rem)] min-h-[min(52vh,28rem)] shrink-0",
+                  "lg:h-full lg:min-h-0 lg:flex-1",
+                )}
+              >
                 <ApartmentMap
                   apartments={sortedApartments}
                   selectedApartmentId={selectedApartmentId}

@@ -3,31 +3,14 @@
 import { useMemo, useRef, useState } from "react"
 
 import type { Apartment, DialogAnchorRect } from "@/types/apartments"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
 import { XIcon } from "lucide-react"
 
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  listingDetailBody,
-  listingDetailMeta,
-  listingDetailTitle,
-  listingHalldisCtaClassName,
-  listingSectionLabel,
-  listingTagBadgeClass,
-} from "@/lib/listing-ui"
-import { ApartmentCarousel } from "./apartment-carousel"
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog"
+import { ApartmentContent } from "./apartment-content"
 
 const MAX_DIALOG_WIDTH_PX = 42 * 16 // max-w-2xl
 const DIALOG_MARGIN = 12
-/** En dessous : pas d’ancrage (centrage classique), cohérent avec mise en page une colonne / téléphone. */
+/** En dessous : pas d'ancrage (centrage classique), cohérent avec mise en page une colonne / téléphone. */
 const VIEWPORT_MIN_PX_FOR_ANCHORED_DIALOG = 1024 // tailwind `lg`
 
 function anchoredDialogPosition(
@@ -70,7 +53,6 @@ export function ApartmentDialog({
   onOpenChange,
   anchorRect = null,
 }: ApartmentDialogProps) {
-  const images = apartment.images.slice(0, 4)
   const [dragY, setDragY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const startYRef = useRef<number | null>(null)
@@ -213,65 +195,10 @@ export function ApartmentDialog({
           onTouchEnd={handleTouchEnd}
           style={{
             transform: `translateY(${dragY}px)`,
-          transition: isDragging ? "none" : "transform 0.2s ease-out",
+            transition: isDragging ? "none" : "transform 0.2s ease-out",
           }}
         >
-          <ApartmentCarousel
-            variant="dialog"
-            images={images}
-            title={apartment.title}
-            slug={apartment.slug}
-          />
-
-          <div className="flex flex-col gap-8 px-4 pb-8 pt-2 sm:px-6 sm:pb-10 sm:pt-4">
-            <a
-              href={`https://www.halldis.com/${apartment.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={listingHalldisCtaClassName()}
-            >
-              Réserver sur Halldis
-              <span aria-hidden className="text-lg leading-none opacity-90">
-                →
-              </span>
-            </a>
-
-            <DialogHeader className="space-y-0 gap-0 text-left">
-              <DialogTitle className={listingDetailTitle}>
-                {apartment.title}
-              </DialogTitle>
-              <p className={listingDetailMeta}>
-                {apartment.beds} couchages • {apartment.bathrooms} salle
-                {apartment.bathrooms > 1 ? "s" : ""} de bain
-              </p>
-            </DialogHeader>
-
-            <DialogDescription
-              className={cn(
-                listingDetailBody,
-                "text-foreground dark:text-foreground",
-              )}
-            >
-              {apartment.description}
-            </DialogDescription>
-
-            {apartment.advantages?.length ? (
-              <section className="space-y-0">
-                <h3 className={listingSectionLabel}>Équipements</h3>
-                <div className="mt-2.5 flex flex-wrap gap-2">
-                  {apartment.advantages.map((advantage) => (
-                    <Badge
-                      key={advantage}
-                      variant="outline"
-                      className={listingTagBadgeClass}
-                    >
-                      {advantage}
-                    </Badge>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-          </div>
+          <ApartmentContent variant="dialog" apartment={apartment} />
         </div>
       </DialogContent>
     </Dialog>

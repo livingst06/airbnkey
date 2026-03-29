@@ -34,9 +34,11 @@ yarn-error.log*
 .env*
 !.env.example
 
-# Prisma SQLite local
+# Fichiers base SQLite locaux (legacy ; schéma actuel = PostgreSQL)
 /prisma/*.db
 /prisma/*.db-journal
+/prisma/prisma/*.db
+/prisma/prisma/*.db-journal
 
 # vercel
 .vercel

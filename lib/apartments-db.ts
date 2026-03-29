@@ -1,13 +1,33 @@
+import { unstable_cache } from "next/cache"
+
+import {
+  apartmentToDbPayload,
+  apartmentToPrismaUpdateData,
+  rowToApartment,
+} from "@/lib/apartment-db-mapper"
 import { prisma } from "@/lib/prisma"
-import { apartmentToDbPayload, rowToApartment } from "@/lib/apartment-db-mapper"
 import type { Apartment } from "@/types/apartments"
 
+/** Même chaîne que `revalidateTag` dans les server actions. */
+export const APARTMENTS_CACHE_TAG = "apartments"
+
+/** Lecture directe BDD (source de vérité), sans cache — mutations, API, refetch client. */
 export async function getApartmentsDb(): Promise<Apartment[]> {
   const rows = await prisma.apartment.findMany({
     orderBy: { createdAt: "asc" },
   })
   return rows.map(rowToApartment)
 }
+
+/**
+ * Liste pour le layout RSC : invalidable via `revalidateTag('apartments')`.
+ * @see app/actions/apartments.ts invalidateApartmentListCache
+ */
+export const getApartmentsCached = unstable_cache(
+  async () => getApartmentsDb(),
+  ["apartments-list"],
+  { tags: [APARTMENTS_CACHE_TAG] },
+)
 
 export async function createApartmentDb(data: Apartment): Promise<Apartment> {
   const row = await prisma.apartment.create({
@@ -25,16 +45,7 @@ export async function updateApartmentDb(
 
   const row = await prisma.apartment.update({
     where: { id },
-    data: {
-      title: data.title,
-      description: data.description,
-      beds: data.beds,
-      bathrooms: data.bathrooms,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      advantages: JSON.stringify(data.advantages),
-      images: JSON.stringify(data.images),
-    },
+    data: apartmentToPrismaUpdateData(data),
   })
   return rowToApartment(row)
 }

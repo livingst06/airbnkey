@@ -1,8 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { updateTag } from "next/cache"
 
 import {
+  APARTMENTS_CACHE_TAG,
   createApartmentDb,
   deleteApartmentDb,
   getApartmentsDb,
@@ -10,6 +11,17 @@ import {
 } from "@/lib/apartments-db"
 import { apartmentFormSchema } from "@/lib/apartment-zod"
 import type { ApartmentFormInput } from "@/lib/apartment-zod"
+import type { Apartment } from "@/types/apartments"
+
+/** Invalide le cache `unstable_cache` taggé (server actions → `updateTag`). */
+function invalidateApartmentListCache() {
+  updateTag(APARTMENTS_CACHE_TAG)
+}
+
+/** Liste ordonnée comme la DB — pour synchroniser le client après mutation. */
+export async function listApartmentsAction(): Promise<Apartment[]> {
+  return getApartmentsDb()
+}
 
 function slugify(input: string): string {
   const normalized = input
@@ -59,9 +71,9 @@ export async function createApartmentAction(input: ApartmentFormInput) {
     latitude: p.latitude,
     longitude: p.longitude,
     images: p.images,
+    bookingUrl: p.bookingUrl,
   })
-  revalidatePath("/")
-  revalidatePath("/admin")
+  invalidateApartmentListCache()
   return { ok: true as const, apartment }
 }
 
@@ -88,12 +100,12 @@ export async function updateApartmentAction(
     latitude: p.latitude,
     longitude: p.longitude,
     images: p.images,
+    bookingUrl: p.bookingUrl,
   })
   if (!apartment) {
     return { ok: false as const, error: "Mise à jour impossible" }
   }
-  revalidatePath("/")
-  revalidatePath("/admin")
+  invalidateApartmentListCache()
   return { ok: true as const, apartment }
 }
 
@@ -102,7 +114,6 @@ export async function deleteApartmentAction(id: string) {
   if (!deleted) {
     return { ok: false as const, error: "Suppression impossible" }
   }
-  revalidatePath("/")
-  revalidatePath("/admin")
+  invalidateApartmentListCache()
   return { ok: true as const }
 }

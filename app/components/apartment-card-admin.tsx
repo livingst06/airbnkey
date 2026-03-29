@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 
+import { imageNeedsUnoptimized } from "@/lib/image-src"
 import type { Apartment } from "@/types/apartments"
 import { X } from "lucide-react"
 
@@ -21,8 +22,7 @@ export function ApartmentCardAdmin({
   onDelete,
 }: ApartmentCardAdminProps) {
   const firstImage = apartment.images[0]
-  const unoptimized =
-    firstImage?.startsWith("blob:") || firstImage?.startsWith("data:")
+  const unoptimized = imageNeedsUnoptimized(firstImage)
 
   const advantages = apartment.advantages ?? []
   const visibleAdvantages = advantages.slice(0, 3)
@@ -39,8 +39,7 @@ export function ApartmentCardAdmin({
               fill
               className="h-full w-full object-cover transition-[filter] duration-300 ease-out group-hover:brightness-[1.02]"
               sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              // Adapter pour blob/data: si l’admin supprime des images, elles peuvent être des ObjectURL.
-              unoptimized={unoptimized ?? false}
+              unoptimized={unoptimized}
               priority={false}
             />
           </div>
@@ -73,9 +72,9 @@ export function ApartmentCardAdmin({
 
           {visibleAdvantages.length > 0 ? (
             <div className="flex min-h-[1.25rem] flex-wrap gap-1">
-              {visibleAdvantages.map((advantage) => (
+              {visibleAdvantages.map((advantage, idx) => (
                 <Badge
-                  key={advantage}
+                  key={`${apartment.id}-adv-${idx}-${advantage}`}
                   variant="secondary"
                   className="max-w-[100%] truncate bg-muted/60 py-0.5 px-2 text-[10px] font-normal leading-tight"
                 >
