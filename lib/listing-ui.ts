@@ -18,7 +18,7 @@ export const listingDetailBody =
 
 /** Pastilles équipements / tags (filtres & cards) */
 export const listingTagBadgeClass =
-  "h-auto border-border/70 bg-muted/25 px-2 py-0.5 text-[11px] font-normal leading-tight text-muted-foreground shadow-none dark:border-white/12 dark:bg-white/[0.05] dark:text-muted-foreground"
+  "h-auto border-border/70 bg-muted/25 px-2 py-0.5 text-[11px] font-normal leading-tight text-muted-foreground shadow-none dark:border-white/12 dark:bg-white/[0.05] dark:text-muted-foreground max-sm:px-2.5 max-sm:py-1 max-sm:text-[12px]"
 
 /** CTA Halldis — discret, aligné cartes / filtres */
 export function listingHalldisCtaClassName(className?: string) {

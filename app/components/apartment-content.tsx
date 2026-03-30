@@ -32,7 +32,7 @@ const listingMetaClassName =
 
 const listingDescriptionClassName = cn(
   listingDetailBody,
-  "line-clamp-4 text-[0.8125rem] text-muted-foreground",
+  "line-clamp-4 max-sm:line-clamp-5 text-[0.8125rem] text-muted-foreground",
 )
 
 export type ApartmentContentProps = {
@@ -124,13 +124,13 @@ export function ApartmentContent({
           <div className="group/cta pointer-events-none absolute inset-x-0 bottom-0 z-[13] bg-gradient-to-t from-black/92 via-black/65 via-35% to-transparent px-3 pb-3 pt-14">
             <button
               type="button"
-              className="pointer-events-auto w-full cursor-pointer text-center text-[0.8125rem] font-semibold tracking-tight text-white/95 [text-shadow:0_1px_4px_rgba(0,0,0,0.9)] outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+              className="pointer-events-auto flex min-h-10 w-full cursor-pointer items-center justify-center px-2 py-2 text-center text-[0.8125rem] font-semibold tracking-tight text-white/95 [text-shadow:0_1px_4px_rgba(0,0,0,0.9)] outline-none transition-transform duration-100 ease-out focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97] md:hover:brightness-110"
               onClick={(e) => {
                 e.stopPropagation()
                 openBookingUrlInNewTab(listingHref)
               }}
             >
-              <span className="inline-block origin-bottom transition-all duration-200 ease-out will-change-transform group-hover/cta:-translate-y-1 group-hover/cta:scale-[1.06] group-hover/cta:text-white group-hover/cta:[text-shadow:0_0_18px_rgba(255,255,255,0.55),0_2px_8px_rgba(0,0,0,0.9)] group-hover/cta:brightness-110 active:translate-y-0 active:scale-100">
+              <span className="inline-block md:transition-transform md:duration-150 md:ease-out md:group-hover/cta:scale-[1.02]">
                 {getBookingCtaLabel(bookingProvider)}
               </span>
             </button>

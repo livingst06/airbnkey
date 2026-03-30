@@ -60,7 +60,7 @@ const MARKER_ROOT_CLASS =
   "relative inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
 /** Inner : apparence du pill + transitions (scale/hover emphasis uniquement ici) */
 const MARKER_INNER_CLASS =
-  "relative z-[1] inline-flex items-center justify-center min-w-[56px] h-7 px-2 rounded-full border border-neutral-200 bg-white text-neutral-900 shadow-sm transition-all duration-300 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+  "relative z-[1] inline-flex items-center justify-center min-w-[56px] h-7 max-lg:min-h-8 px-2 rounded-full border border-neutral-200 bg-white text-neutral-900 shadow-sm transition-all duration-300 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
 const MARKER_SELECTED_CLASS =
   "ring-2 ring-primary border-primary shadow-lg"
 const MARKER_SELECTED_TOKENS = MARKER_SELECTED_CLASS.split(" ")
@@ -289,6 +289,12 @@ export function ApartmentMap({
 
       map.on("load", () => {
         scheduleResize()
+        /* Mobile : barre URL / layout ; double resize après paint pour éviter canvas 0×0. */
+        requestAnimationFrame(() => {
+          map.resize()
+          requestAnimationFrame(() => map.resize())
+        })
+        window.setTimeout(() => map.resize(), 300)
 
         if (list.length > 1) {
           map.fitBounds(bounds, { padding: 80, maxZoom: 15 })

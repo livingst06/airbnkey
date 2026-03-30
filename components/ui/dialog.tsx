@@ -39,7 +39,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-neutral-950/30 duration-100 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-neutral-950/30 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-open:duration-200 data-open:ease-out data-closed:animate-out data-closed:fade-out-0 data-closed:duration-200 data-closed:ease-out",
         className
       )}
       {...props}
@@ -48,7 +48,7 @@ function DialogOverlay({
 }
 
 const dialogContentBaseClass =
-  "fixed z-50 grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-2xl border border-neutral-200 bg-white/90 p-4 text-sm text-neutral-900 shadow-lg backdrop-blur-md transition-colors duration-300 outline-none dark:border-neutral-700 dark:bg-neutral-800/90 dark:text-neutral-100 sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+  "fixed z-50 grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-2xl border border-neutral-200 bg-white/90 p-4 text-sm text-neutral-900 shadow-lg backdrop-blur-md transition-colors duration-150 outline-none ease-out dark:border-neutral-700 dark:bg-neutral-800/90 dark:text-neutral-100 sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-98 data-open:duration-200 data-open:ease-out data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-98 data-closed:duration-200 data-closed:ease-out"
 
 function DialogContent({
   className,

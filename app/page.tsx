@@ -254,9 +254,9 @@ export default function HomePage() {
               <div
                 className={cn(
                   "w-full overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5",
-                  /* Hauteur explicite < lg : évite h-full + min-h-0 (twMerge) → canvas 0×0. */
-                  "h-[min(52vh,28rem)] min-h-[min(52vh,28rem)] shrink-0",
-                  "lg:h-full lg:min-h-0 lg:flex-1",
+                  /* Mobile : clamp + dvh (barre d’adresse) pour garder une hauteur réelle ; évite max/min imbriqués mal parsés. */
+                  "max-lg:h-[clamp(15rem,56dvh,28rem)] max-lg:min-h-[15rem] max-lg:shrink-0",
+                  "lg:h-full lg:min-h-0 lg:flex-1 lg:shrink-0",
                 )}
               >
                 <ApartmentMap

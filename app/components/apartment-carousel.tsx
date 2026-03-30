@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Image from "next/image"
 
 import {
@@ -12,6 +12,12 @@ import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 const MAX_IMAGES = 8
+
+/** Distance mini (px) pour compter un swipe horizontal — sans preventDefault sur touchmove */
+const SWIPE_THRESHOLD_PX = 50
+
+/** |dx| doit dominer |dy| pour éviter de capter un scroll vertical */
+const SWIPE_HORIZONTAL_DOMINANCE = 1.15
 
 type ApartmentCarouselProps = {
   images: string[]
@@ -27,6 +33,12 @@ export function ApartmentCarousel({
 }: ApartmentCarouselProps) {
   const safeImages = images.slice(0, MAX_IMAGES)
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  const touchStartRef = useRef<{
+    x: number
+    y: number
+    id: number
+  } | null>(null)
 
   const hasMultipleImages = safeImages.length > 1
 
@@ -49,18 +61,64 @@ export function ApartmentCarousel({
     )
   }
 
-  const imageClassName =
-    "object-cover transition-[transform,filter] duration-500 ease-out group-hover:scale-[1.03] group-hover:brightness-105"
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.targetTouches[0]
+    if (!t) return
+    touchStartRef.current = {
+      x: t.clientX,
+      y: t.clientY,
+      id: t.identifier,
+    }
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStartRef.current
+    touchStartRef.current = null
+    if (!start || !hasMultipleImages) return
+
+    const touch = Array.from(e.changedTouches).find(
+      (x) => x.identifier === start.id,
+    )
+    if (!touch) return
+
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+
+    if (Math.abs(dx) < SWIPE_THRESHOLD_PX) return
+    if (Math.abs(dx) <= Math.abs(dy) * SWIPE_HORIZONTAL_DOMINANCE) return
+
+    if (dx < 0) {
+      setCurrentIndex((prev) =>
+        prev === safeImages.length - 1 ? 0 : prev + 1,
+      )
+    } else {
+      setCurrentIndex((prev) =>
+        prev === 0 ? safeImages.length - 1 : prev - 1,
+      )
+    }
+  }
+
+  const imageHoverClass =
+    "md:transition-[transform,filter] md:duration-300 md:ease-out md:group-hover:scale-[1.03] md:group-hover:brightness-105 md:will-change-[transform]"
 
   return (
-    <div className="group relative aspect-[3/2] h-full w-full overflow-hidden">
-      <div className="absolute inset-0 z-0">
+    <div
+      className="group relative aspect-[3/2] h-full w-full overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div
+        key={`${currentIndex}-${currentSrc}`}
+        className="absolute inset-0 z-0 animate-in fade-in duration-200 ease-out"
+      >
         <Image
           src={currentSrc}
           alt={`${title} — photo ${currentIndex + 1} sur ${safeImages.length}`}
           fill
-          style={{ willChange: "transform" }}
-          className={cn("m-0 h-full w-full p-0", imageClassName)}
+          className={cn(
+            "m-0 h-full w-full p-0 object-cover",
+            imageHoverClass,
+          )}
           sizes="(min-width: 1536px) 14vw, (min-width: 1024px) 18vw, (min-width: 640px) 42vw, 100vw"
           priority={imagePriority && currentIndex === 0}
           unoptimized={unoptimized}

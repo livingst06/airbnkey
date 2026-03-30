@@ -77,12 +77,12 @@ export function ApartmentCard({
       <Card
         role="article"
         aria-labelledby={titleId}
-        className={`group flex h-full flex-col gap-0 overflow-hidden rounded-xl p-0 shadow-sm transition-all duration-200 ease-out ${
+        className={`group flex h-full flex-col gap-0 overflow-hidden rounded-xl p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none ${
           isSyncedHover
             ? "shadow-lg ring-2 ring-primary md:scale-[1.01]"
             : isListHoverHighlight
               ? "ring-2 ring-primary"
-              : "hover:shadow-md md:hover:scale-[1.01]"
+              : "md:hover:shadow-lg md:hover:scale-[1.01]"
         }`}
       >
         <ApartmentContent
