@@ -46,6 +46,7 @@ export function ApartmentCardAdmin({
           <button
             type="button"
             aria-label="Supprimer cet appartement"
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
               onDelete()
@@ -97,6 +98,7 @@ export function ApartmentCardAdmin({
               type="button"
               variant="default"
               size="sm"
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={onEdit}
               className="w-full rounded-lg border border-orange-500/20 bg-orange-500/15 text-orange-600 shadow-sm hover:bg-orange-500/20 active:scale-[0.99] dark:text-orange-300 dark:hover:bg-orange-500/20"
             >

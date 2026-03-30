@@ -15,6 +15,7 @@ import {
   deleteApartmentAction,
   listApartmentsAction,
   updateApartmentAction,
+  updateApartmentsOrderAction,
 } from "@/app/actions/apartments"
 import type { ApartmentFormInput } from "@/lib/apartment-zod"
 import type { Apartment } from "@/types/apartments"
@@ -26,6 +27,10 @@ type ApartmentsContextValue = {
   addApartment: (input: ApartmentFormInput) => Promise<Apartment>
   updateApartment: (id: string, input: ApartmentFormInput) => Promise<void>
   deleteApartment: (id: string) => Promise<void>
+  /** Ordre global 0..n-1 ; optimiste puis persistance serveur (admin uniquement côté action). */
+  reorderApartments: (
+    ordered: { id: string; position: number }[],
+  ) => void
 }
 
 const ApartmentsContext = createContext<ApartmentsContextValue | null>(null)
@@ -83,14 +88,40 @@ export function ApartmentsProvider({
     [syncFromDb],
   )
 
+  const reorderApartments = useCallback(
+    (ordered: { id: string; position: number }[]) => {
+      setApartments((prev) => {
+        const byId = new Map(prev.map((a) => [a.id, a]))
+        return [...ordered]
+          .sort((x, y) => x.position - y.position)
+          .map(({ id, position }) => {
+            const a = byId.get(id)
+            return a ? { ...a, position } : null
+          })
+          .filter((a): a is Apartment => a !== null)
+      })
+      void (async () => {
+        const r = await updateApartmentsOrderAction(ordered)
+        if (!r.ok) {
+          toast.error(
+            "error" in r && r.error ? r.error : "Ordre non enregistré",
+          )
+          await syncFromDb()
+        }
+      })()
+    },
+    [syncFromDb],
+  )
+
   const value = useMemo<ApartmentsContextValue>(
     () => ({
       apartments,
       addApartment,
       updateApartment,
       deleteApartment,
+      reorderApartments,
     }),
-    [apartments, addApartment, updateApartment, deleteApartment],
+    [apartments, addApartment, updateApartment, deleteApartment, reorderApartments],
   )
 
   return (

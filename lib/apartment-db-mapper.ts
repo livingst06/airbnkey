@@ -73,6 +73,7 @@ export function rowToApartment(row: ApartmentRow): Apartment {
     }),
     latitude: row.latitude,
     longitude: row.longitude,
+    position: normalizeNonNegativeInt(row.position),
     /** Chaque entrée : URL absolue, chemin `/...` (public), ou legacy `data:image/...`. */
     images: jsonValueToStringArray(row.images),
     bookingUrl: row.bookingUrl ?? null,
@@ -92,6 +93,7 @@ export function apartmentToDbPayload(a: {
   longitude: number
   images: string[]
   bookingUrl?: string | null
+  position?: number
 }) {
   return {
     id: a.id,
@@ -105,12 +107,13 @@ export function apartmentToDbPayload(a: {
     advantages: a.advantages as Prisma.InputJsonValue,
     images: a.images as Prisma.InputJsonValue,
     bookingUrl: a.bookingUrl ?? null,
+    position: a.position ?? 0,
   }
 }
 
-/** Données Prisma pour `update` — aucune sérialisation JSON en dehors de ce fichier. */
+/** Données Prisma pour `update` — ne modifie pas `position` (réservé au réordonnancement). */
 export function apartmentToPrismaUpdateData(
-  data: Omit<Apartment, "id" | "slug">,
+  data: Omit<Apartment, "id" | "slug" | "position">,
 ): {
   title: string
   description: string

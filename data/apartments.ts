@@ -12,6 +12,7 @@ export const apartments: Apartment[] = [
       "Studio lumineux situé sur la Croisette avec vue mer exceptionnelle.",
     latitude: 43.5528,
     longitude: 7.0174,
+    position: 0,
     images: [
       "/apartments/apt1/1.png",
       "/apartments/apt1/2.png",
@@ -30,6 +31,7 @@ export const apartments: Apartment[] = [
       "Appartement moderne à 5 minutes du Palais des Festivals.",
     latitude: 43.553,
     longitude: 7.015,
+    position: 1,
     images: [
       "/apartments/apt2/1.png",
       "/apartments/apt2/2.png",
@@ -48,6 +50,7 @@ export const apartments: Apartment[] = [
       "Grand appartement familial proche des plages du Palm Beach.",
     latitude: 43.548,
     longitude: 7.035,
+    position: 2,
     images: [
       "/apartments/apt3/1.png",
       "/apartments/apt3/2.png",

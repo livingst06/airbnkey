@@ -14,7 +14,7 @@ export const APARTMENTS_CACHE_TAG = "apartments"
 /** Lecture directe BDD (source de vérité), sans cache — mutations, API, refetch client. */
 export async function getApartmentsDb(): Promise<Apartment[]> {
   const rows = await prisma.apartment.findMany({
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ position: "asc" }, { createdAt: "asc" }],
   })
   return rows.map(rowToApartment)
 }
@@ -30,15 +30,17 @@ export const getApartmentsCached = unstable_cache(
 )
 
 export async function createApartmentDb(data: Apartment): Promise<Apartment> {
+  const agg = await prisma.apartment.aggregate({ _max: { position: true } })
+  const nextPosition = (agg._max.position ?? -1) + 1
   const row = await prisma.apartment.create({
-    data: apartmentToDbPayload(data),
+    data: apartmentToDbPayload({ ...data, position: nextPosition }),
   })
   return rowToApartment(row)
 }
 
 export async function updateApartmentDb(
   id: string,
-  data: Omit<Apartment, "id" | "slug"> & { slug?: string },
+  data: Omit<Apartment, "id" | "slug" | "position"> & { slug?: string },
 ): Promise<Apartment | null> {
   const existing = await prisma.apartment.findUnique({ where: { id } })
   if (!existing) return null
@@ -58,3 +60,25 @@ export async function deleteApartmentDb(id: string): Promise<boolean> {
     return false
   }
 }
+
+/** Réordonne en deux passes pour éviter les collisions temporaires sur `position`. */
+export async function updateApartmentsOrderDb(
+  ordered: { id: string; position: number }[],
+): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    for (let i = 0; i < ordered.length; i++) {
+      const { id } = ordered[i]
+      await tx.apartment.update({
+        where: { id },
+        data: { position: -(i + 1) },
+      })
+    }
+    for (const { id, position } of ordered) {
+      await tx.apartment.update({
+        where: { id },
+        data: { position },
+      })
+    }
+  })
+}
+

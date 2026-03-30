@@ -8,6 +8,7 @@ import {
   deleteApartmentDb,
   getApartmentsDb,
   updateApartmentDb,
+  updateApartmentsOrderDb,
 } from "@/lib/apartments-db"
 import { apartmentFormSchema } from "@/lib/apartment-zod"
 import type { ApartmentFormInput } from "@/lib/apartment-zod"
@@ -72,6 +73,7 @@ export async function createApartmentAction(input: ApartmentFormInput) {
     longitude: p.longitude,
     images: p.images,
     bookingUrl: p.bookingUrl,
+    position: 0,
   })
   invalidateApartmentListCache()
   return { ok: true as const, apartment }
@@ -117,3 +119,44 @@ export async function deleteApartmentAction(id: string) {
   invalidateApartmentListCache()
   return { ok: true as const }
 }
+
+
+function isAdminEnv(): boolean {
+  return process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
+}
+
+export async function updateApartmentsOrderAction(
+  ordered: { id: string; position: number }[],
+) {
+  if (!isAdminEnv()) {
+    return { ok: false as const, error: "Non autorisé" }
+  }
+  if (ordered.length === 0) {
+    return { ok: true as const }
+  }
+  const current = await getApartmentsDb()
+  if (ordered.length !== current.length) {
+    return { ok: false as const, error: "Liste incomplète" }
+  }
+  const expectedIds = new Set(current.map((a) => a.id))
+  const seen = new Set<string>()
+  for (const row of ordered) {
+    if (!expectedIds.has(row.id) || seen.has(row.id)) {
+      return { ok: false as const, error: "Identifiants invalides" }
+    }
+    seen.add(row.id)
+  }
+  if (seen.size !== expectedIds.size) {
+    return { ok: false as const, error: "Identifiants invalides" }
+  }
+  const byPos = [...ordered].sort((a, b) => a.position - b.position)
+  for (let i = 0; i < byPos.length; i++) {
+    if (byPos[i].position !== i) {
+      return { ok: false as const, error: "Positions invalides" }
+    }
+  }
+  await updateApartmentsOrderDb(byPos)
+  invalidateApartmentListCache()
+  return { ok: true as const }
+}
+

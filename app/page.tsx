@@ -109,7 +109,7 @@ export default function HomePage() {
     return list
   }, [filteredApartments, sort])
 
-  const listAnimKey = `${sort}:${filteredApartments.map((a) => a.id).join("|")}`
+  const listAnimKey = `${sort}:${[...filteredApartments].map((a) => a.id).sort().join("|")}`
 
   useEffect(() => {
     const ids = new Set(filteredApartments.map((a) => a.id))

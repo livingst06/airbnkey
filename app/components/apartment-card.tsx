@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react"
 import type { HoverSource } from "@/types/hover"
 import type { Apartment } from "@/types/apartments"
 import { Card } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 import { ApartmentContent } from "./apartment-content"
 
 type Props = {
@@ -71,27 +72,50 @@ export function ApartmentCard({
   }, [hoverSource, hoveredApartmentId, apartment.id])
 
   const titleId = `apt-card-title-${apartment.id}`
+  const isHighlighted = isSyncedHover || isListHoverHighlight
+
+  const inner = (
+    <ApartmentContent
+      variant="card"
+      apartment={apartment}
+      imagePriority={priority}
+      titleId={titleId}
+      selectionFrameInset={isHighlighted}
+    />
+  )
 
   return (
     <div ref={cardRef} className="h-full">
-      <Card
-        role="article"
-        aria-labelledby={titleId}
-        className={`group flex h-full flex-col gap-0 overflow-hidden rounded-xl p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none ${
-          isSyncedHover
-            ? "shadow-lg ring-2 ring-primary md:scale-[1.01]"
-            : isListHoverHighlight
-              ? "ring-2 ring-primary"
-              : "md:hover:shadow-lg md:hover:scale-[1.01]"
-        }`}
-      >
-        <ApartmentContent
-          variant="card"
-          apartment={apartment}
-          imagePriority={priority}
-          titleId={titleId}
-        />
-      </Card>
+      {isHighlighted ? (
+        <div
+          className={cn(
+            "h-full rounded-xl bg-primary p-0.5 shadow-md transition-shadow duration-150 ease-out motion-reduce:transition-none dark:shadow-black/40",
+            isSyncedHover && "shadow-lg",
+          )}
+        >
+          <Card
+            role="article"
+            aria-labelledby={titleId}
+            className={cn(
+              "group flex h-full flex-col gap-0 overflow-hidden border-0 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none",
+              "rounded-[max(0px,calc(var(--radius-xl)-0.125rem))]",
+            )}
+          >
+            {inner}
+          </Card>
+        </div>
+      ) : (
+        <Card
+          role="article"
+          aria-labelledby={titleId}
+          className={cn(
+            "group flex h-full flex-col gap-0 overflow-hidden rounded-xl border border-border/60 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-border/50",
+            "md:hover:scale-[1.01] md:hover:shadow-lg",
+          )}
+        >
+          {inner}
+        </Card>
+      )}
     </div>
   )
 }

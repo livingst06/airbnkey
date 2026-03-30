@@ -41,6 +41,11 @@ export type ApartmentContentProps = {
   variant: "card" | "dialog"
   imagePriority?: boolean
   titleId?: string
+  /**
+   * Cadre de sélection (padding + primary) : rayon du haut de la photo aligné
+   * sur `calc(var(--radius-xl) - 0.125rem)` pour éviter les découpes aux coins.
+   */
+  selectionFrameInset?: boolean
 }
 
 export function ApartmentContent({
@@ -48,6 +53,7 @@ export function ApartmentContent({
   variant,
   imagePriority = false,
   titleId,
+  selectionFrameInset = false,
 }: ApartmentContentProps) {
   const isDialog = variant === "dialog"
 
@@ -112,7 +118,11 @@ export function ApartmentContent({
       <div
         className={cn(
           "relative w-full shrink-0 overflow-hidden",
-          isDialog ? "rounded-t-3xl" : "rounded-t-xl",
+          isDialog
+            ? "rounded-t-3xl"
+            : selectionFrameInset
+              ? "rounded-t-[max(0px,calc(var(--radius-xl)-0.125rem))]"
+              : "rounded-t-xl",
         )}
       >
         <ApartmentCarousel
