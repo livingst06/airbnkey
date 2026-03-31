@@ -70,26 +70,6 @@ function clearApartmentOrderPersistence() {
   window.sessionStorage.removeItem(APARTMENTS_LOCAL_ORDER_KEY)
 }
 
-function readApartmentOrderSnapshot(): ApartmentOrderSnapshot | null {
-  if (typeof window === "undefined") return null
-
-  const raw = window.sessionStorage.getItem(APARTMENTS_LOCAL_ORDER_KEY)
-  if (!raw) return null
-
-  try {
-    const parsed = JSON.parse(raw) as ApartmentOrderSnapshot
-    if (!Array.isArray(parsed)) return null
-    return [...parsed]
-      .filter(
-        (row): row is ApartmentOrderSnapshot[number] =>
-          typeof row?.id === "string" && typeof row?.position === "number",
-      )
-      .sort((a, b) => a.position - b.position)
-  } catch {
-    return null
-  }
-}
-
 export function ApartmentsProvider({
   children,
   initialApartments,
@@ -196,5 +176,4 @@ export {
   APARTMENTS_SYNC_EVENT,
   applyApartmentOrder,
   clearApartmentOrderPersistence,
-  readApartmentOrderSnapshot,
 }
