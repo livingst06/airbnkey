@@ -1,12 +1,14 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import maplibregl from "maplibre-gl"
+import Image from "next/image"
 import type { Apartment, DialogAnchorRect } from "@/types/apartments"
 import type { HoverSource } from "@/types/hover"
 import { getMapStyleUrl } from "@/lib/map-style"
 /** Délai avant fermeture : évite les boucles enter/leave au moindre pixel si l’état était vidé tout de suite. */
 const MAP_POPUP_HOVER_LEAVE_MS = 280
+const MOBILE_SCROLL_FREEZE_DEBOUNCE_MS = 140
 
 type ApartmentMapProps = {
   apartments: Apartment[]
@@ -26,6 +28,24 @@ type MarkerSlot = {
   popup: maplibregl.Popup
   root: HTMLElement
   inner: HTMLElement
+}
+
+type FreezeMarkerSnapshot = {
+  id: string
+  html: string
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+type FreezeDomSnapshot = {
+  id: string
+  html: string
+  left: number
+  top: number
+  width: number
+  height: number
 }
 
 function escapeHtml(text: string): string {
@@ -80,6 +100,14 @@ function shouldOpenDialogFromMap() {
   return canUseMapHoverInteractions()
 }
 
+function shouldTrackViewportResizes() {
+  return canUseMapHoverInteractions()
+}
+
+function isTouchDeviceMapMode() {
+  return !canUseMapHoverInteractions()
+}
+
 export function ApartmentMap({
   apartments,
   selectedApartmentId,
@@ -90,6 +118,11 @@ export function ApartmentMap({
   setHoverSource,
   setHoverLock,
 }: ApartmentMapProps) {
+  const [freezeImageUrl, setFreezeImageUrl] = useState<string | null>(null)
+  const [freezeMarkers, setFreezeMarkers] = useState<FreezeMarkerSnapshot[]>([])
+  const [freezeDomOverlays, setFreezeDomOverlays] = useState<FreezeDomSnapshot[]>(
+    [],
+  )
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapResizeObserverRef = useRef<ResizeObserver | null>(null)
@@ -103,6 +136,9 @@ export function ApartmentMap({
   const apartmentsByIdRef = useRef<Map<string, Apartment>>(new Map())
   const selectedApartmentIdRef = useRef<string | null>(selectedApartmentId)
   const hoveredApartmentIdRef = useRef<string | null>(hoveredApartmentId)
+  const lastResizeSizeRef = useRef<{ width: number; height: number } | null>(null)
+  const scrollFreezeTimerRef = useRef<number | null>(null)
+  const isMobileScrollFrozenRef = useRef(false)
 
   const closeAllPopups = useCallback(() => {
     for (const slot of Object.values(markersByIdRef.current)) {
@@ -120,6 +156,90 @@ export function ApartmentMap({
       mapHoverLeaveTimerRef.current = null
     }
   }, [])
+
+  const clearScrollFreezeTimer = useCallback(() => {
+    if (scrollFreezeTimerRef.current != null) {
+      window.clearTimeout(scrollFreezeTimerRef.current)
+      scrollFreezeTimerRef.current = null
+    }
+  }, [])
+
+  const releaseMobileScrollFreeze = useCallback(() => {
+    clearScrollFreezeTimer()
+    isMobileScrollFrozenRef.current = false
+    setFreezeImageUrl(null)
+    setFreezeMarkers([])
+    setFreezeDomOverlays([])
+  }, [clearScrollFreezeTimer])
+
+  const freezeMapDuringMobileScroll = useCallback(() => {
+    if (!isTouchDeviceMapMode()) return
+
+    const container = mapContainerRef.current
+    const canvas = container?.querySelector("canvas")
+    if (!(container instanceof HTMLDivElement) || !(canvas instanceof HTMLCanvasElement)) {
+      return
+    }
+
+    if (!isMobileScrollFrozenRef.current) {
+      isMobileScrollFrozenRef.current = true
+      try {
+        setFreezeImageUrl(canvas.toDataURL("image/png"))
+      } catch {
+        setFreezeImageUrl(null)
+      }
+
+      const containerRect = container.getBoundingClientRect()
+      const markerSnapshots = Object.entries(markersByIdRef.current).map(
+        ([id, slot]) => {
+          const rect = slot.root.getBoundingClientRect()
+          return {
+            id,
+            html: slot.root.innerHTML,
+            left: rect.left - containerRect.left,
+            top: rect.top - containerRect.top,
+            width: rect.width,
+            height: rect.height,
+          }
+        },
+      )
+      setFreezeMarkers(markerSnapshots)
+
+      const domSnapshotTargets = [
+        {
+          selector: ".maplibregl-ctrl-bottom-right",
+          getHtml: (element: HTMLElement) => element.innerHTML,
+        },
+        {
+          selector: ".maplibregl-popup .popup-card",
+          getHtml: (element: HTMLElement) => element.outerHTML,
+        },
+      ] as const
+      const domSnapshots = domSnapshotTargets.flatMap(({ selector, getHtml }, index) =>
+        Array.from(container.querySelectorAll(selector)).map((node, nodeIndex) => {
+          const element = node instanceof HTMLElement ? node : null
+          if (!element) return []
+          const rect = element.getBoundingClientRect()
+          return {
+            id: `${selector}-${index}-${nodeIndex}`,
+            html: getHtml(element),
+            left: rect.left - containerRect.left,
+            top: rect.top - containerRect.top,
+            width: rect.width,
+            height: rect.height,
+          }
+        }),
+      )
+      setFreezeDomOverlays(domSnapshots.flat())
+    }
+
+    clearScrollFreezeTimer()
+    scrollFreezeTimerRef.current = window.setTimeout(() => {
+      scrollFreezeTimerRef.current = null
+      isMobileScrollFrozenRef.current = false
+      setFreezeImageUrl(null)
+    }, MOBILE_SCROLL_FREEZE_DEBOUNCE_MS)
+  }, [clearScrollFreezeTimer])
 
   const createMarkerForApartment = useCallback(
     (
@@ -275,7 +395,9 @@ export function ApartmentMap({
     ],
   )
 
-  apartmentsForMapInitRef.current = apartments
+  useEffect(() => {
+    apartmentsForMapInitRef.current = apartments
+  }, [apartments])
 
   useEffect(() => {
     const container = mapContainerRef.current
@@ -288,7 +410,24 @@ export function ApartmentMap({
 
     const scheduleResize = () => {
       requestAnimationFrame(() => {
-        if (!cancelled) mapRef.current?.resize()
+        if (cancelled) return
+        const currentMap = mapRef.current
+        if (!currentMap) return
+        const currentContainer = currentMap.getContainer()
+        const nextSize = {
+          width: currentContainer.clientWidth,
+          height: currentContainer.clientHeight,
+        }
+        const prevSize = lastResizeSizeRef.current
+        if (
+          prevSize &&
+          prevSize.width === nextSize.width &&
+          prevSize.height === nextSize.height
+        ) {
+          return
+        }
+        lastResizeSizeRef.current = nextSize
+        currentMap.resize()
       })
     }
 
@@ -318,11 +457,18 @@ export function ApartmentMap({
         style: getMapStyleUrl(),
         center: [first.longitude, first.latitude],
         zoom: 13,
+        canvasContextAttributes: isTouchDeviceMapMode()
+          ? { preserveDrawingBuffer: true }
+          : undefined,
       })
 
       const bounds = new maplibregl.LngLatBounds()
 
       map.on("load", () => {
+        lastResizeSizeRef.current = {
+          width: container.clientWidth,
+          height: container.clientHeight,
+        }
         scheduleResize()
         /* Mobile : barre URL / layout ; double resize après paint pour éviter canvas 0×0. */
         requestAnimationFrame(() => {
@@ -344,16 +490,18 @@ export function ApartmentMap({
       mapRef.current = map
 
       mapResizeObserverRef.current?.disconnect()
-      mapResizeObserverRef.current = new ResizeObserver(() => {
-        mapRef.current?.resize()
-      })
-      mapResizeObserverRef.current.observe(container)
+      if (shouldTrackViewportResizes()) {
+        mapResizeObserverRef.current = new ResizeObserver(() => {
+          scheduleResize()
+        })
+        mapResizeObserverRef.current.observe(container)
+      }
 
       mapIntersectionObserverRef.current?.disconnect()
       mapIntersectionObserverRef.current = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
-            if (e.isIntersecting) scheduleResize()
+            if (e.isIntersecting && shouldTrackViewportResizes()) scheduleResize()
             else if (!shouldOpenDialogFromMap()) closeAllPopups()
           }
         },
@@ -361,9 +509,11 @@ export function ApartmentMap({
       )
       mapIntersectionObserverRef.current.observe(container)
 
-      window.addEventListener("resize", onViewportResize)
+      if (shouldTrackViewportResizes()) {
+        window.addEventListener("resize", onViewportResize)
+        window.visualViewport?.addEventListener("resize", onViewportResize)
+      }
       window.addEventListener("orientationchange", onViewportResize)
-      window.visualViewport?.addEventListener("resize", onViewportResize)
 
       list.forEach((apartment) => {
         bounds.extend([apartment.longitude, apartment.latitude])
@@ -378,25 +528,42 @@ export function ApartmentMap({
       cancelAnimationFrame(rafId)
       mapIntersectionObserverRef.current?.disconnect()
       mapIntersectionObserverRef.current = null
-      window.removeEventListener("resize", onViewportResize)
+      if (shouldTrackViewportResizes()) {
+        window.removeEventListener("resize", onViewportResize)
+        window.visualViewport?.removeEventListener("resize", onViewportResize)
+      }
       window.removeEventListener("orientationchange", onViewportResize)
-      window.visualViewport?.removeEventListener("resize", onViewportResize)
       mapResizeObserverRef.current?.disconnect()
       mapResizeObserverRef.current = null
       if (mapHoverLeaveTimerRef.current != null) {
         window.clearTimeout(mapHoverLeaveTimerRef.current)
         mapHoverLeaveTimerRef.current = null
       }
+      clearScrollFreezeTimer()
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
       }
+      lastResizeSizeRef.current = null
       markersByIdRef.current = {}
       previousHoveredIdRef.current = null
+      isMobileScrollFrozenRef.current = false
     }
-    // Carte : une instance ; markers mis à jour par l’effet dédié.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [clearScrollFreezeTimer, closeAllPopups, createMarkerForApartment])
+
+  useEffect(() => {
+    if (!isTouchDeviceMapMode()) return
+
+    const handleScroll = () => {
+      freezeMapDuringMobileScroll()
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+      releaseMobileScrollFreeze()
+    }
+  }, [freezeMapDuringMobileScroll, releaseMobileScrollFreeze])
 
   useEffect(() => {
     apartmentsByIdRef.current = new Map(apartments.map((a) => [a.id, a]))
@@ -544,8 +711,49 @@ export function ApartmentMap({
   }, [hoveredApartmentId])
 
   return (
-    <div className="relative h-full min-h-0 w-full overflow-hidden bg-white dark:bg-neutral-800">
-      <div ref={mapContainerRef} className="h-full w-full min-h-0" />
+    <div className="map-mobile-shell relative h-full min-h-0 w-full overflow-hidden bg-white dark:bg-neutral-800">
+      <div
+        ref={mapContainerRef}
+        className="map-mobile-surface h-full w-full min-h-0"
+      />
+      {freezeImageUrl ? (
+        <div className="map-mobile-freeze-overlay pointer-events-none absolute inset-0 z-20">
+          <Image
+            src={freezeImageUrl}
+            alt=""
+            fill
+            unoptimized
+            sizes="100vw"
+            className="object-cover"
+          />
+          {freezeMarkers.map((marker) => (
+            <div
+              key={marker.id}
+              className="absolute"
+              style={{
+                left: marker.left,
+                top: marker.top,
+                width: marker.width,
+                height: marker.height,
+              }}
+              dangerouslySetInnerHTML={{ __html: marker.html }}
+            />
+          ))}
+          {freezeDomOverlays.map((overlay) => (
+            <div
+              key={overlay.id}
+              className="absolute"
+              style={{
+                left: overlay.left,
+                top: overlay.top,
+                width: overlay.width,
+                height: overlay.height,
+              }}
+              dangerouslySetInnerHTML={{ __html: overlay.html }}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

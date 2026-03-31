@@ -217,3 +217,27 @@
 .dark .popup-meta {
   color: rgba(255, 255, 255, 0.6);
 }
+
+@media (hover: none) and (pointer: coarse) {
+  .map-mobile-shell,
+  .map-mobile-surface,
+  .map-mobile-surface .maplibregl-canvas-container,
+  .map-mobile-surface .maplibregl-canvas {
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+
+  .map-mobile-shell {
+    contain: layout paint;
+    isolation: isolate;
+    will-change: transform;
+  }
+
+  .map-mobile-surface {
+    touch-action: pan-y;
+  }
+
+  .map-mobile-freeze-overlay {
+    background: var(--background);
+  }
+}
