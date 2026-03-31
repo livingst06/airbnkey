@@ -20,7 +20,10 @@ import { cn } from "@/lib/utils"
 import { ApartmentGrid } from "./components/apartment-grid"
 import { ApartmentMap } from "./components/apartment-map"
 import { FilterBar, type ApartmentSort } from "./components/filter-bar"
-import { useApartments } from "./components/apartments-context"
+import {
+  APARTMENTS_SYNC_EVENT,
+  useApartments,
+} from "./components/apartments-context"
 
 export function HomePageClient() {
   const { apartments, syncFromDb } = useApartments()
@@ -132,10 +135,16 @@ export function HomePageClient() {
       void syncIfNeeded()
     }
 
+    const handleSyncNeeded = () => {
+      void syncIfNeeded()
+    }
+
     window.addEventListener("pageshow", handlePageShow)
+    window.addEventListener(APARTMENTS_SYNC_EVENT, handleSyncNeeded)
     return () => {
       cancelled = true
       window.removeEventListener("pageshow", handlePageShow)
+      window.removeEventListener(APARTMENTS_SYNC_EVENT, handleSyncNeeded)
     }
   }, [syncFromDb])
 

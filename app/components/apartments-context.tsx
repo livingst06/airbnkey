@@ -22,6 +22,8 @@ import type { Apartment } from "@/types/apartments"
 
 export type { ApartmentFormInput } from "@/lib/apartment-zod"
 
+const APARTMENTS_SYNC_EVENT = "apartments:sync-needed"
+
 type ApartmentsContextValue = {
   apartments: Apartment[]
   syncFromDb: () => Promise<Apartment[]>
@@ -115,6 +117,7 @@ export function ApartmentsProvider({
         }
         if (typeof window !== "undefined") {
           window.sessionStorage.setItem("apartments:needs-sync", "1")
+          window.dispatchEvent(new Event(APARTMENTS_SYNC_EVENT))
         }
       })()
     },
@@ -147,3 +150,5 @@ export function useApartments(): ApartmentsContextValue {
   }
   return ctx
 }
+
+export { APARTMENTS_SYNC_EVENT }
