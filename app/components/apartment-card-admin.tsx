@@ -37,7 +37,8 @@ export function ApartmentCardAdmin({
               src={firstImage}
               alt={apartment.title}
               fill
-              className="h-full w-full object-cover transition-[filter] duration-300 ease-out group-hover:brightness-[1.02]"
+              draggable={false}
+              className="pointer-events-none h-full w-full select-none object-cover transition-[filter] duration-300 ease-out group-hover:brightness-[1.02]"
               sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               unoptimized={unoptimized}
               priority={false}

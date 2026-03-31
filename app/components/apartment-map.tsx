@@ -69,6 +69,13 @@ const MARKER_HOVER_EMPHASIS_CLASS =
   "scale-[1.2] border-primary bg-primary/15 text-primary shadow-md dark:bg-primary/20"
 const MARKER_HOVER_EMPHASIS_TOKENS = MARKER_HOVER_EMPHASIS_CLASS.split(" ")
 
+function canUseMapHoverInteractions() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false
+  }
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches
+}
+
 export function ApartmentMap({
   apartments,
   selectedApartmentId,
@@ -141,6 +148,7 @@ export function ApartmentMap({
     `
 
     const scheduleMapHoverLeave = () => {
+      if (!canUseMapHoverInteractions()) return
       clearMapHoverLeaveTimer()
       mapHoverLeaveTimerRef.current = window.setTimeout(() => {
         mapHoverLeaveTimerRef.current = null
@@ -157,10 +165,12 @@ export function ApartmentMap({
     }
 
     popupContent.addEventListener("mouseenter", () => {
+      if (!canUseMapHoverInteractions()) return
       clearMapHoverLeaveTimer()
     })
 
     popupContent.addEventListener("mouseleave", () => {
+      if (!canUseMapHoverInteractions()) return
       scheduleMapHoverLeave()
     })
 
@@ -175,6 +185,7 @@ export function ApartmentMap({
     popup.setDOMContent(popupContent)
 
     el.addEventListener("mouseenter", () => {
+      if (!canUseMapHoverInteractions()) return
       clearMapHoverLeaveTimer()
       for (const [id, slot] of Object.entries(markersByIdRef.current)) {
         if (id === apartment.id) continue
@@ -196,6 +207,7 @@ export function ApartmentMap({
     })
 
     el.addEventListener("mouseleave", () => {
+      if (!canUseMapHoverInteractions()) return
       scheduleMapHoverLeave()
     })
 
