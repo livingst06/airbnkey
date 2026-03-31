@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } fr
 import { usePathname } from "next/navigation"
 
 import { ThemeToggle } from "@/components/theme-toggle"
+import { cn } from "@/lib/utils"
 
 /** Toujours ancrer sur la home (`/#id`) pour que les liens restent valides depuis `/admin` ou toute autre route. */
 const sectionNavLinks = [
@@ -179,6 +180,22 @@ export function Navbar() {
               className="rounded-md"
             />
           </Link>
+        </div>
+
+        <div className="flex min-w-0 justify-center md:hidden">
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                pathname === "/admin"
+                  ? "text-red-500"
+                  : "text-red-500/80 hover:text-red-500",
+              )}
+            >
+              Modifier
+            </Link>
+          ) : null}
         </div>
 
         <nav
