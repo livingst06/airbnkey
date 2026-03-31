@@ -1,7 +1,7 @@
 "use server"
 
 import { Prisma } from "@prisma/client"
-import { updateTag } from "next/cache"
+import { revalidatePath, updateTag } from "next/cache"
 
 import {
   APARTMENTS_CACHE_TAG,
@@ -18,6 +18,8 @@ import type { Apartment } from "@/types/apartments"
 /** Invalide le cache `unstable_cache` taggé (server actions → `updateTag`). */
 function invalidateApartmentListCache() {
   updateTag(APARTMENTS_CACHE_TAG)
+  revalidatePath("/")
+  revalidatePath("/admin")
 }
 
 /** Liste ordonnée comme la DB — pour synchroniser le client après mutation. */

@@ -20,6 +20,7 @@ type NavId = SectionId | "admin"
 export function Navbar() {
   const pathname = usePathname()
   const isAdmin = process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
+  const disableHomePrefetch = pathname === "/admin"
 
   const navLinks = useMemo(() => {
     if (!isAdmin) return sectionNavLinks
@@ -166,6 +167,7 @@ export function Navbar() {
         <div className="flex items-center pl-4 xl:pl-8">
           <Link
             href="/"
+            prefetch={disableHomePrefetch ? false : undefined}
             className="transition-opacity hover:opacity-80"
             aria-label="Airbnkey — accueil"
           >
@@ -211,6 +213,9 @@ export function Navbar() {
                     linkRefs.current[id] = el
                   }}
                   href={href}
+                  prefetch={
+                    !isAdminLink && disableHomePrefetch ? false : undefined
+                  }
                   onClick={() => {
                     if (id !== "admin") setActiveSection(id)
                   }}
