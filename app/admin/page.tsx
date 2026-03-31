@@ -3,6 +3,7 @@ import { ApartmentsProvider } from "@/app/components/apartments-context"
 import { getApartmentsCached } from "@/lib/apartments-db"
 
 const isAdmin = process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
+export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
   if (!isAdmin) {
