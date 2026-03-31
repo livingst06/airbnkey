@@ -5,6 +5,7 @@ import maplibregl from "maplibre-gl"
 import Image from "next/image"
 import type { Apartment, DialogAnchorRect } from "@/types/apartments"
 import type { HoverSource } from "@/types/hover"
+import { getApartmentImageSrc } from "@/lib/image-src"
 import { getMapStyleUrl } from "@/lib/map-style"
 /** Délai avant fermeture : évite les boucles enter/leave au moindre pixel si l’état était vidé tout de suite. */
 const MAP_POPUP_HOVER_LEAVE_MS = 280
@@ -267,11 +268,12 @@ export function ApartmentMap({
     })
 
     const meta = `${apartment.beds} couchages • ${apartment.bathrooms} salle de bain`
+    const firstImage = getApartmentImageSrc(apartment.images)
     const popupContent = document.createElement("div")
     popupContent.className = "popup-card cursor-pointer"
     popupContent.innerHTML = `
       <img
-        src="${apartment.images[0]}"
+        src="${firstImage}"
         alt="${escapeHtml(apartment.title)}"
         class="popup-image"
       />

@@ -7,7 +7,7 @@ import {
   carouselChevronIconClass,
   carouselNavButtonClass,
 } from "@/lib/carousel-nav"
-import { imageNeedsUnoptimized } from "@/lib/image-src"
+import { getApartmentImages, imageNeedsUnoptimized } from "@/lib/image-src"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -31,7 +31,7 @@ export function ApartmentCarousel({
   title,
   imagePriority = false,
 }: ApartmentCarouselProps) {
-  const safeImages = images.slice(0, MAX_IMAGES)
+  const safeImages = getApartmentImages(images).slice(0, MAX_IMAGES)
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const touchStartRef = useRef<{

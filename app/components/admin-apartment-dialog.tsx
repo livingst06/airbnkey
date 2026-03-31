@@ -277,12 +277,11 @@ export function AdminApartmentDialog({
   const canSubmit = useMemo(() => {
     if (!title.trim()) return false
     if (!description.trim()) return false
-    if (!images.length) return false
     if (!Number.isFinite(beds) || beds < 0) return false
     if (!Number.isFinite(bathrooms) || bathrooms < 0) return false
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return false
     return true
-  }, [title, description, images, beds, bathrooms, latitude, longitude])
+  }, [title, description, beds, bathrooms, latitude, longitude])
 
   const submit = async () => {
     if (!canSubmit) return
@@ -487,7 +486,7 @@ export function AdminApartmentDialog({
                 <div className="mt-1 text-xs text-muted-foreground">
                   {imageImportBusy
                     ? "Quelques secondes si les fichiers sont lourds."
-                    : "ou cliquez pour sélectionner — redimensionnement auto pour tenir dans le navigateur."}
+                    : "ou cliquez pour sélectionner — optionnel, redimensionnement auto pour tenir dans le navigateur."}
                 </div>
               </div>
 
@@ -527,7 +526,7 @@ export function AdminApartmentDialog({
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Ajoutez au moins une photo.
+                  Aucune photo ajoutee. Un placeholder transparent sera utilise.
                 </p>
               )}
             </section>

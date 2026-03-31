@@ -26,7 +26,7 @@ export const apartmentFormSchema = z.object({
   advantages: z.array(z.string()),
   latitude: z.coerce.number().finite(),
   longitude: z.coerce.number().finite(),
-  images: z.array(z.string()).min(1, "Au moins une image"),
+  images: z.array(z.string()),
   bookingUrl: bookingUrlField,
 })
 

@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 
-import { imageNeedsUnoptimized } from "@/lib/image-src"
+import { getApartmentImageSrc, imageNeedsUnoptimized } from "@/lib/image-src"
 import type { Apartment } from "@/types/apartments"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,7 +29,7 @@ export function AdminDeleteConfirmDialog({
   apartment,
   onConfirm,
 }: AdminDeleteConfirmDialogProps) {
-  const firstImage = apartment?.images?.[0]
+  const firstImage = apartment ? getApartmentImageSrc(apartment.images) : undefined
   const unoptimized = useMemo(
     () => imageNeedsUnoptimized(firstImage),
     [firstImage],
@@ -65,7 +65,7 @@ export function AdminDeleteConfirmDialog({
             <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/60 backdrop-blur-md">
               <div className="relative aspect-[16/9] w-full">
                 <Image
-                  src={firstImage ?? "/apartments/apt1/1.png"}
+                  src={firstImage ?? getApartmentImageSrc([])}
                   alt={apartment.title}
                   fill
                   sizes="(min-width: 768px) 672px, calc(100vw - 3rem)"
