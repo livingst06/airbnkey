@@ -24,6 +24,7 @@ export type { ApartmentFormInput } from "@/lib/apartment-zod"
 
 type ApartmentsContextValue = {
   apartments: Apartment[]
+  syncFromDb: () => Promise<Apartment[]>
   addApartment: (input: ApartmentFormInput) => Promise<Apartment>
   updateApartment: (id: string, input: ApartmentFormInput) => Promise<void>
   deleteApartment: (id: string) => Promise<void>
@@ -103,10 +104,17 @@ export function ApartmentsProvider({
       void (async () => {
         const r = await updateApartmentsOrderAction(ordered)
         if (!r.ok) {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.removeItem("apartments:needs-sync")
+          }
           toast.error(
             "error" in r && r.error ? r.error : "Ordre non enregistré",
           )
           await syncFromDb()
+          return
+        }
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("apartments:needs-sync", "1")
         }
       })()
     },
@@ -116,12 +124,13 @@ export function ApartmentsProvider({
   const value = useMemo<ApartmentsContextValue>(
     () => ({
       apartments,
+      syncFromDb,
       addApartment,
       updateApartment,
       deleteApartment,
       reorderApartments,
     }),
-    [apartments, addApartment, updateApartment, deleteApartment, reorderApartments],
+    [apartments, syncFromDb, addApartment, updateApartment, deleteApartment, reorderApartments],
   )
 
   return (

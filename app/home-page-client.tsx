@@ -23,7 +23,7 @@ import { FilterBar, type ApartmentSort } from "./components/filter-bar"
 import { useApartments } from "./components/apartments-context"
 
 export function HomePageClient() {
-  const { apartments } = useApartments()
+  const { apartments, syncFromDb } = useApartments()
 
   const [selectedApartmentId, setSelectedApartmentId] = useState<
     string | null
@@ -110,6 +110,34 @@ export function HomePageClient() {
   }, [filteredApartments, sort])
 
   const listAnimKey = `${sort}:${[...filteredApartments].map((a) => a.id).sort().join("|")}`
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    let cancelled = false
+
+    const syncIfNeeded = async () => {
+      if (window.sessionStorage.getItem("apartments:needs-sync") !== "1") return
+      window.sessionStorage.removeItem("apartments:needs-sync")
+      try {
+        await syncFromDb()
+      } catch {
+        if (!cancelled) toast.error("Actualisation des appartements impossible")
+      }
+    }
+
+    void syncIfNeeded()
+
+    const handlePageShow = () => {
+      void syncIfNeeded()
+    }
+
+    window.addEventListener("pageshow", handlePageShow)
+    return () => {
+      cancelled = true
+      window.removeEventListener("pageshow", handlePageShow)
+    }
+  }, [syncFromDb])
 
   useEffect(() => {
     const ids = new Set(filteredApartments.map((a) => a.id))
