@@ -21,17 +21,19 @@ import { ApartmentGrid } from "./components/apartment-grid"
 import { ApartmentMap } from "./components/apartment-map"
 import { FilterBar, type ApartmentSort } from "./components/filter-bar"
 import {
-  APARTMENTS_LOCAL_ORDER_KEY,
   APARTMENTS_NEEDS_SYNC_KEY,
   APARTMENTS_SYNC_EVENT,
   applyApartmentOrder,
   clearApartmentOrderPersistence,
+  readApartmentOrderSnapshot,
   useApartments,
 } from "./components/apartments-context"
 
 export function HomePageClient() {
   const { apartments, syncFromDb } = useApartments()
-  const [localOrderedIds, setLocalOrderedIds] = useState<string[] | null>(null)
+  const [localOrderedIds, setLocalOrderedIds] = useState<string[] | null>(() =>
+    readApartmentOrderSnapshot()?.map((row) => row.id) ?? null,
+  )
 
   const [selectedApartmentId, setSelectedApartmentId] = useState<
     string | null
@@ -63,20 +65,9 @@ export function HomePageClient() {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sort, setSort] = useState<ApartmentSort>("default")
 
-  const readStoredOrder = useCallback(() => {
-    if (typeof window === "undefined") return null
-
-    const raw = window.sessionStorage.getItem(APARTMENTS_LOCAL_ORDER_KEY)
-    if (!raw) return null
-
-    try {
-      const parsed = JSON.parse(raw) as { id: string; position: number }[]
-      if (!Array.isArray(parsed)) return null
-      const ordered = [...parsed].sort((a, b) => a.position - b.position)
-      return ordered.map((row) => row.id)
-    } catch {
-      return null
-    }
+  const applyStoredOrder = useCallback(() => {
+    const snapshot = readApartmentOrderSnapshot()
+    setLocalOrderedIds(snapshot?.map((row) => row.id) ?? null)
   }, [])
 
   const uiApartments = useMemo(() => {
@@ -146,10 +137,6 @@ export function HomePageClient() {
 
     let cancelled = false
 
-    const applyStoredOrder = () => {
-      setLocalOrderedIds(readStoredOrder())
-    }
-
     const syncIfNeeded = async () => {
       if (window.sessionStorage.getItem(APARTMENTS_NEEDS_SYNC_KEY) !== "1") return
       try {
@@ -183,7 +170,7 @@ export function HomePageClient() {
       window.removeEventListener("pageshow", handlePageShow)
       window.removeEventListener(APARTMENTS_SYNC_EVENT, handleSyncNeeded)
     }
-  }, [readStoredOrder, syncFromDb])
+  }, [applyStoredOrder, syncFromDb])
 
   useEffect(() => {
     const ids = new Set(filteredApartments.map((a) => a.id))
