@@ -23,6 +23,10 @@ import type { Apartment } from "@/types/apartments"
 export type { ApartmentFormInput } from "@/lib/apartment-zod"
 
 const APARTMENTS_SYNC_EVENT = "apartments:sync-needed"
+const APARTMENTS_LOCAL_ORDER_KEY = "apartments:local-order"
+const APARTMENTS_NEEDS_SYNC_KEY = "apartments:needs-sync"
+
+type ApartmentOrderSnapshot = { id: string; position: number }[]
 
 type ApartmentsContextValue = {
   apartments: Apartment[]
@@ -37,6 +41,34 @@ type ApartmentsContextValue = {
 }
 
 const ApartmentsContext = createContext<ApartmentsContextValue | null>(null)
+
+function applyApartmentOrder(
+  apartments: Apartment[],
+  ordered: ApartmentOrderSnapshot,
+): Apartment[] {
+  const byId = new Map(apartments.map((a) => [a.id, a]))
+  const next = [...ordered]
+    .sort((x, y) => x.position - y.position)
+    .map(({ id, position }) => {
+      const apartment = byId.get(id)
+      return apartment ? { ...apartment, position } : null
+    })
+    .filter((apartment): apartment is Apartment => apartment !== null)
+
+  return next.length === apartments.length ? next : apartments
+}
+
+function persistApartmentOrder(ordered: ApartmentOrderSnapshot) {
+  if (typeof window === "undefined") return
+  window.sessionStorage.setItem(APARTMENTS_NEEDS_SYNC_KEY, "1")
+  window.sessionStorage.setItem(APARTMENTS_LOCAL_ORDER_KEY, JSON.stringify(ordered))
+}
+
+function clearApartmentOrderPersistence() {
+  if (typeof window === "undefined") return
+  window.sessionStorage.removeItem(APARTMENTS_NEEDS_SYNC_KEY)
+  window.sessionStorage.removeItem(APARTMENTS_LOCAL_ORDER_KEY)
+}
 
 export function ApartmentsProvider({
   children,
@@ -93,32 +125,19 @@ export function ApartmentsProvider({
 
   const reorderApartments = useCallback(
     (ordered: { id: string; position: number }[]) => {
-      setApartments((prev) => {
-        const byId = new Map(prev.map((a) => [a.id, a]))
-        return [...ordered]
-          .sort((x, y) => x.position - y.position)
-          .map(({ id, position }) => {
-            const a = byId.get(id)
-            return a ? { ...a, position } : null
-          })
-          .filter((a): a is Apartment => a !== null)
-      })
+      setApartments((prev) => applyApartmentOrder(prev, ordered))
       void (async () => {
         const r = await updateApartmentsOrderAction(ordered)
         if (!r.ok) {
-          if (typeof window !== "undefined") {
-            window.sessionStorage.removeItem("apartments:needs-sync")
-          }
+          clearApartmentOrderPersistence()
           toast.error(
             "error" in r && r.error ? r.error : "Ordre non enregistré",
           )
           await syncFromDb()
           return
         }
-        if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("apartments:needs-sync", "1")
-          window.dispatchEvent(new Event(APARTMENTS_SYNC_EVENT))
-        }
+        persistApartmentOrder(ordered)
+        window.dispatchEvent(new Event(APARTMENTS_SYNC_EVENT))
       })()
     },
     [syncFromDb],
@@ -151,4 +170,10 @@ export function useApartments(): ApartmentsContextValue {
   return ctx
 }
 
-export { APARTMENTS_SYNC_EVENT }
+export {
+  APARTMENTS_LOCAL_ORDER_KEY,
+  APARTMENTS_NEEDS_SYNC_KEY,
+  APARTMENTS_SYNC_EVENT,
+  applyApartmentOrder,
+  clearApartmentOrderPersistence,
+}

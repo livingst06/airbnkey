@@ -21,12 +21,17 @@ import { ApartmentGrid } from "./components/apartment-grid"
 import { ApartmentMap } from "./components/apartment-map"
 import { FilterBar, type ApartmentSort } from "./components/filter-bar"
 import {
+  APARTMENTS_LOCAL_ORDER_KEY,
+  APARTMENTS_NEEDS_SYNC_KEY,
   APARTMENTS_SYNC_EVENT,
+  applyApartmentOrder,
+  clearApartmentOrderPersistence,
   useApartments,
 } from "./components/apartments-context"
 
 export function HomePageClient() {
   const { apartments, syncFromDb } = useApartments()
+  const [localOrderedIds, setLocalOrderedIds] = useState<string[] | null>(null)
 
   const [selectedApartmentId, setSelectedApartmentId] = useState<
     string | null
@@ -58,9 +63,31 @@ export function HomePageClient() {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sort, setSort] = useState<ApartmentSort>("default")
 
+  const readStoredOrder = useCallback(() => {
+    if (typeof window === "undefined") return null
+
+    const raw = window.sessionStorage.getItem(APARTMENTS_LOCAL_ORDER_KEY)
+    if (!raw) return null
+
+    try {
+      const parsed = JSON.parse(raw) as { id: string; position: number }[]
+      if (!Array.isArray(parsed)) return null
+      const ordered = [...parsed].sort((a, b) => a.position - b.position)
+      return ordered.map((row) => row.id)
+    } catch {
+      return null
+    }
+  }, [])
+
+  const uiApartments = useMemo(() => {
+    if (!localOrderedIds) return apartments
+    const ordered = localOrderedIds.map((id, position) => ({ id, position }))
+    return applyApartmentOrder(apartments, ordered)
+  }, [apartments, localOrderedIds])
+
   const availableTags = useMemo(() => {
     const seen = new Map<string, string>()
-    for (const a of apartments) {
+    for (const a of uiApartments) {
       for (const raw of a.advantages) {
         const trimmed = raw.trim()
         if (!trimmed) continue
@@ -71,11 +98,11 @@ export function HomePageClient() {
     return Array.from(seen.entries())
       .sort(([a], [b]) => a.localeCompare(b, "fr"))
       .map(([key, label]) => ({ key, label }))
-  }, [apartments])
+  }, [uiApartments])
 
   const filteredApartments = useMemo(() => {
     const q = deferredSearch.trim().toLowerCase()
-    return apartments.filter((a) => {
+    return uiApartments.filter((a) => {
       if (q) {
         const title = a.title.toLowerCase()
         const desc = a.description.toLowerCase()
@@ -96,7 +123,7 @@ export function HomePageClient() {
       }
       return true
     })
-  }, [apartments, deferredSearch, bedsMin, selectedTags])
+  }, [uiApartments, deferredSearch, bedsMin, selectedTags])
 
   const sortedApartments = useMemo(() => {
     const list = [...filteredApartments]
@@ -119,23 +146,33 @@ export function HomePageClient() {
 
     let cancelled = false
 
+    const applyStoredOrder = () => {
+      setLocalOrderedIds(readStoredOrder())
+    }
+
     const syncIfNeeded = async () => {
-      if (window.sessionStorage.getItem("apartments:needs-sync") !== "1") return
-      window.sessionStorage.removeItem("apartments:needs-sync")
+      if (window.sessionStorage.getItem(APARTMENTS_NEEDS_SYNC_KEY) !== "1") return
       try {
         await syncFromDb()
+        if (!cancelled) {
+          clearApartmentOrderPersistence()
+          setLocalOrderedIds(null)
+        }
       } catch {
         if (!cancelled) toast.error("Actualisation des appartements impossible")
       }
     }
 
+    applyStoredOrder()
     void syncIfNeeded()
 
     const handlePageShow = () => {
+      applyStoredOrder()
       void syncIfNeeded()
     }
 
     const handleSyncNeeded = () => {
+      applyStoredOrder()
       void syncIfNeeded()
     }
 
@@ -146,7 +183,7 @@ export function HomePageClient() {
       window.removeEventListener("pageshow", handlePageShow)
       window.removeEventListener(APARTMENTS_SYNC_EVENT, handleSyncNeeded)
     }
-  }, [syncFromDb])
+  }, [readStoredOrder, syncFromDb])
 
   useEffect(() => {
     const ids = new Set(filteredApartments.map((a) => a.id))
