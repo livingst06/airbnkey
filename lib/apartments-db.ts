@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client"
 import { unstable_cache } from "next/cache"
 
 import {
@@ -11,31 +12,67 @@ import type { Apartment } from "@/types/apartments"
 /** Même chaîne que `revalidateTag` dans les server actions. */
 export const APARTMENTS_CACHE_TAG = "apartments"
 
+const APARTMENTS_ORDER_BY: Prisma.ApartmentOrderByWithRelationInput[] = [
+  { position: "asc" },
+  { createdAt: "asc" },
+]
+const CREATE_APARTMENT_MAX_RETRIES = 3
+
+function isRetryableCreateError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    (error.code === "P2002" || error.code === "P2034")
+  )
+}
+
 /** Lecture directe BDD (source de vérité), sans cache — mutations, API, refetch client. */
-export async function getApartmentsDb(): Promise<Apartment[]> {
+export async function getApartmentsFresh(): Promise<Apartment[]> {
   const rows = await prisma.apartment.findMany({
-    orderBy: [{ position: "asc" }, { createdAt: "asc" }],
+    orderBy: APARTMENTS_ORDER_BY,
   })
   return rows.map(rowToApartment)
 }
 
+/** Alias explicite pour les appels existants et les usages qui veulent une lecture fraîche. */
+export const getApartmentsDb = getApartmentsFresh
+
 /**
- * Liste pour le layout RSC : invalidable via `revalidateTag('apartments')`.
+ * Liste cache taggée pour les RSC / pages.
  * @see app/actions/apartments.ts invalidateApartmentListCache
  */
 export const getApartmentsCached = unstable_cache(
-  async () => getApartmentsDb(),
+  async () => getApartmentsFresh(),
   ["apartments-list"],
   { tags: [APARTMENTS_CACHE_TAG] },
 )
 
 export async function createApartmentDb(data: Apartment): Promise<Apartment> {
-  const agg = await prisma.apartment.aggregate({ _max: { position: true } })
-  const nextPosition = (agg._max.position ?? -1) + 1
-  const row = await prisma.apartment.create({
-    data: apartmentToDbPayload({ ...data, position: nextPosition }),
-  })
-  return rowToApartment(row)
+  let lastError: unknown
+
+  for (let attempt = 0; attempt < CREATE_APARTMENT_MAX_RETRIES; attempt++) {
+    try {
+      const row = await prisma.$transaction(
+        async (tx) => {
+          const agg = await tx.apartment.aggregate({ _max: { position: true } })
+          const nextPosition = (agg._max.position ?? -1) + 1
+          return tx.apartment.create({
+            data: apartmentToDbPayload({ ...data, position: nextPosition }),
+          })
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        },
+      )
+      return rowToApartment(row)
+    } catch (error) {
+      lastError = error
+      if (!isRetryableCreateError(error) || attempt === CREATE_APARTMENT_MAX_RETRIES - 1) {
+        throw error
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("createApartmentDb failed")
 }
 
 export async function updateApartmentDb(

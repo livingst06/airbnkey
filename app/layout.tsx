@@ -4,9 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
 import { Navbar } from "@/app/components/navbar";
-import { ApartmentsProvider } from "@/app/components/apartments-context";
 import { Toaster } from "@/components/ui/sonner";
-import { getApartmentsCached } from "@/lib/apartments-db";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,11 +40,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialApartments = await getApartmentsCached().catch(() => [])
-
   return (
     <html
-      lang="en"
+      lang="fr"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
@@ -54,9 +50,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
         <Navbar />
-        <ApartmentsProvider initialApartments={initialApartments}>
-          {children}
-        </ApartmentsProvider>
+        {children}
         <Toaster />
       </body>
     </html>

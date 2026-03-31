@@ -1,8 +1,10 @@
 import { AdminPanel } from "@/app/components/admin-panel"
+import { ApartmentsProvider } from "@/app/components/apartments-context"
+import { getApartmentsCached } from "@/lib/apartments-db"
 
 const isAdmin = process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
 
-export default function AdminPage() {
+export default async function AdminPage() {
   if (!isAdmin) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12 text-center">
@@ -16,9 +18,16 @@ export default function AdminPage() {
     )
   }
 
+  const initialApartments =
+    process.env.NODE_ENV === "development"
+      ? await getApartmentsCached().catch(() => [])
+      : await getApartmentsCached()
+
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-6 xl:px-8">
-      <AdminPanel />
+      <ApartmentsProvider initialApartments={initialApartments}>
+        <AdminPanel />
+      </ApartmentsProvider>
     </div>
   )
 }

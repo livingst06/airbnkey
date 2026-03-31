@@ -1,12 +1,13 @@
 "use server"
 
+import { Prisma } from "@prisma/client"
 import { updateTag } from "next/cache"
 
 import {
   APARTMENTS_CACHE_TAG,
   createApartmentDb,
   deleteApartmentDb,
-  getApartmentsDb,
+  getApartmentsFresh,
   updateApartmentDb,
   updateApartmentsOrderDb,
 } from "@/lib/apartments-db"
@@ -21,7 +22,7 @@ function invalidateApartmentListCache() {
 
 /** Liste ordonnée comme la DB — pour synchroniser le client après mutation. */
 export async function listApartmentsAction(): Promise<Apartment[]> {
-  return getApartmentsDb()
+  return getApartmentsFresh()
 }
 
 function slugify(input: string): string {
@@ -40,17 +41,42 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
-async function uniqueSlug(title: string): Promise<string> {
-  const base = slugify(title) || "apartment"
-  const existing = await getApartmentsDb()
-  const slugs = new Set(existing.map((a) => a.slug))
-  let slug = base
-  let i = 1
-  while (slugs.has(slug)) {
-    slug = `${base}-${i}`
-    i += 1
+function isSlugConflict(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002" &&
+    Array.isArray(error.meta?.target) &&
+    error.meta.target.includes("slug")
+  )
+}
+
+async function createApartmentWithUniqueSlug(input: ApartmentFormInput) {
+  const baseSlug = slugify(input.title) || "apartment"
+  const id = generateId()
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const slug = attempt === 0 ? baseSlug : `${baseSlug}-${attempt}`
+    try {
+      return await createApartmentDb({
+        id,
+        slug,
+        title: input.title,
+        description: input.description,
+        beds: input.beds,
+        bathrooms: input.bathrooms,
+        advantages: input.advantages,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        images: input.images,
+        bookingUrl: input.bookingUrl,
+        position: 0,
+      })
+    } catch (error) {
+      if (!isSlugConflict(error) || attempt === 4) throw error
+    }
   }
-  return slug
+
+  throw new Error("createApartmentWithUniqueSlug failed")
 }
 
 export async function createApartmentAction(input: ApartmentFormInput) {
@@ -58,25 +84,13 @@ export async function createApartmentAction(input: ApartmentFormInput) {
   if (!parsed.success) {
     return { ok: false as const, error: "Données invalides", issues: parsed.error.flatten() }
   }
-  const p = parsed.data
-  const id = generateId()
-  const slug = await uniqueSlug(p.title)
-  const apartment = await createApartmentDb({
-    id,
-    slug,
-    title: p.title,
-    description: p.description,
-    beds: p.beds,
-    bathrooms: p.bathrooms,
-    advantages: p.advantages,
-    latitude: p.latitude,
-    longitude: p.longitude,
-    images: p.images,
-    bookingUrl: p.bookingUrl,
-    position: 0,
-  })
-  invalidateApartmentListCache()
-  return { ok: true as const, apartment }
+  try {
+    const apartment = await createApartmentWithUniqueSlug(parsed.data)
+    invalidateApartmentListCache()
+    return { ok: true as const, apartment }
+  } catch {
+    return { ok: false as const, error: "Création impossible" }
+  }
 }
 
 export async function updateApartmentAction(
@@ -88,36 +102,44 @@ export async function updateApartmentAction(
     return { ok: false as const, error: "Données invalides", issues: parsed.error.flatten() }
   }
   const p = parsed.data
-  const current = await getApartmentsDb()
+  const current = await getApartmentsFresh()
   const existing = current.find((a) => a.id === id)
   if (!existing) {
     return { ok: false as const, error: "Introuvable" }
   }
-  const apartment = await updateApartmentDb(id, {
-    title: p.title,
-    description: p.description,
-    beds: p.beds,
-    bathrooms: p.bathrooms,
-    advantages: p.advantages,
-    latitude: p.latitude,
-    longitude: p.longitude,
-    images: p.images,
-    bookingUrl: p.bookingUrl,
-  })
-  if (!apartment) {
+  try {
+    const apartment = await updateApartmentDb(id, {
+      title: p.title,
+      description: p.description,
+      beds: p.beds,
+      bathrooms: p.bathrooms,
+      advantages: p.advantages,
+      latitude: p.latitude,
+      longitude: p.longitude,
+      images: p.images,
+      bookingUrl: p.bookingUrl,
+    })
+    if (!apartment) {
+      return { ok: false as const, error: "Mise à jour impossible" }
+    }
+    invalidateApartmentListCache()
+    return { ok: true as const, apartment }
+  } catch {
     return { ok: false as const, error: "Mise à jour impossible" }
   }
-  invalidateApartmentListCache()
-  return { ok: true as const, apartment }
 }
 
 export async function deleteApartmentAction(id: string) {
-  const deleted = await deleteApartmentDb(id)
-  if (!deleted) {
+  try {
+    const deleted = await deleteApartmentDb(id)
+    if (!deleted) {
+      return { ok: false as const, error: "Suppression impossible" }
+    }
+    invalidateApartmentListCache()
+    return { ok: true as const }
+  } catch {
     return { ok: false as const, error: "Suppression impossible" }
   }
-  invalidateApartmentListCache()
-  return { ok: true as const }
 }
 
 
@@ -134,7 +156,7 @@ export async function updateApartmentsOrderAction(
   if (ordered.length === 0) {
     return { ok: true as const }
   }
-  const current = await getApartmentsDb()
+  const current = await getApartmentsFresh()
   if (ordered.length !== current.length) {
     return { ok: false as const, error: "Liste incomplète" }
   }
@@ -155,8 +177,12 @@ export async function updateApartmentsOrderAction(
       return { ok: false as const, error: "Positions invalides" }
     }
   }
-  await updateApartmentsOrderDb(byPos)
-  invalidateApartmentListCache()
-  return { ok: true as const }
+  try {
+    await updateApartmentsOrderDb(byPos)
+    invalidateApartmentListCache()
+    return { ok: true as const }
+  } catch {
+    return { ok: false as const, error: "Ordre non enregistré" }
+  }
 }
 

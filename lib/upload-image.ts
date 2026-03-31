@@ -9,14 +9,14 @@ import {
 } from "@/lib/image-compress"
 
 let browserClient: SupabaseClient | null = null
+const SUPABASE_UPLOAD_ERROR =
+  "Upload image indisponible : configurez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY, ou utilisez NEXT_PUBLIC_IMAGE_UPLOAD_FALLBACK=dataurl."
 
 function getSupabaseBrowserClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
   if (!url || !key) {
-    throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY sont requis pour l’upload (ou définissez NEXT_PUBLIC_IMAGE_UPLOAD_FALLBACK=dataurl).",
-    )
+    throw new Error(SUPABASE_UPLOAD_ERROR)
   }
   if (!browserClient) {
     browserClient = createClient(url, key)
