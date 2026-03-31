@@ -76,6 +76,10 @@ function canUseMapHoverInteractions() {
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches
 }
 
+function shouldOpenDialogFromMap() {
+  return canUseMapHoverInteractions()
+}
+
 export function ApartmentMap({
   apartments,
   selectedApartmentId,
@@ -99,6 +103,16 @@ export function ApartmentMap({
   const apartmentsByIdRef = useRef<Map<string, Apartment>>(new Map())
   const selectedApartmentIdRef = useRef<string | null>(selectedApartmentId)
   const hoveredApartmentIdRef = useRef<string | null>(hoveredApartmentId)
+
+  const closeAllPopups = useCallback(() => {
+    for (const slot of Object.values(markersByIdRef.current)) {
+      try {
+        slot.popup.remove()
+      } catch {
+        // noop
+      }
+    }
+  }, [])
 
   const clearMapHoverLeaveTimer = useCallback(() => {
     if (mapHoverLeaveTimerRef.current != null) {
@@ -177,9 +191,11 @@ export function ApartmentMap({
     popupContent.addEventListener("click", (e) => {
       e.stopPropagation()
       clearMapHoverLeaveTimer()
-      openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
       setSelectedApartmentId(apartment.id)
-      popup.remove()
+      if (shouldOpenDialogFromMap()) {
+        openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
+        popup.remove()
+      }
     })
 
     popup.setDOMContent(popupContent)
@@ -214,9 +230,15 @@ export function ApartmentMap({
     el.addEventListener("click", (e) => {
       e.stopPropagation()
       clearMapHoverLeaveTimer()
-      openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
       setSelectedApartmentId(apartment.id)
-      popup.remove()
+      if (shouldOpenDialogFromMap()) {
+        openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
+        popup.remove()
+        return
+      }
+      closeAllPopups()
+      popup.setLngLat([apartment.longitude, apartment.latitude])
+      popup.addTo(map)
     })
 
     el.addEventListener("keydown", (e) => {
@@ -244,6 +266,7 @@ export function ApartmentMap({
     },
     [
       clearMapHoverLeaveTimer,
+      closeAllPopups,
       openApartmentDialog,
       setSelectedApartmentId,
       setHoveredApartmentId,
@@ -313,6 +336,11 @@ export function ApartmentMap({
         }
       })
 
+      map.on("click", () => {
+        if (shouldOpenDialogFromMap()) return
+        closeAllPopups()
+      })
+
       mapRef.current = map
 
       mapResizeObserverRef.current?.disconnect()
@@ -326,6 +354,7 @@ export function ApartmentMap({
         (entries) => {
           for (const e of entries) {
             if (e.isIntersecting) scheduleResize()
+            else if (!shouldOpenDialogFromMap()) closeAllPopups()
           }
         },
         { threshold: 0 },
