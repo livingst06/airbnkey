@@ -36,13 +36,13 @@ const listingTitleClassName =
   "line-clamp-2 text-[1.0625rem] font-semibold leading-snug tracking-tight text-foreground lg:text-[1.125rem]"
 
 const splitListingTitleClassName =
-  "xl:text-[1.7rem] xl:leading-[1.15]"
+  "xl:text-[0.92rem] xl:font-semibold xl:leading-tight xl:tracking-tight"
 
 const listingMetaClassName =
   "text-[0.8125rem] font-normal leading-normal text-muted-foreground"
 
 const splitListingMetaClassName =
-  "xl:text-[0.9rem]"
+  "xl:text-[0.8rem] xl:text-muted-foreground/90"
 
 const listingDescriptionClassName = cn(
   listingDetailBody,
@@ -50,7 +50,7 @@ const listingDescriptionClassName = cn(
 )
 
 const splitListingDescriptionClassName = cn(
-  "xl:line-clamp-2 xl:text-[0.85rem] xl:leading-6 xl:text-muted-foreground/95",
+  "xl:line-clamp-2 xl:text-[0.78rem] xl:leading-5 xl:text-muted-foreground/85",
 )
 
 function formatRatingAverage(value: number): string {
@@ -183,8 +183,8 @@ export function ApartmentContent({
             ? "rounded-t-3xl"
             : isSplit
               ? selectionFrameInset
-                ? "w-full rounded-t-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:h-full xl:w-[15rem] xl:rounded-l-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:rounded-tr-none"
-                : "w-full rounded-t-xl xl:h-full xl:w-[15rem] xl:rounded-l-xl xl:rounded-tr-none"
+                ? "w-full rounded-t-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:h-full xl:w-[17rem] xl:rounded-l-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:rounded-tr-none"
+                : "w-full rounded-t-xl xl:h-full xl:w-[17rem] xl:rounded-l-xl xl:rounded-tr-none"
             : selectionFrameInset
               ? "rounded-t-[max(0px,calc(var(--radius-xl)-0.125rem))]"
               : "rounded-t-xl",
@@ -223,30 +223,30 @@ export function ApartmentContent({
       <CardContent
         className={cn(
           "flex min-h-0 flex-1 flex-col px-4 pt-4 pb-5",
-          isSplit && "xl:px-5 xl:py-4",
+          isSplit && "xl:px-4 xl:py-4",
         )}
       >
         <div
-          className={cn("flex min-h-0 flex-1 flex-col gap-3", isSplit && "xl:gap-4")}
+          className={cn("flex min-h-0 flex-1 flex-col gap-3", isSplit && "xl:gap-3")}
         >
           {isSplit ? (
             <>
-              <div className="space-y-3">
-                <div className="text-[0.82rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                  Cannes
+              <div className="space-y-2">
+                <div className="text-[0.72rem] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                  CANNES - rue d gazaniaire
                 </div>
                 {titleBlock}
               </div>
 
-              <div className="h-px w-14 bg-border/70" aria-hidden />
+              <div className="h-px w-14 bg-white/8" aria-hidden />
 
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                 {splitMetaItems.map(({ key, icon: Icon, label }) => (
                   <div
                     key={`${apartment.id}-${key}`}
-                    className="flex items-center gap-2.5 text-sm text-muted-foreground"
+                    className="flex items-center gap-2.5 text-[0.82rem] text-muted-foreground"
                   >
-                    <Icon className="size-4 shrink-0 text-foreground/80" aria-hidden />
+                    <Icon className="size-3.5 shrink-0 text-foreground/80" aria-hidden />
                     <span className="line-clamp-1">{label}</span>
                   </div>
                 ))}
@@ -255,10 +255,10 @@ export function ApartmentContent({
               <div className="mt-auto flex items-end justify-between gap-4">
                 <div className="flex min-h-6 items-center gap-1.5">
                   {hasRatingSummary ? (
-                    <div className="flex items-center gap-1.5 text-[1rem] font-semibold text-foreground">
-                      <Star className="size-4 fill-rose-500 text-rose-500" aria-hidden />
+                    <div className="flex items-center gap-1.5 text-[0.95rem] font-semibold text-foreground">
+                      <Star className="size-3.5 fill-rose-500 text-rose-500" aria-hidden />
                       <span>{formatRatingAverage(apartment.ratingAverage!)}</span>
-                      <span className="text-[0.95rem] font-normal text-muted-foreground">
+                      <span className="text-[0.86rem] font-normal text-muted-foreground">
                         ({apartment.reviewsCount})
                       </span>
                     </div>
@@ -270,7 +270,7 @@ export function ApartmentContent({
                       <Badge
                         key={`${apartment.id}-adv-${idx}-${advantage}`}
                         variant="outline"
-                        className="px-2.5 py-1 text-[0.7rem] leading-none"
+                        className="border-white/10 bg-white/[0.03] px-2 py-0.5 text-[0.66rem] leading-none text-muted-foreground"
                       >
                         {advantage}
                       </Badge>
@@ -278,7 +278,7 @@ export function ApartmentContent({
                     {extraAdvantageCount > 0 ? (
                       <Badge
                         variant="outline"
-                        className="bg-muted/20 px-2.5 py-1 text-[0.7rem] leading-none dark:bg-white/[0.04]"
+                        className="border-white/10 bg-white/[0.03] px-2 py-0.5 text-[0.66rem] leading-none text-muted-foreground dark:bg-white/[0.04]"
                         title={`${extraAdvantageCount} autre${extraAdvantageCount > 1 ? "s" : ""}`}
                       >
                         +{extraAdvantageCount}
