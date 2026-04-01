@@ -64,6 +64,8 @@ async function createApartmentWithUniqueSlug(input: ApartmentFormInput) {
         slug,
         title: input.title,
         description: input.description,
+        city: input.city,
+        street: input.city ? input.street : null,
         beds: input.beds,
         bathrooms: input.bathrooms,
         reviewsCount: input.reviewsCount,
@@ -115,6 +117,8 @@ export async function updateApartmentAction(
     const apartment = await updateApartmentDb(id, {
       title: p.title,
       description: p.description,
+      city: p.city,
+      street: p.city ? p.street : null,
       beds: p.beds,
       bathrooms: p.bathrooms,
       reviewsCount: p.reviewsCount,

@@ -57,6 +57,19 @@ function formatRatingAverage(value: number): string {
   return value.toFixed(1)
 }
 
+function getApartmentLocationLine(
+  city: string | null | undefined,
+  street: string | null | undefined,
+): string | null {
+  const normalizedCity = city?.trim() ?? ""
+  if (!normalizedCity) return null
+
+  const normalizedStreet = street?.trim() ?? ""
+  return normalizedStreet
+    ? `${normalizedCity.toUpperCase()} - ${normalizedStreet}`
+    : normalizedCity.toUpperCase()
+}
+
 export type ApartmentContentProps = {
   apartment: Apartment
   /** Grille vs modale : seulement coins carrousel, LCP image, aria / Radix */
@@ -102,6 +115,7 @@ export function ApartmentContent({
 
   const metaLine = `${apartment.beds} couchages • ${apartment.bathrooms} salle${apartment.bathrooms > 1 ? "s" : ""} de bain`
   const description = apartment.description?.trim() ?? ""
+  const locationLine = getApartmentLocationLine(apartment.city, apartment.street)
   const hasRatingSummary =
     apartment.reviewsCount !== null &&
     apartment.reviewsCount !== undefined &&
@@ -232,9 +246,11 @@ export function ApartmentContent({
           {isSplit ? (
             <>
               <div className="space-y-2">
-                <div className="text-[0.72rem] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-                  CANNES - rue d gazaniaire
-                </div>
+                {locationLine ? (
+                  <div className="text-[0.72rem] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                    {locationLine}
+                  </div>
+                ) : null}
                 {titleBlock}
               </div>
 

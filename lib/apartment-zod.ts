@@ -32,9 +32,19 @@ const optionalRatingAverageField = z
     message: "La note moyenne doit être comprise entre 0 et 5",
   })
 
+const optionalTrimmedTextField = z
+  .string()
+  .optional()
+  .transform((value) => {
+    const trimmed = (value ?? "").trim()
+    return trimmed === "" ? null : trimmed
+  })
+
 export const apartmentFormSchema = z.object({
   title: z.string().min(1, "Titre requis"),
   description: z.string(),
+  city: optionalTrimmedTextField,
+  street: optionalTrimmedTextField,
   beds: z.coerce.number().int().min(0).max(99),
   bathrooms: z.coerce.number().int().min(0).max(99),
   reviewsCount: optionalReviewsCountField,
@@ -58,6 +68,14 @@ export const apartmentFormSchema = z.object({
       code: z.ZodIssueCode.custom,
       path: ["ratingAverage"],
       message: "Renseignez à la fois le nombre d'avis et la note moyenne",
+    })
+  }
+
+  if (value.city === null && value.street !== null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["city"],
+      message: "Renseignez la ville pour afficher une rue",
     })
   }
 })

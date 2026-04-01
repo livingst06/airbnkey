@@ -80,6 +80,8 @@ export function rowToApartment(row: ApartmentRow): Apartment {
     slug: row.slug,
     title: row.title,
     description: row.description,
+    city: row.city?.trim() ? row.city : null,
+    street: row.street?.trim() ? row.street : null,
     beds: normalizeNonNegativeInt(row.beds),
     bathrooms: normalizeNonNegativeInt(row.bathrooms),
     reviewsCount: normalizeNullableNonNegativeInt(row.reviewsCount),
@@ -102,6 +104,8 @@ export function apartmentToDbPayload(a: {
   slug: string
   title: string
   description: string
+  city?: string | null
+  street?: string | null
   beds: number
   bathrooms: number
   reviewsCount?: number | null
@@ -118,6 +122,8 @@ export function apartmentToDbPayload(a: {
     slug: a.slug,
     title: a.title,
     description: a.description,
+    city: a.city?.trim() || null,
+    street: a.street?.trim() || null,
     beds: a.beds,
     bathrooms: a.bathrooms,
     reviewsCount: a.reviewsCount ?? null,
@@ -137,6 +143,8 @@ export function apartmentToPrismaUpdateData(
 ): {
   title: string
   description: string
+  city: string | null
+  street: string | null
   beds: number
   bathrooms: number
   reviewsCount: number | null
@@ -150,6 +158,8 @@ export function apartmentToPrismaUpdateData(
   return {
     title: data.title,
     description: data.description,
+    city: data.city?.trim() || null,
+    street: data.street?.trim() || null,
     beds: data.beds,
     bathrooms: data.bathrooms,
     reviewsCount: data.reviewsCount ?? null,

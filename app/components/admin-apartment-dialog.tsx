@@ -65,6 +65,8 @@ export function AdminApartmentDialog({
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [city, setCity] = useState("")
+  const [street, setStreet] = useState("")
   const [beds, setBeds] = useState(2)
   const [bathrooms, setBathrooms] = useState(1)
   const [reviewsCount, setReviewsCount] = useState("")
@@ -114,6 +116,8 @@ export function AdminApartmentDialog({
     if (apartment) {
       setTitle(apartment.title)
       setDescription(apartment.description)
+      setCity(apartment.city ?? "")
+      setStreet(apartment.street ?? "")
       setBeds(apartment.beds)
       setBathrooms(apartment.bathrooms)
       setReviewsCount(
@@ -134,6 +138,8 @@ export function AdminApartmentDialog({
     } else {
       setTitle("")
       setDescription("")
+      setCity("")
+      setStreet("")
       setBeds(2)
       setBathrooms(1)
       setReviewsCount("")
@@ -303,6 +309,8 @@ export function AdminApartmentDialog({
     const input = {
       title: title.trim(),
       description: description.trim(),
+      city: city.trim() || undefined,
+      street: street.trim() || undefined,
       beds,
       bathrooms,
       reviewsCount:
@@ -322,6 +330,8 @@ export function AdminApartmentDialog({
       const msg =
         fe.bookingUrl?.[0] ??
         fe.title?.[0] ??
+        fe.city?.[0] ??
+        fe.street?.[0] ??
         fe.reviewsCount?.[0] ??
         fe.ratingAverage?.[0] ??
         fe.images?.[0] ??
@@ -398,6 +408,30 @@ export function AdminApartmentDialog({
                   rows={4}
                   className="rounded-xl"
                 />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-foreground/90">
+                    Ville
+                  </label>
+                  <input
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="Ex: Cannes"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-foreground/90">
+                    Rue
+                  </label>
+                  <input
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="Ex: rue du 14 juillet"
+                  />
+                </div>
               </div>
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-foreground/90">

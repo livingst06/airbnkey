@@ -12,6 +12,8 @@ model Apartment {
   slug        String   @unique
   title       String
   description String
+  city        String?
+  street      String?
   beds        Int
   bathrooms   Int
   reviewsCount Int?
