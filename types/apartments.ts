@@ -17,6 +17,8 @@ export type Apartment = {
     title: string
     beds: number
     bathrooms: number
+    reviewsCount?: number | null
+    ratingAverage?: number | null
     advantages: string[]
     description: string
     latitude: number

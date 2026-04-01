@@ -14,6 +14,20 @@ function normalizeNonNegativeInt(value: unknown, fallback = 0): number {
   return Math.min(2147483647, Math.floor(n))
 }
 
+function normalizeNullableNonNegativeInt(value: unknown): number | null {
+  if (value === null || value === undefined) return null
+  const n = typeof value === "number" ? value : Number(value)
+  if (!Number.isFinite(n) || n < 0) return null
+  return Math.min(2147483647, Math.floor(n))
+}
+
+function normalizeNullableRating(value: unknown): number | null {
+  if (value === null || value === undefined) return null
+  const n = typeof value === "number" ? value : Number(value)
+  if (!Number.isFinite(n) || n < 0 || n > 5) return null
+  return Math.round(n * 10) / 10
+}
+
 function jsonArrayElementToString(
   x: unknown,
   coercePrimitives: boolean,
@@ -68,6 +82,8 @@ export function rowToApartment(row: ApartmentRow): Apartment {
     description: row.description,
     beds: normalizeNonNegativeInt(row.beds),
     bathrooms: normalizeNonNegativeInt(row.bathrooms),
+    reviewsCount: normalizeNullableNonNegativeInt(row.reviewsCount),
+    ratingAverage: normalizeNullableRating(row.ratingAverage),
     advantages: jsonValueToStringArray(row.advantages, {
       coercePrimitives: true,
     }),
@@ -88,6 +104,8 @@ export function apartmentToDbPayload(a: {
   description: string
   beds: number
   bathrooms: number
+  reviewsCount?: number | null
+  ratingAverage?: number | null
   advantages: string[]
   latitude: number
   longitude: number
@@ -102,6 +120,8 @@ export function apartmentToDbPayload(a: {
     description: a.description,
     beds: a.beds,
     bathrooms: a.bathrooms,
+    reviewsCount: a.reviewsCount ?? null,
+    ratingAverage: a.ratingAverage ?? null,
     latitude: a.latitude,
     longitude: a.longitude,
     advantages: a.advantages as Prisma.InputJsonValue,
@@ -119,6 +139,8 @@ export function apartmentToPrismaUpdateData(
   description: string
   beds: number
   bathrooms: number
+  reviewsCount: number | null
+  ratingAverage: number | null
   latitude: number
   longitude: number
   advantages: Prisma.InputJsonValue
@@ -130,6 +152,8 @@ export function apartmentToPrismaUpdateData(
     description: data.description,
     beds: data.beds,
     bathrooms: data.bathrooms,
+    reviewsCount: data.reviewsCount ?? null,
+    ratingAverage: data.ratingAverage ?? null,
     latitude: data.latitude,
     longitude: data.longitude,
     advantages: data.advantages as Prisma.InputJsonValue,

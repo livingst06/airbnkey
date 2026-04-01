@@ -53,6 +53,10 @@ const splitListingDescriptionClassName = cn(
   "xl:line-clamp-2 xl:text-[0.85rem] xl:leading-6 xl:text-muted-foreground/95",
 )
 
+function formatRatingAverage(value: number): string {
+  return value.toFixed(1)
+}
+
 export type ApartmentContentProps = {
   apartment: Apartment
   /** Grille vs modale : seulement coins carrousel, LCP image, aria / Radix */
@@ -98,6 +102,11 @@ export function ApartmentContent({
 
   const metaLine = `${apartment.beds} couchages • ${apartment.bathrooms} salle${apartment.bathrooms > 1 ? "s" : ""} de bain`
   const description = apartment.description?.trim() ?? ""
+  const hasRatingSummary =
+    apartment.reviewsCount !== null &&
+    apartment.reviewsCount !== undefined &&
+    apartment.ratingAverage !== null &&
+    apartment.ratingAverage !== undefined
   const splitMetaItems = [
     { key: "beds", icon: Users, label: `${apartment.beds} guests` },
     {
@@ -244,9 +253,16 @@ export function ApartmentContent({
               </div>
 
               <div className="mt-auto flex items-end justify-between gap-4">
-                <div className="flex min-h-6 items-center gap-1.5 text-[1rem] font-semibold text-foreground">
-                  <Star className="size-4 fill-rose-500 text-rose-500" aria-hidden />
-                  <span>Airbnkey</span>
+                <div className="flex min-h-6 items-center gap-1.5">
+                  {hasRatingSummary ? (
+                    <div className="flex items-center gap-1.5 text-[1rem] font-semibold text-foreground">
+                      <Star className="size-4 fill-rose-500 text-rose-500" aria-hidden />
+                      <span>{formatRatingAverage(apartment.ratingAverage!)}</span>
+                      <span className="text-[0.95rem] font-normal text-muted-foreground">
+                        ({apartment.reviewsCount})
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
                 {advantages.length > 0 ? (
                   <div className="flex flex-wrap justify-end gap-1.5">

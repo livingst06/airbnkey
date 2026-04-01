@@ -67,6 +67,8 @@ export function AdminApartmentDialog({
   const [description, setDescription] = useState("")
   const [beds, setBeds] = useState(2)
   const [bathrooms, setBathrooms] = useState(1)
+  const [reviewsCount, setReviewsCount] = useState("")
+  const [ratingAverage, setRatingAverage] = useState("")
   const [tagsText, setTagsText] = useState("")
   const [latitude, setLatitude] = useState(43.5528)
   const [longitude, setLongitude] = useState(7.0174)
@@ -114,6 +116,16 @@ export function AdminApartmentDialog({
       setDescription(apartment.description)
       setBeds(apartment.beds)
       setBathrooms(apartment.bathrooms)
+      setReviewsCount(
+        apartment.reviewsCount !== null && apartment.reviewsCount !== undefined
+          ? String(apartment.reviewsCount)
+          : "",
+      )
+      setRatingAverage(
+        apartment.ratingAverage !== null && apartment.ratingAverage !== undefined
+          ? String(apartment.ratingAverage)
+          : "",
+      )
       setTagsText(apartment.advantages?.join(", ") ?? "")
       setLatitude(apartment.latitude)
       setLongitude(apartment.longitude)
@@ -124,6 +136,8 @@ export function AdminApartmentDialog({
       setDescription("")
       setBeds(2)
       setBathrooms(1)
+      setReviewsCount("")
+      setRatingAverage("")
       setTagsText("")
       setLatitude(43.5528)
       setLongitude(7.0174)
@@ -291,6 +305,10 @@ export function AdminApartmentDialog({
       description: description.trim(),
       beds,
       bathrooms,
+      reviewsCount:
+        reviewsCount.trim() === "" ? null : Number.parseInt(reviewsCount.trim(), 10),
+      ratingAverage:
+        ratingAverage.trim() === "" ? null : Number.parseFloat(ratingAverage.trim()),
       advantages,
       latitude: formatLatLng(latitude),
       longitude: formatLatLng(longitude),
@@ -304,6 +322,8 @@ export function AdminApartmentDialog({
       const msg =
         fe.bookingUrl?.[0] ??
         fe.title?.[0] ??
+        fe.reviewsCount?.[0] ??
+        fe.ratingAverage?.[0] ??
         fe.images?.[0] ??
         "Données invalides"
       toast.error(msg)
@@ -419,6 +439,39 @@ export function AdminApartmentDialog({
                     value={bathrooms}
                     onChange={(e) => setBathrooms(Number(e.target.value))}
                     min={0}
+                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-foreground/90">
+                    Nombre d&apos;avis
+                  </label>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    value={reviewsCount}
+                    onChange={(e) => setReviewsCount(e.target.value)}
+                    min={0}
+                    placeholder="Ex: 17"
+                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-foreground/90">
+                    Note moyenne
+                  </label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={ratingAverage}
+                    onChange={(e) => setRatingAverage(e.target.value)}
+                    min={0}
+                    max={5}
+                    step="0.1"
+                    placeholder="Ex: 4.9"
                     className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
