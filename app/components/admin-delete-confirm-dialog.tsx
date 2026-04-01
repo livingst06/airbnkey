@@ -52,7 +52,7 @@ export function AdminDeleteConfirmDialog({
             </button>
           </DialogClose>
 
-          <div className="flex-1 overflow-y-auto p-6 md:p-8">
+          <div className="no-scrollbar flex-1 overflow-y-auto p-6 md:p-8">
             <div className="space-y-2">
               <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground">
                 Supprimer cet appartement ?

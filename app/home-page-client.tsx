@@ -313,7 +313,7 @@ export function HomePageClient() {
                 </p>
               </div>
               <div
-                className="@container min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain xl:rounded-[1.75rem] xl:border xl:border-border/50 xl:bg-background/55 xl:p-3 xl:shadow-sm xl:backdrop-blur"
+                className="@container no-scrollbar min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain xl:rounded-[1.75rem] xl:border xl:border-border/50 xl:bg-background/55 xl:p-3 xl:shadow-sm xl:backdrop-blur"
                 data-list-scroll
               >
                 <div

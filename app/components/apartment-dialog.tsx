@@ -189,7 +189,7 @@ export function ApartmentDialog({
 
         <div
           ref={scrollContainerRef}
-          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto touch-pan-y"
+          className="no-scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto touch-pan-y"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
