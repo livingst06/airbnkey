@@ -1,6 +1,14 @@
 "use client"
 
 import { useMemo } from "react"
+import {
+  Bath,
+  BedDouble,
+  CigaretteOff,
+  Star,
+  Users,
+  Wifi,
+} from "lucide-react"
 
 import type { Apartment } from "@/types/apartments"
 import { Badge } from "@/components/ui/badge"
@@ -27,18 +35,28 @@ import { BookingBadge } from "./booking-badge"
 const listingTitleClassName =
   "line-clamp-2 text-[1.0625rem] font-semibold leading-snug tracking-tight text-foreground lg:text-[1.125rem]"
 
+const splitListingTitleClassName =
+  "xl:text-[1.7rem] xl:leading-[1.15]"
+
 const listingMetaClassName =
   "text-[0.8125rem] font-normal leading-normal text-muted-foreground"
+
+const splitListingMetaClassName =
+  "xl:text-[0.9rem]"
 
 const listingDescriptionClassName = cn(
   listingDetailBody,
   "line-clamp-4 max-sm:line-clamp-5 text-[0.8125rem] text-muted-foreground",
 )
 
+const splitListingDescriptionClassName = cn(
+  "xl:line-clamp-2 xl:text-[0.85rem] xl:leading-6 xl:text-muted-foreground/95",
+)
+
 export type ApartmentContentProps = {
   apartment: Apartment
   /** Grille vs modale : seulement coins carrousel, LCP image, aria / Radix */
-  variant: "card" | "dialog"
+  variant: "card" | "dialog" | "split"
   imagePriority?: boolean
   titleId?: string
   /**
@@ -56,6 +74,7 @@ export function ApartmentContent({
   selectionFrameInset = false,
 }: ApartmentContentProps) {
   const isDialog = variant === "dialog"
+  const isSplit = variant === "split"
 
   const listingHref = useMemo(() => {
     const t = apartment.bookingUrl?.trim()
@@ -79,10 +98,33 @@ export function ApartmentContent({
 
   const metaLine = `${apartment.beds} couchages • ${apartment.bathrooms} salle${apartment.bathrooms > 1 ? "s" : ""} de bain`
   const description = apartment.description?.trim() ?? ""
+  const splitMetaItems = [
+    { key: "beds", icon: Users, label: `${apartment.beds} guests` },
+    {
+      key: "bathrooms",
+      icon: Bath,
+      label: `${apartment.bathrooms} bathroom${apartment.bathrooms > 1 ? "s" : ""}`,
+    },
+    {
+      key: "bedrooms",
+      icon: BedDouble,
+      label: `${apartment.beds} bedroom${apartment.beds > 1 ? "s" : ""}`,
+    },
+    {
+      key: "smoking",
+      icon: CigaretteOff,
+      label: "No smoking",
+    },
+    {
+      key: "wifi",
+      icon: Wifi,
+      label: "Wifi",
+    },
+  ]
 
   const badgeBlock =
     listingHref && bookingProvider ? (
-      <div className="mt-auto flex justify-end pt-3">
+      <div className={cn("mt-auto flex justify-end pt-3", isSplit && "xl:pt-2")}>
         <BookingBadge provider={bookingProvider} />
       </div>
     ) : null
@@ -93,7 +135,10 @@ export function ApartmentContent({
         <h2 className={listingTitleClassName}>{apartment.title}</h2>
       </DialogTitle>
     ) : (
-      <h3 id={titleId} className={listingTitleClassName}>
+      <h3
+        id={titleId}
+        className={cn(listingTitleClassName, isSplit && splitListingTitleClassName)}
+      >
         {apartment.title}
       </h3>
     )
@@ -105,7 +150,14 @@ export function ApartmentContent({
           <p className={listingDescriptionClassName}>{description}</p>
         </DialogDescription>
       ) : (
-        <p className={listingDescriptionClassName}>{description}</p>
+        <p
+          className={cn(
+            listingDescriptionClassName,
+            isSplit && splitListingDescriptionClassName,
+          )}
+        >
+          {description}
+        </p>
       )
     ) : isDialog ? (
       <DialogDescription className="sr-only">
@@ -117,21 +169,32 @@ export function ApartmentContent({
     <>
       <div
         className={cn(
-          "relative w-full shrink-0 overflow-hidden",
+          "relative shrink-0 overflow-hidden",
           isDialog
             ? "rounded-t-3xl"
+            : isSplit
+              ? selectionFrameInset
+                ? "w-full rounded-t-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:h-full xl:w-[15rem] xl:rounded-l-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:rounded-tr-none"
+                : "w-full rounded-t-xl xl:h-full xl:w-[15rem] xl:rounded-l-xl xl:rounded-tr-none"
             : selectionFrameInset
               ? "rounded-t-[max(0px,calc(var(--radius-xl)-0.125rem))]"
               : "rounded-t-xl",
+          isSplit ? "w-full xl:self-stretch" : "w-full",
         )}
       >
         <ApartmentCarousel
           images={apartment.images}
           title={apartment.title}
           imagePriority={!isDialog && imagePriority}
+          layout={isSplit ? "split" : "default"}
         />
         {listingHref ? (
-          <div className="group/cta pointer-events-none absolute inset-x-0 bottom-0 z-[13] bg-gradient-to-t from-black/92 via-black/65 via-35% to-transparent px-3 pb-3 pt-14">
+          <div
+            className={cn(
+              "group/cta pointer-events-none absolute inset-x-0 bottom-0 z-[13] bg-gradient-to-t from-black/92 via-black/65 via-35% to-transparent",
+              isSplit ? "px-3 pb-3 pt-14 xl:px-2 xl:pb-2 xl:pt-10" : "px-3 pb-3 pt-14",
+            )}
+          >
             <button
               type="button"
               className="pointer-events-auto flex min-h-10 w-full cursor-pointer items-center justify-center px-2 py-2 text-center text-[0.8125rem] font-semibold tracking-tight text-white/95 [text-shadow:0_1px_4px_rgba(0,0,0,0.9)] outline-none transition-transform duration-100 ease-out focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97] md:hover:brightness-110"
@@ -148,43 +211,113 @@ export function ApartmentContent({
         ) : null}
       </div>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col px-4 pt-4 pb-5">
-        <div className="flex min-h-0 flex-1 flex-col gap-3">
-          {titleBlock}
-          <p className={listingMetaClassName}>{metaLine}</p>
-          {descriptionBlock}
-          {advantages.length > 0 ? (
-            <section className="space-y-0">
-              <h3 className={cn(listingSectionLabel, "sr-only")}>
-                Équipements
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {visibleAdvantages.map((advantage: string, idx: number) => (
-                  <Badge
-                    key={`${apartment.id}-adv-${idx}-${advantage}`}
-                    variant="outline"
-                    className={listingTagBadgeClass}
+      <CardContent
+        className={cn(
+          "flex min-h-0 flex-1 flex-col px-4 pt-4 pb-5",
+          isSplit && "xl:px-5 xl:py-4",
+        )}
+      >
+        <div
+          className={cn("flex min-h-0 flex-1 flex-col gap-3", isSplit && "xl:gap-4")}
+        >
+          {isSplit ? (
+            <>
+              <div className="space-y-3">
+                <div className="text-[0.82rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                  Cannes
+                </div>
+                {titleBlock}
+              </div>
+
+              <div className="h-px w-14 bg-border/70" aria-hidden />
+
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                {splitMetaItems.map(({ key, icon: Icon, label }) => (
+                  <div
+                    key={`${apartment.id}-${key}`}
+                    className="flex items-center gap-2.5 text-sm text-muted-foreground"
                   >
-                    {advantage}
-                  </Badge>
+                    <Icon className="size-4 shrink-0 text-foreground/80" aria-hidden />
+                    <span className="line-clamp-1">{label}</span>
+                  </div>
                 ))}
-                {extraAdvantageCount > 0 ? (
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      listingTagBadgeClass,
-                      "bg-muted/20 dark:bg-white/[0.04]",
-                    )}
-                    title={`${extraAdvantageCount} autre${extraAdvantageCount > 1 ? "s" : ""}`}
-                  >
-                    +{extraAdvantageCount}
-                  </Badge>
+              </div>
+
+              <div className="mt-auto flex items-end justify-between gap-4">
+                <div className="flex min-h-6 items-center gap-1.5 text-[1rem] font-semibold text-foreground">
+                  <Star className="size-4 fill-rose-500 text-rose-500" aria-hidden />
+                  <span>Airbnkey</span>
+                </div>
+                {advantages.length > 0 ? (
+                  <div className="flex flex-wrap justify-end gap-1.5">
+                    {visibleAdvantages.map((advantage: string, idx: number) => (
+                      <Badge
+                        key={`${apartment.id}-adv-${idx}-${advantage}`}
+                        variant="outline"
+                        className="px-2.5 py-1 text-[0.7rem] leading-none"
+                      >
+                        {advantage}
+                      </Badge>
+                    ))}
+                    {extraAdvantageCount > 0 ? (
+                      <Badge
+                        variant="outline"
+                        className="bg-muted/20 px-2.5 py-1 text-[0.7rem] leading-none dark:bg-white/[0.04]"
+                        title={`${extraAdvantageCount} autre${extraAdvantageCount > 1 ? "s" : ""}`}
+                      >
+                        +{extraAdvantageCount}
+                      </Badge>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
-            </section>
-          ) : null}
+            </>
+          ) : (
+            <>
+              {titleBlock}
+              <p className={cn(listingMetaClassName, isSplit && splitListingMetaClassName)}>
+                {metaLine}
+              </p>
+              {descriptionBlock}
+              {advantages.length > 0 ? (
+                <section className="space-y-0">
+                  <h3 className={cn(listingSectionLabel, "sr-only")}>
+                    Équipements
+                  </h3>
+                  <div className={cn("flex flex-wrap gap-2", isSplit && "xl:gap-1.5")}>
+                    {visibleAdvantages.map((advantage: string, idx: number) => (
+                      <Badge
+                        key={`${apartment.id}-adv-${idx}-${advantage}`}
+                        variant="outline"
+                        className={cn(
+                          listingTagBadgeClass,
+                          isSplit && "xl:px-2.5 xl:py-1 xl:text-[0.7rem] xl:leading-none",
+                        )}
+                      >
+                        {advantage}
+                      </Badge>
+                    ))}
+                    {extraAdvantageCount > 0 ? (
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          listingTagBadgeClass,
+                          isSplit &&
+                            "xl:px-2.5 xl:py-1 xl:text-[0.7rem] xl:leading-none",
+                          "bg-muted/20 dark:bg-white/[0.04]",
+                        )}
+                        title={`${extraAdvantageCount} autre${extraAdvantageCount > 1 ? "s" : ""}`}
+                      >
+                        +{extraAdvantageCount}
+                      </Badge>
+                    ) : null}
+                  </div>
+                </section>
+              ) : null}
+            </>
+          )}
         </div>
-        {badgeBlock}
+        {isSplit ? null : badgeBlock}
       </CardContent>
     </>
   )

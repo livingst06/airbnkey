@@ -13,6 +13,7 @@ type Props = {
   selectedApartmentId: string | null
   hoveredApartmentId: string | null
   hoverSource: HoverSource
+  layout?: "default" | "desktopSplit"
 }
 
 export function ApartmentCard({
@@ -21,6 +22,7 @@ export function ApartmentCard({
   selectedApartmentId,
   hoveredApartmentId,
   hoverSource,
+  layout = "default",
 }: Props) {
   const isSyncedHover = hoveredApartmentId === apartment.id
   const isListHoverHighlight =
@@ -73,10 +75,11 @@ export function ApartmentCard({
 
   const titleId = `apt-card-title-${apartment.id}`
   const isHighlighted = isSyncedHover || isListHoverHighlight
+  const isSplit = layout === "desktopSplit"
 
   const inner = (
     <ApartmentContent
-      variant="card"
+      variant={isSplit ? "split" : "card"}
       apartment={apartment}
       imagePriority={priority}
       titleId={titleId}
@@ -97,8 +100,10 @@ export function ApartmentCard({
             role="article"
             aria-labelledby={titleId}
             className={cn(
-              "group flex h-full flex-col gap-0 overflow-hidden border-0 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none",
-              "rounded-[max(0px,calc(var(--radius-xl)-0.125rem))]",
+              "group flex gap-0 overflow-hidden border-0 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none",
+              isSplit
+                ? "h-full flex-col rounded-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:min-h-[15rem] xl:flex-row"
+                : "h-full flex-col rounded-[max(0px,calc(var(--radius-xl)-0.125rem))]",
             )}
           >
             {inner}
@@ -109,8 +114,10 @@ export function ApartmentCard({
           role="article"
           aria-labelledby={titleId}
           className={cn(
-            "group flex h-full flex-col gap-0 overflow-hidden rounded-xl border border-border/60 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-border/50",
-            "md:hover:scale-[1.01] md:hover:shadow-lg",
+            "group flex gap-0 overflow-hidden rounded-xl border border-border/60 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-border/50",
+            isSplit
+              ? "h-full flex-col bg-card/95 md:hover:scale-[1.01] md:hover:shadow-lg xl:min-h-[15rem] xl:flex-row xl:hover:scale-100"
+              : "h-full flex-col md:hover:scale-[1.01] md:hover:shadow-lg",
           )}
         >
           {inner}

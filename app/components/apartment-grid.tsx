@@ -80,7 +80,7 @@ export function ApartmentGrid({
           }}
         />
       ) : null}
-      <div className="grid grid-cols-1 gap-3 @md:grid-cols-2 @md:gap-3 @min-[52rem]:grid-cols-3 @min-[52rem]:gap-4">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-1 lg:gap-4">
         {apartments.map((apartment: Apartment, index: number) => (
           <div
             key={apartment.id}
@@ -106,6 +106,7 @@ export function ApartmentGrid({
               selectedApartmentId={selectedApartmentId}
               hoveredApartmentId={hoveredApartmentId}
               hoverSource={hoverSource}
+              layout="desktopSplit"
             />
           </div>
         ))}

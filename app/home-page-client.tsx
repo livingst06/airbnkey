@@ -261,30 +261,50 @@ export function HomePageClient() {
             className={cn(
               "grid min-h-0 grid-cols-1 items-stretch gap-6",
               "max-lg:flex max-lg:flex-col max-lg:min-h-0",
-              "lg:h-[calc(100vh-6rem)] lg:grid lg:grid-cols-[minmax(280px,0.42fr)_minmax(0,1fr)] lg:gap-8 lg:overflow-hidden",
-              "2xl:grid-cols-[minmax(300px,0.38fr)_minmax(0,1fr)]",
+              "lg:h-[calc(100vh-6rem)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8 lg:overflow-hidden",
+              "xl:h-[calc(100vh-7.5rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:gap-6",
             )}
           >
             <section
               className={cn(
-                "order-1 flex min-h-0 min-w-0 flex-col pr-0 sm:pr-1 lg:h-full lg:pr-2",
+                "order-1 flex min-h-0 min-w-0 flex-col pr-0 sm:pr-1 lg:order-1 lg:h-full lg:pr-2",
                 "max-lg:min-h-0 lg:flex-1",
               )}
             >
-              <div className="flex shrink-0 flex-col gap-5 border-b border-border/40 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0">
-                <FilterBar
-                  search={search}
-                  onSearchChange={setSearch}
-                  bedsMin={bedsMin}
-                  onBedsMinChange={setBedsMin}
-                  selectedTags={selectedTags}
-                  onToggleTag={toggleTag}
-                  availableTags={availableTags}
-                  sort={sort}
-                  onSortChange={setSort}
-                  onReset={resetFilters}
-                />
-                <p className="mb-0 text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground lg:mb-4">
+              <div className="flex shrink-0 flex-col gap-5 border-b border-border/40 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0 xl:gap-4">
+                <div className="flex flex-col gap-3 xl:rounded-[1.75rem] xl:border xl:border-border/50 xl:bg-background/70 xl:p-4 xl:shadow-sm xl:backdrop-blur">
+                  <div className="flex items-end justify-between gap-4 xl:px-1">
+                    <div className="space-y-1">
+                      <h2 className="text-lg font-semibold tracking-tight text-foreground xl:text-[1.35rem]">
+                        Nos appartements
+                      </h2>
+                      <p className="text-sm leading-normal text-muted-foreground">
+                        Explore Cannes cote liste et carte.
+                      </p>
+                    </div>
+                    <p className="mb-0 whitespace-nowrap text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground">
+                      {sortedApartments.length === 0
+                        ? "0 appartement"
+                        : sortedApartments.length === 1
+                          ? "1 appartement"
+                          : `${sortedApartments.length} appartements`}
+                    </p>
+                  </div>
+                  <FilterBar
+                    search={search}
+                    onSearchChange={setSearch}
+                    bedsMin={bedsMin}
+                    onBedsMinChange={setBedsMin}
+                    selectedTags={selectedTags}
+                    onToggleTag={toggleTag}
+                    availableTags={availableTags}
+                    sort={sort}
+                    onSortChange={setSort}
+                    onReset={resetFilters}
+                    compact
+                  />
+                </div>
+                <p className="mb-0 text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground lg:mb-4 xl:hidden">
                   {sortedApartments.length === 0
                     ? "0 appartement trouvé"
                     : sortedApartments.length === 1
@@ -293,7 +313,7 @@ export function HomePageClient() {
                 </p>
               </div>
               <div
-                className="@container min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain"
+                className="@container min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain xl:rounded-[1.75rem] xl:border xl:border-border/50 xl:bg-background/55 xl:p-3 xl:shadow-sm xl:backdrop-blur"
                 data-list-scroll
               >
                 <div
@@ -320,12 +340,12 @@ export function HomePageClient() {
 
             <section
               className={cn(
-                "order-2 flex w-full min-w-0 shrink-0 flex-col lg:order-none lg:h-full lg:min-h-0",
+                "order-2 flex w-full min-w-0 shrink-0 flex-col lg:order-2 lg:h-full lg:min-h-0",
               )}
             >
               <div
                 className={cn(
-                  "w-full overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5",
+                  "w-full overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5 xl:rounded-[2rem]",
                   "max-lg:h-[clamp(15rem,56dvh,28rem)] max-lg:min-h-[15rem] max-lg:shrink-0",
                   "lg:h-full lg:min-h-0 lg:flex-1 lg:shrink-0",
                 )}

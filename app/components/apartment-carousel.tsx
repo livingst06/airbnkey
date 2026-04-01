@@ -24,12 +24,14 @@ type ApartmentCarouselProps = {
   title: string
   /** Grille : LCP sur la première image de la première carte */
   imagePriority?: boolean
+  layout?: "default" | "split"
 }
 
 export function ApartmentCarousel({
   images,
   title,
   imagePriority = false,
+  layout = "default",
 }: ApartmentCarouselProps) {
   const safeImages = getApartmentImages(images).slice(0, MAX_IMAGES)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -103,9 +105,15 @@ export function ApartmentCarousel({
 
   return (
     <div
-      className="group relative aspect-[3/2] h-full w-full overflow-hidden"
+      className={cn(
+        "group relative h-full w-full overflow-hidden",
+        layout === "split"
+          ? "aspect-[3/2] xl:min-h-full xl:aspect-auto"
+          : "aspect-[3/2]",
+      )}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      data-layout={layout}
     >
       <div
         key={`${currentIndex}-${currentSrc}`}
@@ -119,7 +127,11 @@ export function ApartmentCarousel({
             "m-0 h-full w-full p-0 object-cover",
             imageHoverClass,
           )}
-          sizes="(min-width: 1536px) 14vw, (min-width: 1024px) 18vw, (min-width: 640px) 42vw, 100vw"
+          sizes={
+            layout === "split"
+              ? "(min-width: 1536px) 180px, (min-width: 1280px) 168px, (min-width: 1024px) 156px, 100vw"
+              : "(min-width: 1536px) 14vw, (min-width: 1024px) 18vw, (min-width: 640px) 42vw, 100vw"
+          }
           priority={imagePriority && currentIndex === 0}
           unoptimized={unoptimized}
         />

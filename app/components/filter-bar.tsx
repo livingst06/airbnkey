@@ -48,6 +48,7 @@ type FilterBarProps = {
   sort: ApartmentSort
   onSortChange: (value: ApartmentSort) => void
   onReset: () => void
+  compact?: boolean
 }
 
 export function FilterBar({
@@ -61,6 +62,7 @@ export function FilterBar({
   sort,
   onSortChange,
   onReset,
+  compact = false,
 }: FilterBarProps) {
   const hasActiveFilters =
     search.trim() !== "" ||
@@ -72,11 +74,19 @@ export function FilterBar({
     <div
       className={cn(
         "flex flex-col gap-6 rounded-2xl border border-solid border-transparent p-5 shadow-none transition-[background-color,border-color] duration-200 md:flex-row md:flex-wrap md:items-start md:gap-x-8 md:gap-y-6 md:p-6 lg:gap-x-10",
+        compact
+          ? "xl:gap-4 xl:gap-x-5 xl:gap-y-4 xl:p-4"
+          : null,
         hasActiveFilters &&
           "border-border/50 bg-muted/20 dark:border-white/[0.08] dark:bg-white/[0.03]",
       )}
     >
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5 md:min-w-[260px] md:max-w-md">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col gap-2.5 md:min-w-[260px] md:max-w-md",
+          compact && "xl:min-w-[220px]",
+        )}
+      >
         <label htmlFor="apartment-search" className={listingSectionLabel}>
           Recherche
         </label>
@@ -154,7 +164,12 @@ export function FilterBar({
         </div>
       ) : null}
 
-      <div className="flex w-full basis-full flex-col gap-1 border-t border-border/40 pt-6 dark:border-white/[0.08]">
+      <div
+        className={cn(
+          "flex w-full basis-full flex-col gap-1 border-t border-border/40 dark:border-white/[0.08]",
+          compact ? "pt-6 xl:pt-4" : "pt-6",
+        )}
+      >
         <Button
           type="button"
           variant="ghost"
@@ -162,7 +177,10 @@ export function FilterBar({
           disabled={!hasActiveFilters}
           onClick={onReset}
           aria-label="Réinitialiser tous les filtres"
-          className="h-10 w-full shrink-0 justify-center gap-2 rounded-xl border border-transparent text-sm font-medium text-muted-foreground hover:border-border/60 hover:bg-muted/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-[0.35] disabled:hover:border-transparent disabled:hover:bg-transparent dark:hover:border-white/[0.08] dark:hover:bg-white/[0.05] dark:disabled:hover:bg-transparent md:h-9 md:w-auto md:px-4"
+          className={cn(
+            "w-full shrink-0 justify-center gap-2 rounded-xl border border-transparent text-sm font-medium text-muted-foreground hover:border-border/60 hover:bg-muted/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-[0.35] disabled:hover:border-transparent disabled:hover:bg-transparent dark:hover:border-white/[0.08] dark:hover:bg-white/[0.05] dark:disabled:hover:bg-transparent md:w-auto md:px-4",
+            compact ? "h-10 md:h-9 xl:h-9" : "h-10 md:h-9",
+          )}
         >
           <RotateCcw
             className="size-3.5 shrink-0 opacity-70"
