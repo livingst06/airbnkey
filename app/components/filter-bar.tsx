@@ -84,10 +84,10 @@ export function FilterBar({
       <div
         className={cn(
           "flex min-w-0 flex-1 flex-col gap-2.5 md:min-w-[260px] md:max-w-md",
-          compact && "xl:min-w-[220px]",
+          compact && "xl:min-w-[220px] xl:pt-[1.9rem]",
         )}
       >
-        <label htmlFor="apartment-search" className={listingSectionLabel}>
+        <label htmlFor="apartment-search" className={cn(listingSectionLabel, "sr-only")}>
           Recherche
         </label>
         <input

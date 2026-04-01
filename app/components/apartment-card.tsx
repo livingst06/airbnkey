@@ -83,46 +83,26 @@ export function ApartmentCard({
       apartment={apartment}
       imagePriority={priority}
       titleId={titleId}
-      selectionFrameInset={isHighlighted}
+      selectionFrameInset={false}
     />
   )
 
   return (
     <div ref={cardRef} className="h-full">
-      {isHighlighted ? (
-        <div
-          className={cn(
-            "h-full rounded-xl bg-primary p-0.5 shadow-md transition-shadow duration-150 ease-out motion-reduce:transition-none dark:shadow-black/40",
-            isSyncedHover && "shadow-lg",
-          )}
-        >
-          <Card
-            role="article"
-            aria-labelledby={titleId}
-            className={cn(
-              "group flex gap-0 overflow-hidden border-0 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none",
-              isSplit
-                ? "h-full flex-col rounded-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:min-h-[15rem] xl:flex-row"
-                : "h-full flex-col rounded-[max(0px,calc(var(--radius-xl)-0.125rem))]",
-            )}
-          >
-            {inner}
-          </Card>
-        </div>
-      ) : (
-        <Card
-          role="article"
-          aria-labelledby={titleId}
-          className={cn(
-            "group flex gap-0 overflow-hidden rounded-xl border border-border/60 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-border/50",
-            isSplit
-              ? "h-full flex-col bg-card/95 md:hover:scale-[1.01] md:hover:shadow-lg xl:min-h-[15rem] xl:flex-row xl:hover:scale-100"
-              : "h-full flex-col md:hover:scale-[1.01] md:hover:shadow-lg",
-          )}
-        >
-          {inner}
-        </Card>
-      )}
+      <Card
+        role="article"
+        aria-labelledby={titleId}
+        className={cn(
+          "group flex gap-0 overflow-hidden rounded-xl border border-border/60 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-border/50",
+          isSplit
+            ? "h-full flex-col bg-card/95 md:hover:scale-[1.01] md:hover:shadow-lg xl:min-h-[15rem] xl:flex-row xl:hover:scale-100"
+            : "h-full flex-col md:hover:scale-[1.01] md:hover:shadow-lg",
+          isHighlighted && "shadow-md dark:shadow-black/40",
+          isSyncedHover && "shadow-lg",
+        )}
+      >
+        {inner}
+      </Card>
     </div>
   )
 }

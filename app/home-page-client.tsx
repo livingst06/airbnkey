@@ -273,15 +273,7 @@ export function HomePageClient() {
             >
               <div className="flex shrink-0 flex-col gap-5 border-b border-border/40 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0 xl:gap-4">
                 <div className="flex flex-col gap-3 xl:rounded-[1.75rem] xl:border xl:border-border/50 xl:bg-background/70 xl:p-4 xl:shadow-sm xl:backdrop-blur">
-                  <div className="flex items-end justify-between gap-4 xl:px-1">
-                    <div className="space-y-1">
-                      <h2 className="text-lg font-semibold tracking-tight text-foreground xl:text-[1.35rem]">
-                        Nos appartements
-                      </h2>
-                      <p className="text-sm leading-normal text-muted-foreground">
-                        Explore Cannes cote liste et carte.
-                      </p>
-                    </div>
+                  <div className="flex items-end justify-end gap-4 xl:px-1">
                     <p className="mb-0 whitespace-nowrap text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground">
                       {sortedApartments.length === 0
                         ? "0 appartement"
