@@ -67,6 +67,7 @@ export function AdminApartmentDialog({
   const [description, setDescription] = useState("")
   const [city, setCity] = useState("")
   const [street, setStreet] = useState("")
+  const [guests, setGuests] = useState(0)
   const [beds, setBeds] = useState(2)
   const [bathrooms, setBathrooms] = useState(1)
   const [reviewsCount, setReviewsCount] = useState("")
@@ -118,6 +119,9 @@ export function AdminApartmentDialog({
       setDescription(apartment.description)
       setCity(apartment.city ?? "")
       setStreet(apartment.street ?? "")
+      setGuests(
+        Number.isFinite(apartment.guests) ? apartment.guests : 0,
+      )
       setBeds(apartment.beds)
       setBathrooms(apartment.bathrooms)
       setReviewsCount(
@@ -140,6 +144,7 @@ export function AdminApartmentDialog({
       setDescription("")
       setCity("")
       setStreet("")
+      setGuests(0)
       setBeds(2)
       setBathrooms(1)
       setReviewsCount("")
@@ -297,11 +302,12 @@ export function AdminApartmentDialog({
   const canSubmit = useMemo(() => {
     if (!title.trim()) return false
     if (!description.trim()) return false
+    if (!Number.isFinite(guests) || guests < 0) return false
     if (!Number.isFinite(beds) || beds < 0) return false
     if (!Number.isFinite(bathrooms) || bathrooms < 0) return false
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return false
     return true
-  }, [title, description, beds, bathrooms, latitude, longitude])
+  }, [title, description, guests, beds, bathrooms, latitude, longitude])
 
   const submit = async () => {
     if (!canSubmit) return
@@ -311,6 +317,7 @@ export function AdminApartmentDialog({
       description: description.trim(),
       city: city.trim() || undefined,
       street: street.trim() || undefined,
+      guests,
       beds,
       bathrooms,
       reviewsCount:
@@ -332,6 +339,7 @@ export function AdminApartmentDialog({
         fe.title?.[0] ??
         fe.city?.[0] ??
         fe.street?.[0] ??
+        fe.guests?.[0] ??
         fe.reviewsCount?.[0] ??
         fe.ratingAverage?.[0] ??
         fe.images?.[0] ??
@@ -452,6 +460,18 @@ export function AdminApartmentDialog({
                 Caractéristiques
               </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-foreground/90">
+                    Invites
+                  </label>
+                  <input
+                    type="number"
+                    value={guests}
+                    onChange={(e) => setGuests(Number(e.target.value))}
+                    min={0}
+                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
                 <div className="space-y-3">
                   <label className="block text-sm font-medium text-foreground/90">
                     Couchages

@@ -122,7 +122,7 @@ export function ApartmentContent({
     apartment.ratingAverage !== null &&
     apartment.ratingAverage !== undefined
   const splitMetaItems = [
-    { key: "beds", icon: Users, label: `${apartment.beds} guests` },
+    { key: "guests", icon: Users, label: `${apartment.guests} guests` },
     {
       key: "bathrooms",
       icon: Bath,

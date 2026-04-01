@@ -45,6 +45,7 @@ export const apartmentFormSchema = z.object({
   description: z.string(),
   city: optionalTrimmedTextField,
   street: optionalTrimmedTextField,
+  guests: z.coerce.number().int().min(0).max(99),
   beds: z.coerce.number().int().min(0).max(99),
   bathrooms: z.coerce.number().int().min(0).max(99),
   reviewsCount: optionalReviewsCountField,

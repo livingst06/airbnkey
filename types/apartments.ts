@@ -17,6 +17,7 @@ export type Apartment = {
     title: string
     city?: string | null
     street?: string | null
+    guests: number
     beds: number
     bathrooms: number
     reviewsCount?: number | null

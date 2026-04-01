@@ -82,6 +82,7 @@ export function rowToApartment(row: ApartmentRow): Apartment {
     description: row.description,
     city: row.city?.trim() ? row.city : null,
     street: row.street?.trim() ? row.street : null,
+    guests: normalizeNonNegativeInt(row.guests),
     beds: normalizeNonNegativeInt(row.beds),
     bathrooms: normalizeNonNegativeInt(row.bathrooms),
     reviewsCount: normalizeNullableNonNegativeInt(row.reviewsCount),
@@ -106,6 +107,7 @@ export function apartmentToDbPayload(a: {
   description: string
   city?: string | null
   street?: string | null
+  guests: number
   beds: number
   bathrooms: number
   reviewsCount?: number | null
@@ -124,6 +126,7 @@ export function apartmentToDbPayload(a: {
     description: a.description,
     city: a.city?.trim() || null,
     street: a.street?.trim() || null,
+    guests: a.guests,
     beds: a.beds,
     bathrooms: a.bathrooms,
     reviewsCount: a.reviewsCount ?? null,
@@ -145,6 +148,7 @@ export function apartmentToPrismaUpdateData(
   description: string
   city: string | null
   street: string | null
+  guests: number
   beds: number
   bathrooms: number
   reviewsCount: number | null
@@ -160,6 +164,7 @@ export function apartmentToPrismaUpdateData(
     description: data.description,
     city: data.city?.trim() || null,
     street: data.street?.trim() || null,
+    guests: data.guests,
     beds: data.beds,
     bathrooms: data.bathrooms,
     reviewsCount: data.reviewsCount ?? null,
