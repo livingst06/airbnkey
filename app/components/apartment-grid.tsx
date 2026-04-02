@@ -19,15 +19,15 @@ import {
   useSortable,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { X } from "lucide-react"
 
 import type { HoverSource } from "@/types/hover"
 import type { Apartment, DialogAnchorRect } from "@/types/apartments"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { ApartmentCard } from "./apartment-card"
 import { useApartments } from "./apartments-context"
 import { AdminAddApartmentCard } from "./admin-add-apartment-card"
+import { ApartmentCardAdmin } from "./apartment-card-admin"
+import { ApartmentCardPublic } from "./apartment-card-public"
 import { AdminApartmentDialog } from "./admin-apartment-dialog"
 import { AdminDeleteConfirmDialog } from "./admin-delete-confirm-dialog"
 import { ApartmentDialog } from "./apartment-dialog"
@@ -96,50 +96,26 @@ function ApartmentCardShell({
         }
       }}
     >
-      <div className={cn("h-full", adminMode && "pb-3 pt-7 pr-3")}>
-        <ApartmentCard
-          apartment={apartment}
-          priority={index === 0}
-          selectedApartmentId={selectedApartmentId}
-          hoveredApartmentId={hoveredApartmentId}
-          hoverSource={hoverSource}
-          layout="desktopSplit"
-          titleIdPrefix={adminMode ? "admin-apt-card-title" : "apt-card-title"}
-          overlaySlot={
-            adminMode ? (
-              <button
-                type="button"
-                aria-label="Supprimer cet appartement"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDelete()
-                }}
-                className="absolute right-0 top-0 z-30 inline-flex h-11 w-11 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-black/14 bg-white/86 text-neutral-900 shadow-[0_4px_14px_rgba(0,0,0,0.16),0_2px_6px_rgba(0,0,0,0.08)] backdrop-blur-md transition-all duration-200 ease-out hover:border-red-500/40 hover:bg-red-500/88 hover:text-white hover:shadow-[0_6px_22px_rgba(0,0,0,0.18),0_3px_10px_rgba(220,38,38,0.3)] active:scale-[0.96] focus-visible:border-red-500/40 focus-visible:bg-red-500/88 focus-visible:outline-none focus-visible:text-white focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:shadow-[0_6px_22px_rgba(0,0,0,0.16),0_3px_10px_rgba(220,38,38,0.22)] dark:border-white/22 dark:bg-black/62 dark:text-white dark:hover:border-red-400/45 dark:hover:bg-red-500/82 dark:hover:text-white dark:focus-visible:border-red-400/45 dark:focus-visible:bg-red-500/82 dark:focus-visible:ring-red-400/48"
-              >
-                <X
-                  className="size-5 shrink-0 transition-colors duration-200 ease-out"
-                  aria-hidden
-                  strokeWidth={2}
-                />
-              </button>
-            ) : null
-          }
-          footerSlot={
-            adminMode ? (
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={onEdit}
-                className="w-full rounded-lg border border-orange-500/20 bg-orange-500/15 text-orange-600 shadow-sm hover:bg-orange-500/20 active:scale-[0.99] dark:text-orange-300 dark:hover:bg-orange-500/20"
-              >
-                Modifier
-              </Button>
-            ) : null
-          }
-        />
+      <div className="h-full">
+        {adminMode ? (
+          <ApartmentCardAdmin
+            apartment={apartment}
+            index={index}
+            selectedApartmentId={selectedApartmentId}
+            hoveredApartmentId={hoveredApartmentId}
+            hoverSource={hoverSource}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ) : (
+          <ApartmentCardPublic
+            apartment={apartment}
+            index={index}
+            selectedApartmentId={selectedApartmentId}
+            hoveredApartmentId={hoveredApartmentId}
+            hoverSource={hoverSource}
+          />
+        )}
       </div>
     </div>
   )

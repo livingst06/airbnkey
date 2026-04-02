@@ -8,7 +8,7 @@ type AdminAddApartmentCardProps = {
 
 export function AdminAddApartmentCard({ onAdd }: AdminAddApartmentCardProps) {
   return (
-    <div className="h-full pt-7 pr-3 pb-3">
+    <div className="h-full">
       <button
         type="button"
         onClick={onAdd}
