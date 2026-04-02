@@ -3,12 +3,11 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react"
-import { usePathname } from "next/navigation"
 
+import { useAdminUi } from "@/app/components/admin-ui-context"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
 
-/** Toujours ancrer sur la home (`/#id`) pour que les liens restent valides depuis `/admin` ou toute autre route. */
 const sectionNavLinks = [
   { id: "appartements", href: "/#appartements", label: "Appartements" },
   { id: "about", href: "/#about", label: "À propos" },
@@ -16,20 +15,35 @@ const sectionNavLinks = [
 ] as const
 
 type SectionId = (typeof sectionNavLinks)[number]["id"]
-type NavId = SectionId | "admin"
+type NavId = SectionId
+
+function AdminModeToggle() {
+  const { isAdminAvailable, isAdminMode, toggleAdminMode } = useAdminUi()
+
+  if (!isAdminAvailable) return null
+
+  return (
+    <button
+      type="button"
+      onClick={toggleAdminMode}
+      aria-label={
+        isAdminMode ? "Désactiver le mode admin" : "Activer le mode admin"
+      }
+      aria-pressed={isAdminMode}
+      className={cn(
+        "relative z-[100] flex h-8 shrink-0 items-center rounded-full border px-3 text-xs font-medium shadow-lg backdrop-blur-md transition-colors duration-200",
+        isAdminMode
+          ? "border-orange-500/35 bg-orange-500/15 text-orange-600 dark:text-orange-300"
+          : "border-white/10 bg-white/60 text-foreground/75 dark:bg-neutral-800/60 dark:text-foreground/80",
+      )}
+    >
+      Admin
+    </button>
+  )
+}
 
 export function Navbar() {
-  const pathname = usePathname()
-  const isAdmin = process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
-  const disableHomePrefetch = pathname === "/admin"
-
-  const navLinks = useMemo(() => {
-    if (!isAdmin) return sectionNavLinks
-    return [
-      ...sectionNavLinks,
-      { id: "admin" as const, href: "/admin", label: "Modifier" },
-    ] as const
-  }, [isAdmin])
+  const navLinks = useMemo(() => sectionNavLinks, [])
 
   const [activeSection, setActiveSection] = useState<SectionId>("appartements")
   const activeNavIdRef = useRef<NavId>("appartements")
@@ -63,8 +77,7 @@ export function Navbar() {
     indicator.style.height = `${height}px`
   }, [])
 
-  const activeNavId: NavId =
-    isAdmin && pathname === "/admin" ? "admin" : activeSection
+  const activeNavId: NavId = activeSection
 
   useLayoutEffect(() => {
     activeNavIdRef.current = activeNavId
@@ -85,8 +98,6 @@ export function Navbar() {
   }, [updateIndicator])
 
   useEffect(() => {
-    if (pathname === "/admin") return
-
     const ids = sectionNavLinks.map((l) => l.id) as SectionId[]
     const idsSet = new Set(ids)
 
@@ -135,11 +146,9 @@ export function Navbar() {
     })
 
     return () => observer.disconnect()
-  }, [pathname])
+  }, [])
 
   useEffect(() => {
-    if (pathname === "/admin") return
-
     const handleHashChange = () => {
       const hash = window.location.hash.replace("#", "")
       const maybeId = hash as SectionId
@@ -155,12 +164,10 @@ export function Navbar() {
     handleHashChange()
     window.addEventListener("hashchange", handleHashChange)
     return () => window.removeEventListener("hashchange", handleHashChange)
-  }, [pathname])
+  }, [])
 
   const indicatorBgClass =
-    isAdmin && activeNavId === "admin"
-      ? "bg-red-500/15 dark:bg-red-400/15"
-      : "bg-foreground/10 dark:bg-white/10"
+    "bg-foreground/10 dark:bg-white/10"
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/60 backdrop-blur-md dark:border-white/5 dark:bg-neutral-900/60">
@@ -168,7 +175,6 @@ export function Navbar() {
         <div className="flex items-center pl-4 xl:pl-8">
           <Link
             href="/"
-            prefetch={disableHomePrefetch ? false : undefined}
             className="transition-opacity hover:opacity-80"
             aria-label="Airbnkey — accueil"
           >
@@ -182,21 +188,7 @@ export function Navbar() {
           </Link>
         </div>
 
-        <div className="flex min-w-0 justify-center md:hidden">
-          {isAdmin ? (
-            <Link
-              href="/admin"
-              className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                pathname === "/admin"
-                  ? "text-red-500"
-                  : "text-red-500/80 hover:text-red-500",
-              )}
-            >
-              Modifier
-            </Link>
-          ) : null}
-        </div>
+        <div className="flex min-w-0 justify-center md:hidden" />
 
         <nav
           className="hidden min-w-0 justify-self-center md:flex"
@@ -214,15 +206,10 @@ export function Navbar() {
 
             {navLinks.map(({ id, href, label }) => {
               const isActive = id === activeNavId
-              const isAdminLink = id === "admin"
               const className =
                 isActive
-                  ? isAdminLink
-                    ? "relative z-10 font-medium text-red-500 opacity-100"
-                    : "relative z-10 font-medium text-foreground opacity-100"
-                  : isAdminLink
-                    ? "relative z-10 text-red-500/70 transition-colors duration-200 hover:text-red-500"
-                    : "relative z-10 text-foreground/70 transition-colors duration-200 hover:text-foreground"
+                  ? "relative z-10 font-medium text-foreground opacity-100"
+                  : "relative z-10 text-foreground/70 transition-colors duration-200 hover:text-foreground"
               return (
                 <Link
                   key={href}
@@ -230,11 +217,8 @@ export function Navbar() {
                     linkRefs.current[id] = el
                   }}
                   href={href}
-                  prefetch={
-                    !isAdminLink && disableHomePrefetch ? false : undefined
-                  }
                   onClick={() => {
-                    if (id !== "admin") setActiveSection(id)
+                    setActiveSection(id)
                   }}
                   className={className}
                 >
@@ -247,7 +231,8 @@ export function Navbar() {
           </div>
         </nav>
 
-        <div className="flex items-center justify-end pr-4 xl:pr-8">
+        <div className="flex items-center justify-end gap-2 pr-4 xl:pr-8">
+          <AdminModeToggle />
           <ThemeToggle />
         </div>
       </div>

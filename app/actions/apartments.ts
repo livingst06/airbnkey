@@ -19,7 +19,6 @@ import type { Apartment } from "@/types/apartments"
 function invalidateApartmentListCache() {
   updateTag(APARTMENTS_CACHE_TAG)
   revalidatePath("/")
-  revalidatePath("/admin")
 }
 
 /** Liste ordonnée comme la DB — pour synchroniser le client après mutation. */
@@ -87,6 +86,9 @@ async function createApartmentWithUniqueSlug(input: ApartmentFormInput) {
 }
 
 export async function createApartmentAction(input: ApartmentFormInput) {
+  if (!isAdminEnv()) {
+    return { ok: false as const, error: "Non autorisé" }
+  }
   const parsed = apartmentFormSchema.safeParse(input)
   if (!parsed.success) {
     return { ok: false as const, error: "Données invalides", issues: parsed.error.flatten() }
@@ -104,6 +106,9 @@ export async function updateApartmentAction(
   id: string,
   input: ApartmentFormInput,
 ) {
+  if (!isAdminEnv()) {
+    return { ok: false as const, error: "Non autorisé" }
+  }
   const parsed = apartmentFormSchema.safeParse(input)
   if (!parsed.success) {
     return { ok: false as const, error: "Données invalides", issues: parsed.error.flatten() }
@@ -142,6 +147,9 @@ export async function updateApartmentAction(
 }
 
 export async function deleteApartmentAction(id: string) {
+  if (!isAdminEnv()) {
+    return { ok: false as const, error: "Non autorisé" }
+  }
   try {
     const deleted = await deleteApartmentDb(id)
     if (!deleted) {

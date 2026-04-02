@@ -11,6 +11,7 @@ import {
 } from "react"
 import { toast } from "sonner"
 
+import { useAdminUi } from "@/app/components/admin-ui-context"
 import type { HoverSource } from "@/types/hover"
 import type { DialogAnchorRect } from "@/types/apartments"
 import { Button } from "@/components/ui/button"
@@ -30,6 +31,7 @@ import {
 } from "./components/apartments-context"
 
 export function HomePageClient() {
+  const { isAdminMode } = useAdminUi()
   const { apartments, syncFromDb } = useApartments()
   const [localOrderedIds, setLocalOrderedIds] = useState<string[] | null>(null)
 
@@ -138,6 +140,13 @@ export function HomePageClient() {
     }
     return list
   }, [filteredApartments, sort])
+
+  const adminReorderEnabled =
+    isAdminMode &&
+    deferredSearch.trim() === "" &&
+    bedsMin === null &&
+    selectedTags.length === 0 &&
+    sort === "default"
 
   const listAnimKey = `${sort}:${[...filteredApartments].map((a) => a.id).sort().join("|")}`
 
@@ -314,6 +323,8 @@ export function HomePageClient() {
                 >
                   <ApartmentGrid
                     apartments={sortedApartments}
+                    adminMode={isAdminMode}
+                    adminReorderEnabled={adminReorderEnabled}
                     selectedApartmentId={selectedApartmentId}
                     setSelectedApartmentId={setSelectedApartmentId}
                     dialogApartmentId={dialogApartmentId}

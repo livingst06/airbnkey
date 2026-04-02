@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
+import { AdminUiProvider } from "@/app/components/admin-ui-context";
 import { Navbar } from "@/app/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -49,9 +50,11 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
-        <Navbar />
-        {children}
-        <Toaster />
+        <AdminUiProvider>
+          <Navbar />
+          {children}
+          <Toaster />
+        </AdminUiProvider>
       </body>
     </html>
   );

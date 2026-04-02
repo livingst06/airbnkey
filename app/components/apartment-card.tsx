@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { type ReactNode, useEffect, useRef } from "react"
 import type { HoverSource } from "@/types/hover"
 import type { Apartment } from "@/types/apartments"
 import { Card } from "@/components/ui/card"
@@ -10,19 +10,27 @@ import { ApartmentContent } from "./apartment-content"
 type Props = {
   apartment: Apartment
   priority?: boolean
-  selectedApartmentId: string | null
-  hoveredApartmentId: string | null
-  hoverSource: HoverSource
+  selectedApartmentId?: string | null
+  hoveredApartmentId?: string | null
+  hoverSource?: HoverSource
   layout?: "default" | "desktopSplit"
+  titleIdPrefix?: string
+  overlaySlot?: ReactNode
+  footerSlot?: ReactNode
+  className?: string
 }
 
 export function ApartmentCard({
   apartment,
   priority = false,
-  selectedApartmentId,
-  hoveredApartmentId,
-  hoverSource,
+  selectedApartmentId = null,
+  hoveredApartmentId = null,
+  hoverSource = null,
   layout = "default",
+  titleIdPrefix = "apt-card-title",
+  overlaySlot,
+  footerSlot,
+  className,
 }: Props) {
   const isSyncedHover = hoveredApartmentId === apartment.id
   const isListHoverHighlight =
@@ -73,7 +81,7 @@ export function ApartmentCard({
     scrollRoot.scrollTo({ top: nextTop, behavior: "smooth" })
   }, [hoverSource, hoveredApartmentId, apartment.id])
 
-  const titleId = `apt-card-title-${apartment.id}`
+  const titleId = `${titleIdPrefix}-${apartment.id}`
   const isHighlighted = isSyncedHover || isListHoverHighlight
   const isSplit = layout === "desktopSplit"
 
@@ -89,20 +97,25 @@ export function ApartmentCard({
 
   return (
     <div ref={cardRef} className="h-full">
-      <Card
-        role="article"
-        aria-labelledby={titleId}
-        className={cn(
-          "group flex gap-0 overflow-hidden rounded-xl border border-border/60 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-border/50",
-          isSplit
-            ? "h-full flex-col border-white/8 bg-white/[0.02] md:hover:scale-[1.01] md:hover:shadow-lg xl:min-h-[15rem] xl:flex-row xl:hover:scale-100 dark:bg-white/[0.015]"
-            : "h-full flex-col md:hover:scale-[1.01] md:hover:shadow-lg",
-          isHighlighted && "shadow-md dark:shadow-black/40",
-          isSyncedHover && "shadow-lg",
-        )}
-      >
-        {inner}
-      </Card>
+      <div className="relative h-full">
+        <Card
+          role="article"
+          aria-labelledby={titleId}
+          className={cn(
+            "group flex gap-0 overflow-hidden rounded-xl border border-border/60 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-border/50",
+            isSplit
+              ? "h-full flex-col border-white/8 bg-white/[0.02] md:hover:scale-[1.01] md:hover:shadow-lg xl:min-h-[15rem] xl:flex-row xl:hover:scale-100 dark:bg-white/[0.015]"
+              : "h-full flex-col md:hover:scale-[1.01] md:hover:shadow-lg",
+            isHighlighted && "shadow-md dark:shadow-black/40",
+            isSyncedHover && "shadow-lg",
+            className,
+          )}
+        >
+          {inner}
+        </Card>
+        {overlaySlot}
+      </div>
+      {footerSlot ? <div className="pt-2">{footerSlot}</div> : null}
     </div>
   )
 }
