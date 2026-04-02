@@ -4,10 +4,11 @@ import {
   createContext,
   useContext,
   useMemo,
-  useState,
+  useSyncExternalStore,
 } from "react"
 
 const ADMIN_MODE_STORAGE_KEY = "airbnkey:admin-mode"
+const ADMIN_MODE_EVENT = "airbnkey:admin-mode-change"
 
 type AdminUiContextValue = {
   isAdminAvailable: boolean
@@ -18,17 +19,48 @@ type AdminUiContextValue = {
 
 const AdminUiContext = createContext<AdminUiContextValue | null>(null)
 
+function readAdminModeSnapshot(isAdminAvailable: boolean): boolean {
+  if (!isAdminAvailable || typeof window === "undefined") return false
+  return window.localStorage.getItem(ADMIN_MODE_STORAGE_KEY) === "true"
+}
+
+function subscribeAdminMode(onStoreChange: () => void) {
+  if (typeof window === "undefined") return () => {}
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key !== null && event.key !== ADMIN_MODE_STORAGE_KEY) return
+    onStoreChange()
+  }
+
+  const handleCustomEvent = () => {
+    onStoreChange()
+  }
+
+  window.addEventListener("storage", handleStorage)
+  window.addEventListener(ADMIN_MODE_EVENT, handleCustomEvent)
+
+  return () => {
+    window.removeEventListener("storage", handleStorage)
+    window.removeEventListener(ADMIN_MODE_EVENT, handleCustomEvent)
+  }
+}
+
+function writeAdminMode(next: boolean) {
+  if (typeof window === "undefined") return
+  window.localStorage.setItem(ADMIN_MODE_STORAGE_KEY, next ? "true" : "false")
+  window.dispatchEvent(new Event(ADMIN_MODE_EVENT))
+}
+
 export function AdminUiProvider({
   children,
 }: {
   children: React.ReactNode
 }) {
   const isAdminAvailable = process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
-  const [isAdminMode, setIsAdminMode] = useState(
-    () =>
-      isAdminAvailable &&
-      typeof window !== "undefined" &&
-      window.localStorage.getItem(ADMIN_MODE_STORAGE_KEY) === "true",
+  const isAdminMode = useSyncExternalStore(
+    subscribeAdminMode,
+    () => readAdminModeSnapshot(isAdminAvailable),
+    () => false,
   )
 
   const value = useMemo<AdminUiContextValue>(
@@ -37,19 +69,11 @@ export function AdminUiProvider({
       isAdminMode,
       setAdminMode: (next) => {
         if (!isAdminAvailable) return
-        setIsAdminMode(next)
-        window.localStorage.setItem(ADMIN_MODE_STORAGE_KEY, next ? "true" : "false")
+        writeAdminMode(next)
       },
       toggleAdminMode: () => {
         if (!isAdminAvailable) return
-        setIsAdminMode((prev) => {
-          const next = !prev
-          window.localStorage.setItem(
-            ADMIN_MODE_STORAGE_KEY,
-            next ? "true" : "false",
-          )
-          return next
-        })
+        writeAdminMode(!isAdminMode)
       },
     }),
     [isAdminAvailable, isAdminMode],
