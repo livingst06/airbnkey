@@ -365,7 +365,7 @@ export function AdminApartmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="flex max-h-[min(90dvh,56rem)] w-[min(42rem,calc(100%-2rem))] max-w-2xl flex-col gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-xl ring-0 transition-colors duration-300 dark:bg-neutral-800 !translate-x-0 !translate-y-0 left-1/2 top-1/2 -ml-[min(21rem,calc(50vw-1rem))] -mt-[min(45dvh,28rem)] sm:-mt-[min(40dvh,24rem)]"
+        className="flex flex-col gap-0 overflow-hidden border-0 bg-white p-0 shadow-xl ring-0 transition-colors duration-300 dark:bg-neutral-800 inset-0 top-0 left-0 translate-x-0 translate-y-0 w-screen max-w-none h-dvh rounded-none sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:h-[66dvh] sm:w-[50vw] sm:max-w-none sm:rounded-3xl"
       >
         <DialogClose asChild>
           <button
@@ -377,7 +377,7 @@ export function AdminApartmentDialog({
           </button>
         </DialogClose>
 
-        <div className="no-scrollbar flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <div className="no-scrollbar flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-4">
           <div className="space-y-1">
             <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground">
               {apartment ? "Modifier l’appartement" : "Ajouter un appartement"}
@@ -561,7 +561,7 @@ export function AdminApartmentDialog({
               <h3 className="text-base font-semibold tracking-tight">Photos</h3>
 
               <div
-                className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 text-center transition-all ${
+                className={`flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 text-center transition-all ${
                   isDraggingImages
                     ? "border-primary/40 bg-primary/5"
                     : "border-border/40 bg-background/40 hover:bg-background/60"
@@ -646,7 +646,7 @@ export function AdminApartmentDialog({
               <div className="relative isolate overflow-hidden rounded-2xl border border-border/40 bg-background/30">
                 <div
                   ref={miniMapContainerRef}
-                  className="relative h-56 min-h-56 w-full [&_.maplibregl-canvas]:!outline-none"
+                  className="relative h-[28rem] min-h-[28rem] w-full [&_.maplibregl-canvas]:!outline-none"
                   aria-label="Mini carte de sélection"
                 />
               </div>
@@ -680,25 +680,25 @@ export function AdminApartmentDialog({
             </section>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end sm:gap-4">
-            <DialogClose asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-              >
-                Annuler
-              </Button>
-            </DialogClose>
+        </div>
+        <div className="shrink-0 border-t border-border bg-white px-6 py-4 dark:bg-neutral-800 flex flex-col gap-3 sm:flex-row sm:justify-end sm:gap-4">
+          <DialogClose asChild>
             <Button
               type="button"
-              onClick={submit}
-              disabled={!canSubmit}
-              className="rounded-xl disabled:opacity-60"
+              variant="outline"
+              className="rounded-xl"
             >
-              {apartment ? "Enregistrer" : "Créer"}
+              Annuler
             </Button>
-          </div>
+          </DialogClose>
+          <Button
+            type="button"
+            onClick={submit}
+            disabled={!canSubmit}
+            className="rounded-xl disabled:opacity-60"
+          >
+            {apartment ? "Enregistrer" : "Créer"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
