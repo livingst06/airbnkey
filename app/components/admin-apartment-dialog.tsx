@@ -3,6 +3,24 @@
 import Image from "next/image"
 import { useEffect, useMemo, useRef, useState } from "react"
 
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import maplibregl from "maplibre-gl"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,6 +66,59 @@ function parseTags(tagsText: string): string[] {
 function formatLatLng(value: number) {
   if (!Number.isFinite(value)) return 0
   return value
+}
+
+type SortablePhotoProps = {
+  src: string
+  index: number
+  unoptimized: boolean
+  onRemove: () => void
+}
+
+function SortablePhoto({ src, index, unoptimized, onRemove }: SortablePhotoProps) {
+  const {
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: src })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : 0,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative cursor-grab active:cursor-grabbing"
+      {...listeners}
+    >
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10 bg-white/50">
+        <Image
+          src={src}
+          alt={`Photo ${index + 1}`}
+          fill
+          sizes="(min-width: 640px) 200px, 45vw"
+          unoptimized={unoptimized}
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onRemove() }}
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-label="Supprimer cette image"
+        className="absolute right-2 top-2 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-white/80 shadow-sm backdrop-blur transition-all hover:bg-white active:scale-[0.98]"
+      >
+        <XIcon className="size-4 opacity-80" />
+      </button>
+    </div>
+  )
 }
 
 type AdminApartmentDialogProps = {
@@ -295,6 +366,22 @@ export function AdminApartmentDialog({
 
   const removeImage = (src: string) => {
     setImages((prev) => prev.filter((img) => img !== src))
+  }
+
+  const imageSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const handleImageDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setImages((prev) => {
+      const oldIndex = prev.indexOf(active.id as string)
+      const newIndex = prev.indexOf(over.id as string)
+      return arrayMove(prev, oldIndex, newIndex)
+    })
   }
 
   const advantages = useMemo(() => parseTags(tagsText), [tagsText])
@@ -607,30 +694,25 @@ export function AdminApartmentDialog({
               />
 
               {images.length ? (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {images.map((src, idx) => (
-                    <div key={`preview-${idx}-${src.slice(0, 48)}`} className="relative">
-                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10 bg-white/50">
-                        <Image
+                <DndContext
+                  sensors={imageSensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleImageDragEnd}
+                >
+                  <SortableContext items={images} strategy={rectSortingStrategy}>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {images.map((src, idx) => (
+                        <SortablePhoto
+                          key={src}
                           src={src}
-                          alt={`Photo ${idx + 1}`}
-                          fill
-                          sizes="(min-width: 640px) 200px, 45vw"
+                          index={idx}
                           unoptimized={unoptimizedForImages[idx] ?? false}
-                          className="h-full w-full object-cover"
+                          onRemove={() => removeImage(src)}
                         />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeImage(src)}
-                        aria-label="Supprimer cette image"
-                        className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-white/80 shadow-sm backdrop-blur transition-all hover:bg-white active:scale-[0.98]"
-                      >
-                        <XIcon className="size-4 opacity-80" />
-                      </button>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               ) : (
                 <p className="text-sm text-muted-foreground">
                   Aucune photo ajoutee. Un placeholder transparent sera utilise.
