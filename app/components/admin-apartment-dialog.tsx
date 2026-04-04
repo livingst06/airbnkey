@@ -22,7 +22,6 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import maplibregl from "maplibre-gl"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -42,10 +41,30 @@ import { getMapStyleUrl } from "@/lib/map-style"
 import { uploadImage } from "@/lib/upload-image"
 import { useApartments } from "./apartments-context"
 
-/** Délai après ouverture du dialog : l’anim zoom + layout doivent être stabilisés avant `new Map()`. */
+/** Délai après ouverture du dialog : l'anim zoom + layout doivent être stabilisés avant `new Map()`. */
 const MINI_MAP_INIT_DELAY_MS = 200
 
 const MAX_IMAGES = 8
+
+/**
+ * Classes partagées entre tous les champs de saisie.
+ * Utilise les variables CSS du projet → s'adapte automatiquement light / dark.
+ */
+const INPUT_CLS =
+  "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:outline-none transition-colors duration-150"
+
+/** Même chose pour les <input type="number"> : on y ajoute la suppression des spinners natifs. */
+const NUMBER_INPUT_CLS =
+  INPUT_CLS +
+  " [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+
+const LABEL_CLS = "mb-1.5 block text-sm font-medium text-foreground"
+
+const SECTION_CLS =
+  "rounded-2xl bg-card p-5 shadow-sm dark:shadow-none dark:border dark:border-white/10"
+
+const SECTION_TITLE_CLS =
+  "mb-5 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
 
 function parseTags(tagsText: string): string[] {
   const parts = tagsText
@@ -76,13 +95,8 @@ type SortablePhotoProps = {
 }
 
 function SortablePhoto({ src, index, unoptimized, onRemove }: SortablePhotoProps) {
-  const {
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: src })
+  const { listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: src })
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -98,7 +112,7 @@ function SortablePhoto({ src, index, unoptimized, onRemove }: SortablePhotoProps
       className="relative cursor-grab active:cursor-grabbing"
       {...listeners}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10 bg-white/50">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-border bg-muted">
         <Image
           src={src}
           alt={`Photo ${index + 1}`}
@@ -113,9 +127,9 @@ function SortablePhoto({ src, index, unoptimized, onRemove }: SortablePhotoProps
         onClick={(e) => { e.stopPropagation(); onRemove() }}
         onPointerDown={(e) => e.stopPropagation()}
         aria-label="Supprimer cette image"
-        className="absolute right-2 top-2 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-white/80 shadow-sm backdrop-blur transition-all hover:bg-white active:scale-[0.98]"
+        className="absolute right-2 top-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-card shadow-md transition-all hover:bg-muted active:scale-95"
       >
-        <XIcon className="size-4 opacity-80" />
+        <XIcon className="size-3.5 text-foreground" />
       </button>
     </div>
   )
@@ -154,12 +168,8 @@ export function AdminApartmentDialog({
 
   const latitudeRef = useRef(latitude)
   const longitudeRef = useRef(longitude)
-  useEffect(() => {
-    latitudeRef.current = latitude
-  }, [latitude])
-  useEffect(() => {
-    longitudeRef.current = longitude
-  }, [longitude])
+  useEffect(() => { latitudeRef.current = latitude }, [latitude])
+  useEffect(() => { longitudeRef.current = longitude }, [longitude])
 
   const committedRef = useRef(false)
 
@@ -171,9 +181,7 @@ export function AdminApartmentDialog({
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   /** Après un drop, certains navigateurs déclenchent aussi un `click` sur la zone → doublon si on ouvre le file input. */
   const suppressPickerAfterDropRef = useRef(false)
-  const suppressPickerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  )
+  const suppressPickerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const unoptimizedForImages = useMemo(
     () => images.map((src) => imageNeedsUnoptimized(src)),
@@ -182,17 +190,13 @@ export function AdminApartmentDialog({
 
   useEffect(() => {
     if (!open) return
-
     committedRef.current = false
-
     if (apartment) {
       setTitle(apartment.title)
       setDescription(apartment.description)
       setCity(apartment.city ?? "")
       setStreet(apartment.street ?? "")
-      setGuests(
-        Number.isFinite(apartment.guests) ? apartment.guests : 0,
-      )
+      setGuests(Number.isFinite(apartment.guests) ? apartment.guests : 0)
       setBeds(apartment.beds)
       setBathrooms(apartment.bathrooms)
       setReviewsCount(
@@ -256,7 +260,6 @@ export function AdminApartmentDialog({
       })
 
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
-
       mapInstance = map
       miniMapRef.current = map
 
@@ -275,15 +278,9 @@ export function AdminApartmentDialog({
         setLatitude(e.lngLat.lat)
         marker.setLngLat([e.lngLat.lng, e.lngLat.lat])
       })
+      map.on("load", () => map.resize())
 
-      const onLoad = () => {
-        map.resize()
-      }
-      map.on("load", onLoad)
-
-      resizeObserver = new ResizeObserver(() => {
-        map.resize()
-      })
+      resizeObserver = new ResizeObserver(() => map.resize())
       resizeObserver.observe(container)
     }, MINI_MAP_INIT_DELAY_MS)
 
@@ -293,11 +290,7 @@ export function AdminApartmentDialog({
       resizeObserver?.disconnect()
       resizeObserver = null
       if (mapInstance) {
-        try {
-          mapInstance.remove()
-        } catch {
-          /* noop */
-        }
+        try { mapInstance.remove() } catch { /* noop */ }
         mapInstance = null
       }
       miniMapRef.current = null
@@ -306,9 +299,7 @@ export function AdminApartmentDialog({
   }, [open])
 
   useEffect(() => {
-    const marker = miniMarkerRef.current
-    if (!marker) return
-    marker.setLngLat([longitude, latitude])
+    miniMarkerRef.current?.setLngLat([longitude, latitude])
   }, [latitude, longitude])
 
   const handleFiles = (files: FileList | null) => {
@@ -354,9 +345,7 @@ export function AdminApartmentDialog({
     e.stopPropagation()
     setIsDraggingImages(false)
     suppressPickerAfterDropRef.current = true
-    if (suppressPickerTimeoutRef.current) {
-      clearTimeout(suppressPickerTimeoutRef.current)
-    }
+    if (suppressPickerTimeoutRef.current) clearTimeout(suppressPickerTimeoutRef.current)
     suppressPickerTimeoutRef.current = setTimeout(() => {
       suppressPickerAfterDropRef.current = false
       suppressPickerTimeoutRef.current = null
@@ -452,207 +441,189 @@ export function AdminApartmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="flex flex-col gap-0 overflow-hidden border-0 bg-white p-0 shadow-xl ring-0 transition-colors duration-300 dark:bg-neutral-800 inset-0 top-0 left-0 translate-x-0 translate-y-0 w-screen max-w-none h-dvh rounded-none sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:h-[66dvh] sm:w-[50vw] sm:max-w-none sm:rounded-3xl"
+        className="flex flex-col gap-0 overflow-hidden border-0 bg-background p-0 shadow-2xl ring-0 inset-0 top-0 left-0 translate-x-0 translate-y-0 w-screen max-w-none h-dvh rounded-none sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:h-[66dvh] sm:w-[50vw] sm:max-w-none sm:rounded-3xl"
       >
+        {/* Bouton fermer */}
         <DialogClose asChild>
           <button
             type="button"
             aria-label="Fermer"
-            className="absolute right-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition-all duration-200 ease-out hover:bg-neutral-100 dark:bg-neutral-800/80 dark:hover:bg-neutral-700/90"
+            className="absolute right-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card shadow-sm transition-all duration-150 hover:bg-muted"
           >
-            <XIcon className="size-4 opacity-90" />
+            <XIcon className="size-4 text-muted-foreground" />
           </button>
         </DialogClose>
 
-        <div className="no-scrollbar flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-4">
-          <div className="space-y-1">
-            <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground">
-              {apartment ? "Modifier l’appartement" : "Ajouter un appartement"}
+        {/* Corps scrollable */}
+        <div className="no-scrollbar flex-1 overflow-y-auto px-5 py-7 md:px-8 md:py-8 space-y-3">
+          <div className="pb-3">
+            <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">
+              {apartment ? "Modifier l\u2019appartement" : "Ajouter un appartement"}
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
+            <DialogDescription className="mt-1 text-sm text-muted-foreground">
               {apartment
                 ? "Mettez à jour les informations, les photos et la localisation."
                 : "Créez un nouvel appartement en quelques minutes."}
             </DialogDescription>
           </div>
 
-          <div className="space-y-6">
-            <section className="space-y-4 rounded-2xl border border-white/10 bg-white/60 p-4 backdrop-blur-md">
-              <h3 className="text-base font-semibold tracking-tight">
-                Infos principales
-              </h3>
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-foreground/90">
-                  Nom de l’appartement
-                </label>
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Ex: Studio Croisette Vue Mer"
-                />
-              </div>
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-foreground/90">
-                  Description
-                </label>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Décrivez l’appartement..."
-                  rows={4}
-                  className="rounded-xl"
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Ville
-                  </label>
+          <div className="space-y-3">
+            {/* ── Infos principales ── */}
+            <section className={SECTION_CLS}>
+              <h3 className={SECTION_TITLE_CLS}>Infos principales</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className={LABEL_CLS}>Nom de l&apos;appartement</label>
                   <input
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    placeholder="Ex: Cannes"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className={INPUT_CLS}
+                    placeholder="Ex: Studio Croisette Vue Mer"
                   />
                 </div>
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Rue
-                  </label>
-                  <input
-                    value={street}
-                    onChange={(e) => setStreet(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    placeholder="Ex: rue du 14 juillet"
+                <div>
+                  <label className={LABEL_CLS}>Description</label>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Décrivez l'appartement..."
+                    rows={4}
+                    className="w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:outline-none focus-visible:ring-0 transition-colors duration-150"
                   />
                 </div>
-              </div>
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-foreground/90">
-                  Lien de réservation
-                </label>
-                <input
-                  type="url"
-                  value={bookingUrl}
-                  onChange={(e) => setBookingUrl(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="https://..."
-                />
-              </div>
-            </section>
-
-            <section className="space-y-4 rounded-2xl border border-white/10 bg-white/60 p-4 backdrop-blur-md">
-              <h3 className="text-base font-semibold tracking-tight">
-                Caractéristiques
-              </h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Invites
-                  </label>
-                  <input
-                    type="number"
-                    value={guests}
-                    onChange={(e) => setGuests(Number(e.target.value))}
-                    min={0}
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Couchages
-                  </label>
-                  <input
-                    type="number"
-                    value={beds}
-                    onChange={(e) => setBeds(Number(e.target.value))}
-                    min={0}
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Salles de bain
-                  </label>
-                  <input
-                    type="number"
-                    value={bathrooms}
-                    onChange={(e) => setBathrooms(Number(e.target.value))}
-                    min={0}
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Nombre d&apos;avis
-                  </label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    value={reviewsCount}
-                    onChange={(e) => setReviewsCount(e.target.value)}
-                    min={0}
-                    placeholder="Ex: 17"
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Note moyenne
-                  </label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    value={ratingAverage}
-                    onChange={(e) => setRatingAverage(e.target.value)}
-                    min={0}
-                    max={5}
-                    step="0.1"
-                    placeholder="Ex: 4.9"
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-foreground/90">
-                  Tags (séparés par des virgules)
-                </label>
-                <input
-                  value={tagsText}
-                  onChange={(e) => setTagsText(e.target.value)}
-                  placeholder="terrasse, balcon, vue mer..."
-                  className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
-                {advantages.length ? (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {advantages.slice(0, 6).map((tag, idx) => (
-                      <Badge
-                        key={`tag-${idx}-${tag}`}
-                        variant="secondary"
-                        className="bg-muted/70"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className={LABEL_CLS}>Ville</label>
+                    <input
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className={INPUT_CLS}
+                      placeholder="Ex: Cannes"
+                    />
                   </div>
-                ) : null}
+                  <div>
+                    <label className={LABEL_CLS}>Rue</label>
+                    <input
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
+                      className={INPUT_CLS}
+                      placeholder="Ex: rue du 14 juillet"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={LABEL_CLS}>Lien de réservation</label>
+                  <input
+                    type="url"
+                    value={bookingUrl}
+                    onChange={(e) => setBookingUrl(e.target.value)}
+                    className={INPUT_CLS}
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
             </section>
 
-            <section className="space-y-4 rounded-2xl border border-white/10 bg-white/60 p-4 backdrop-blur-md">
-              <h3 className="text-base font-semibold tracking-tight">Photos</h3>
+            {/* ── Caractéristiques ── */}
+            <section className={SECTION_CLS}>
+              <h3 className={SECTION_TITLE_CLS}>Caractéristiques</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className={LABEL_CLS}>Invités</label>
+                    <input
+                      type="number"
+                      value={guests}
+                      onChange={(e) => setGuests(Number(e.target.value))}
+                      min={0}
+                      className={NUMBER_INPUT_CLS}
+                    />
+                  </div>
+                  <div>
+                    <label className={LABEL_CLS}>Couchages</label>
+                    <input
+                      type="number"
+                      value={beds}
+                      onChange={(e) => setBeds(Number(e.target.value))}
+                      min={0}
+                      className={NUMBER_INPUT_CLS}
+                    />
+                  </div>
+                  <div>
+                    <label className={LABEL_CLS}>Sdb</label>
+                    <input
+                      type="number"
+                      value={bathrooms}
+                      onChange={(e) => setBathrooms(Number(e.target.value))}
+                      min={0}
+                      className={NUMBER_INPUT_CLS}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className={LABEL_CLS}>Nombre d&apos;avis</label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={reviewsCount}
+                      onChange={(e) => setReviewsCount(e.target.value)}
+                      min={0}
+                      placeholder="Ex: 17"
+                      className={NUMBER_INPUT_CLS}
+                    />
+                  </div>
+                  <div>
+                    <label className={LABEL_CLS}>Note moyenne</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={ratingAverage}
+                      onChange={(e) => setRatingAverage(e.target.value)}
+                      min={0}
+                      max={5}
+                      step="0.1"
+                      placeholder="Ex: 4.9"
+                      className={NUMBER_INPUT_CLS}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={LABEL_CLS}>
+                    Tags{" "}
+                    <span className="font-normal text-muted-foreground">(séparés par des virgules)</span>
+                  </label>
+                  <input
+                    value={tagsText}
+                    onChange={(e) => setTagsText(e.target.value)}
+                    placeholder="terrasse, balcon, vue mer..."
+                    className={INPUT_CLS}
+                  />
+                  {advantages.length ? (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {advantages.slice(0, 6).map((tag, idx) => (
+                        <span
+                          key={`tag-${idx}-${tag}`}
+                          className="rounded-full bg-foreground px-3 py-1 text-xs font-medium text-background"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </section>
 
+            {/* ── Photos ── */}
+            <section className={SECTION_CLS}>
+              <h3 className={SECTION_TITLE_CLS}>Photos</h3>
               <div
-                className={`flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 text-center transition-all ${
+                className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-150 ${
                   isDraggingImages
-                    ? "border-primary/40 bg-primary/5"
-                    : "border-border/40 bg-background/40 hover:bg-background/60"
-                } ${imageImportBusy ? "pointer-events-none opacity-70" : ""}`}
+                    ? "border-foreground bg-muted/80"
+                    : "border-border bg-muted hover:border-foreground/40 hover:bg-muted/70"
+                } ${imageImportBusy ? "pointer-events-none opacity-60" : ""}`}
                 onDragOver={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -672,15 +643,13 @@ export function AdminApartmentDialog({
                   }
                 }}
               >
-                <div className="text-sm font-medium text-foreground/90">
-                  {imageImportBusy
-                    ? "Optimisation des images pour le stockage…"
-                    : "Glissez-déposez des images ici"}
+                <div className="text-sm font-medium text-foreground">
+                  {imageImportBusy ? "Optimisation en cours…" : "Glissez-déposez des images ici"}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   {imageImportBusy
                     ? "Quelques secondes si les fichiers sont lourds."
-                    : "ou cliquez pour sélectionner — optionnel, redimensionnement auto pour tenir dans le navigateur."}
+                    : "ou cliquez pour sélectionner · redimensionnement automatique"}
                 </div>
               </div>
 
@@ -700,7 +669,7 @@ export function AdminApartmentDialog({
                   onDragEnd={handleImageDragEnd}
                 >
                   <SortableContext items={images} strategy={rectSortingStrategy}>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {images.map((src, idx) => (
                         <SortablePhoto
                           key={src}
@@ -714,61 +683,55 @@ export function AdminApartmentDialog({
                   </SortableContext>
                 </DndContext>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Aucune photo ajoutee. Un placeholder transparent sera utilise.
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Aucune photo ajoutée. Un placeholder transparent sera utilisé.
                 </p>
               )}
             </section>
 
-            <section className="space-y-4 rounded-2xl border border-white/10 bg-white/60 p-4 backdrop-blur-md">
-              <h3 className="text-base font-semibold tracking-tight">
-                Localisation
-              </h3>
-
-              <div className="relative isolate overflow-hidden rounded-2xl border border-border/40 bg-background/30">
+            {/* ── Localisation ── */}
+            <section className={SECTION_CLS}>
+              <h3 className={SECTION_TITLE_CLS}>Localisation</h3>
+              <div className="overflow-hidden rounded-xl border border-border">
                 <div
                   ref={miniMapContainerRef}
                   className="relative h-[28rem] min-h-[28rem] w-full [&_.maplibregl-canvas]:!outline-none"
                   aria-label="Mini carte de sélection"
                 />
               </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Latitude
-                  </label>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={LABEL_CLS}>Latitude</label>
                   <input
                     type="number"
                     value={latitude}
                     onChange={(e) => setLatitude(Number(e.target.value))}
                     step={0.0001}
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className={NUMBER_INPUT_CLS}
                   />
                 </div>
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-foreground/90">
-                    Longitude
-                  </label>
+                <div>
+                  <label className={LABEL_CLS}>Longitude</label>
                   <input
                     type="number"
                     value={longitude}
                     onChange={(e) => setLongitude(Number(e.target.value))}
                     step={0.0001}
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-2 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className={NUMBER_INPUT_CLS}
                   />
                 </div>
               </div>
             </section>
           </div>
-
         </div>
-        <div className="shrink-0 border-t border-border bg-white px-6 py-4 dark:bg-neutral-800 flex flex-col gap-3 sm:flex-row sm:justify-end sm:gap-4">
+
+        {/* Footer */}
+        <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
           <DialogClose asChild>
             <Button
               type="button"
               variant="outline"
-              className="rounded-xl"
+              className="rounded-xl border-border text-foreground hover:bg-muted hover:text-foreground"
             >
               Annuler
             </Button>
@@ -777,7 +740,7 @@ export function AdminApartmentDialog({
             type="button"
             onClick={submit}
             disabled={!canSubmit}
-            className="rounded-xl disabled:opacity-60"
+            className="rounded-xl bg-foreground text-background hover:bg-foreground/80 disabled:opacity-40"
           >
             {apartment ? "Enregistrer" : "Créer"}
           </Button>
@@ -786,4 +749,3 @@ export function AdminApartmentDialog({
     </Dialog>
   )
 }
-
