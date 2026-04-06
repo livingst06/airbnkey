@@ -162,7 +162,6 @@ export async function deleteApartmentAction(id: string) {
   }
 }
 
-
 function isAdminEnv(): boolean {
   return process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
 }

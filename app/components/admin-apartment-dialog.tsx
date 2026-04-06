@@ -369,6 +369,7 @@ export function AdminApartmentDialog({
     setImages((prev) => {
       const oldIndex = prev.indexOf(active.id as string)
       const newIndex = prev.indexOf(over.id as string)
+      if (oldIndex < 0 || newIndex < 0) return prev
       return arrayMove(prev, oldIndex, newIndex)
     })
   }

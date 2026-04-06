@@ -1,5 +1,7 @@
 "use client"
 
+import "maplibre-gl/dist/maplibre-gl.css"
+
 import { useCallback, useEffect, useRef, useState } from "react"
 import maplibregl from "maplibre-gl"
 import Image from "next/image"
@@ -407,6 +409,7 @@ export function ApartmentMap({
 
     let cancelled = false
     let rafId = 0
+    let retryTimeoutId: number | null = null
     let layoutWaitFrames = 0
     const MAX_LAYOUT_WAIT_FRAMES = 90
 
@@ -441,7 +444,11 @@ export function ApartmentMap({
 
       const list = apartmentsForMapInitRef.current
       if (!list.length) {
-        rafId = requestAnimationFrame(tryInitMap)
+        if (retryTimeoutId != null) {
+          window.clearTimeout(retryTimeoutId)
+        }
+        // Avoid a per-frame retry loop when filters currently hide all apartments.
+        retryTimeoutId = window.setTimeout(tryInitMap, 250)
         return
       }
 
@@ -528,6 +535,9 @@ export function ApartmentMap({
     return () => {
       cancelled = true
       cancelAnimationFrame(rafId)
+      if (retryTimeoutId != null) {
+        window.clearTimeout(retryTimeoutId)
+      }
       mapIntersectionObserverRef.current?.disconnect()
       mapIntersectionObserverRef.current = null
       if (shouldTrackViewportResizes()) {

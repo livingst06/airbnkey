@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import dynamic from "next/dynamic"
 import {
   type FormEvent,
   useCallback,
@@ -14,13 +14,12 @@ import { toast } from "sonner"
 import { useAdminUi } from "@/app/components/admin-ui-context"
 import type { HoverSource } from "@/types/hover"
 import type { DialogAnchorRect } from "@/types/apartments"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 import { ApartmentGrid } from "./components/apartment-grid"
-import { ApartmentMap } from "./components/apartment-map"
 import { FilterBar, type ApartmentSort } from "./components/filter-bar"
+import { HomeAboutSection } from "./components/home-about-section"
+import { HomeContactSection } from "./components/home-contact-section"
 import {
   APARTMENTS_LOCAL_ORDER_KEY,
   APARTMENTS_NEEDS_SYNC_KEY,
@@ -29,6 +28,18 @@ import {
   clearApartmentOrderPersistence,
   useApartments,
 } from "./components/apartments-context"
+
+const ApartmentMap = dynamic(
+  () => import("./components/apartment-map").then((mod) => mod.ApartmentMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full w-full items-center justify-center bg-card text-sm text-muted-foreground">
+        Chargement de la carte...
+      </div>
+    ),
+  },
+)
 
 export function HomePageClient() {
   const { isAdminMode } = useAdminUi()
@@ -241,7 +252,12 @@ export function HomePageClient() {
         toast.success("Message envoyé")
         setMessage("")
       } else {
-        toast.error("Envoi impossible, réessayez plus tard.")
+        const payload = (await res.json().catch(() => null)) as {
+          error?: unknown
+        } | null
+        const messageFromApi =
+          payload && typeof payload.error === "string" ? payload.error : null
+        toast.error(messageFromApi ?? "Envoi impossible, réessayez plus tard.")
       }
     } catch {
       toast.error("Envoi impossible, réessayez plus tard.")
@@ -370,68 +386,13 @@ export function HomePageClient() {
           </div>
         </section>
 
-        <section id="about" className="scroll-mt-20 py-16">
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            <div className="max-w-lg space-y-4">
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-                À propos
-              </h2>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Airbnkey sélectionne des appartements à Cannes pour des séjours
-                agréables : emplacements pratiques, logements équipés et
-                accompagnement simple du premier contact au départ.
-              </p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Notre objectif est de rendre la location courte durée claire et
-                sereine, avec des informations utiles et une présentation
-                transparente de chaque bien.
-              </p>
-            </div>
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-lg transition-transform duration-300 hover:scale-[1.01]">
-              <Image
-                src="/apartments/apt1/1.png"
-                alt="Salon lumineux d’un appartement à Cannes"
-                fill
-                className="object-cover"
-                sizes="(min-width: 1024px) 480px, 100vw"
-                priority={false}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section id="contact" className="scroll-mt-20 space-y-5 py-16">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-            Contact
-          </h2>
-          <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-            Une question sur un logement ou une disponibilité ? Laissez-nous un
-            message, nous vous répondrons dans les meilleurs délais.
-          </p>
-          <form
-            onSubmit={handleSubmit}
-            className="max-w-xl space-y-4"
-          >
-            <Textarea
-              id="contact-message"
-              name="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Votre message…"
-              required
-              rows={5}
-              aria-label="Message"
-              className="text-base placeholder:text-muted-foreground/70 rounded-xl border border-border bg-background/50 backdrop-blur focus:ring-2 focus:ring-primary/20"
-            />
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-xl text-base font-medium disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? "Envoi..." : "Envoyer"}
-            </Button>
-          </form>
-        </section>
+        <HomeAboutSection />
+        <HomeContactSection
+          message={message}
+          isSubmitting={isSubmitting}
+          onMessageChange={setMessage}
+          onSubmit={handleSubmit}
+        />
       </div>
     </main>
   )

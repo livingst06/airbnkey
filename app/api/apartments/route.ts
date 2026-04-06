@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { getApartmentsFresh } from "@/lib/apartments-db"
 
+/** Endpoint de lecture brute (monitoring/outils externes), distinct des Server Actions. */
 export async function GET() {
   try {
     const apartments = await getApartmentsFresh()

@@ -1,5 +1,9 @@
 import { Apartment } from "@/types/apartments"
 
+/**
+ * Données legacy utilisées pour seed / fallback local.
+ * La source de vérité en runtime est la base Supabase via Prisma.
+ */
 export const apartments: Apartment[] = [
   {
     id: "1",

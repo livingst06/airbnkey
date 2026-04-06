@@ -29,6 +29,7 @@ export function AdminDeleteConfirmDialog({
   apartment,
   onConfirm,
 }: AdminDeleteConfirmDialogProps) {
+  const resolvedOpen = open && apartment !== null
   const firstImage = apartment ? getApartmentImageSrc(apartment.images) : undefined
   const unoptimized = useMemo(
     () => imageNeedsUnoptimized(firstImage),
@@ -36,7 +37,7 @@ export function AdminDeleteConfirmDialog({
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={resolvedOpen} onOpenChange={onOpenChange}>
       {apartment ? (
         <DialogContent
           showCloseButton={false}

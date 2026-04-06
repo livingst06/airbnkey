@@ -2,13 +2,11 @@ import { ApartmentsProvider } from "@/app/components/apartments-context"
 import { HomePageClient } from "@/app/home-page-client"
 import { getApartmentsCached } from "@/lib/apartments-db"
 
-export const dynamic = "force-dynamic"
-
 export default async function HomePage() {
-  const initialApartments =
-    process.env.NODE_ENV === "development"
-      ? await getApartmentsCached().catch(() => [])
-      : await getApartmentsCached()
+  const initialApartments = await getApartmentsCached().catch((error) => {
+    console.error("[home-page] apartments load failed", error)
+    return []
+  })
 
   return (
     <ApartmentsProvider initialApartments={initialApartments}>

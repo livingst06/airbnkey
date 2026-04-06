@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
 import { AdminUiProvider } from "@/app/components/admin-ui-context";
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
   },
 };
 
-/** Liste appartements via `unstable_cache` + tag `apartments` (invalidée par les server actions). */
+/** Layout global (thème + navigation), sans chargement direct des appartements. */
 export default async function RootLayout({
   children,
 }: Readonly<{

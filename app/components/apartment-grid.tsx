@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useMemo, useState } from "react"
 import {
   closestCenter,
@@ -25,12 +26,23 @@ import type { Apartment, DialogAnchorRect } from "@/types/apartments"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useApartments } from "./apartments-context"
-import { AdminAddApartmentCard } from "./admin-add-apartment-card"
-import { ApartmentCardAdmin } from "./apartment-card-admin"
 import { ApartmentCardPublic } from "./apartment-card-public"
-import { AdminApartmentDialog } from "./admin-apartment-dialog"
-import { AdminDeleteConfirmDialog } from "./admin-delete-confirm-dialog"
 import { ApartmentDialog } from "./apartment-dialog"
+
+const AdminAddApartmentCard = dynamic(() =>
+  import("./admin-add-apartment-card").then((mod) => mod.AdminAddApartmentCard),
+)
+const ApartmentCardAdmin = dynamic(() =>
+  import("./apartment-card-admin").then((mod) => mod.ApartmentCardAdmin),
+)
+const AdminApartmentDialog = dynamic(() =>
+  import("./admin-apartment-dialog").then((mod) => mod.AdminApartmentDialog),
+)
+const AdminDeleteConfirmDialog = dynamic(() =>
+  import("./admin-delete-confirm-dialog").then(
+    (mod) => mod.AdminDeleteConfirmDialog,
+  ),
+)
 
 type ApartmentGridProps = {
   apartments: Apartment[]
@@ -273,7 +285,7 @@ export function ApartmentGrid({
       ) : null}
       {adminMode ? (
         <AdminDeleteConfirmDialog
-          open={deleteApartmentId !== null}
+          open={deleteApartmentId !== null && deleteVictim !== null}
           onOpenChange={(open) => {
             if (!open) setDeleteApartmentId(null)
           }}
