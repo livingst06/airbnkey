@@ -275,6 +275,33 @@ body::-webkit-scrollbar-thumb:hover {
   color: rgba(255, 255, 255, 0.6);
 }
 
+@keyframes cardMapBounceKeyframes {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    transform: translateY(-8px) scale(1.06);
+  }
+  70% {
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-map-bounce {
+    animation: cardMapBounceKeyframes 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-map-bounce {
+    animation: none !important;
+  }
+}
+
 @media (hover: none) and (pointer: coarse) {
   .map-mobile-shell,
   .map-mobile-surface,

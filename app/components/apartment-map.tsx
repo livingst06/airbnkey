@@ -315,7 +315,9 @@ export function ApartmentMap({
     popupContent.addEventListener("click", (e) => {
       e.stopPropagation()
       clearMapHoverLeaveTimer()
-      setSelectedApartmentId(apartment.id)
+      if (canUseMapHoverInteractions()) {
+        setSelectedApartmentId(apartment.id)
+      }
       if (shouldOpenDialogFromMap()) {
         openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
         popup.remove()
@@ -354,7 +356,9 @@ export function ApartmentMap({
     el.addEventListener("click", (e) => {
       e.stopPropagation()
       clearMapHoverLeaveTimer()
-      setSelectedApartmentId(apartment.id)
+      if (canUseMapHoverInteractions()) {
+        setSelectedApartmentId(apartment.id)
+      }
       if (shouldOpenDialogFromMap()) {
         openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
         popup.remove()
@@ -371,7 +375,9 @@ export function ApartmentMap({
         e.stopPropagation()
         clearMapHoverLeaveTimer()
         openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
-        setSelectedApartmentId(apartment.id)
+        if (canUseMapHoverInteractions()) {
+          setSelectedApartmentId(apartment.id)
+        }
         popup.remove()
       }
     })

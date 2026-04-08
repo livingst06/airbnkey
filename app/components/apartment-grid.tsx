@@ -76,6 +76,13 @@ type ApartmentListSlotProps = {
   onDelete: () => void
 }
 
+function canUseMapGridSync() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false
+  }
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches
+}
+
 function ApartmentCardShell({
   apartment,
   index,
@@ -94,6 +101,7 @@ function ApartmentCardShell({
     <div
       className="h-full min-h-0 min-w-0"
       onMouseEnter={() => {
+        if (!canUseMapGridSync()) return
         setSelectedApartmentId(apartment.id)
         if (!hoverLock) {
           setHoverSource("list")
@@ -101,6 +109,7 @@ function ApartmentCardShell({
         }
       }}
       onMouseLeave={() => {
+        if (!canUseMapGridSync()) return
         setSelectedApartmentId(null)
         if (!hoverLock) {
           setHoverSource(null)

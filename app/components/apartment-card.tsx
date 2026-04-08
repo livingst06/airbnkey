@@ -35,6 +35,7 @@ export function ApartmentCard({
   const isSyncedHover = hoveredApartmentId === apartment.id
   const isListHoverHighlight =
     selectedApartmentId === apartment.id && !isSyncedHover
+  const isMapHoverDesktop = isSyncedHover && hoverSource === "map"
   const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -53,6 +54,11 @@ export function ApartmentCard({
     )
 
     if (maxScroll <= 0) {
+      const canSyncThroughDocumentScroll =
+        typeof window !== "undefined" &&
+        window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches
+      // Mobile/touch: never scroll the document programmatically.
+      if (!canSyncThroughDocumentScroll) return
       const vh = typeof window !== "undefined" ? window.innerHeight : 0
       const fullyVisible =
         er.top >= -margin && er.bottom <= vh + margin
@@ -108,6 +114,7 @@ export function ApartmentCard({
               : "h-full flex-col md:hover:scale-[1.01] md:hover:shadow-lg",
             isHighlighted && "shadow-md dark:shadow-black/40",
             isSyncedHover && "shadow-lg",
+            isMapHoverDesktop && "card-map-bounce",
             className,
           )}
         >
