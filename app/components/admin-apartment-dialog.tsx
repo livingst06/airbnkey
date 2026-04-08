@@ -31,7 +31,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { XIcon } from "lucide-react"
+import { Loader2, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Apartment } from "@/types/apartments"
@@ -80,6 +80,11 @@ function parseTags(tagsText: string): string[] {
     if (out.length >= 12) break
   }
   return out
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message.trim()) return error.message
+  return fallback
 }
 
 function formatLatLng(value: number) {
@@ -163,6 +168,7 @@ export function AdminApartmentDialog({
   const [images, setImages] = useState<string[]>([])
   const [bookingUrl, setBookingUrl] = useState("")
   const [imageImportBusy, setImageImportBusy] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const imagesRef = useRef(images)
   imagesRef.current = images
 
@@ -191,6 +197,7 @@ export function AdminApartmentDialog({
   useEffect(() => {
     if (!open) return
     committedRef.current = false
+    setIsSaving(false)
     if (apartment) {
       setTitle(apartment.title)
       setDescription(apartment.description)
@@ -387,7 +394,7 @@ export function AdminApartmentDialog({
   }, [title, description, guests, beds, bathrooms, latitude, longitude])
 
   const submit = async () => {
-    if (!canSubmit) return
+    if (!canSubmit || isSaving) return
 
     const input = {
       title: title.trim(),
@@ -425,16 +432,22 @@ export function AdminApartmentDialog({
       return
     }
 
+    setIsSaving(true)
     try {
+      const apartmentName = parsed.data.title
       if (apartment) {
         await updateApartment(apartment.id, parsed.data)
+        toast.success(`Appartement "${apartmentName}" mis à jour`)
       } else {
         await addApartment(parsed.data)
+        toast.success(`Appartement "${apartmentName}" créé`)
       }
       committedRef.current = true
       onOpenChange(false)
-    } catch {
-      // toasts déjà émis par le contexte
+    } catch (error) {
+      toast.error(errorMessage(error, apartment ? "Mise à jour impossible" : "Création impossible"))
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -740,10 +753,15 @@ export function AdminApartmentDialog({
           <Button
             type="button"
             onClick={submit}
-            disabled={!canSubmit}
+            disabled={!canSubmit || isSaving}
             className="rounded-xl bg-foreground text-background hover:bg-foreground/80 disabled:opacity-40"
           >
-            {apartment ? "Enregistrer" : "Créer"}
+            {isSaving ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="size-4 animate-spin" />
+                Enregistrement...
+              </span>
+            ) : apartment ? "Enregistrer" : "Créer"}
           </Button>
         </div>
       </DialogContent>

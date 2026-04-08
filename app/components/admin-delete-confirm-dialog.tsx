@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { XIcon } from "lucide-react"
+import { Loader2, XIcon } from "lucide-react"
 
 import { useMemo } from "react"
 
@@ -20,7 +20,8 @@ type AdminDeleteConfirmDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   apartment: Apartment | null
-  onConfirm: () => void
+  onConfirm: () => void | Promise<void>
+  isDeleting: boolean
 }
 
 export function AdminDeleteConfirmDialog({
@@ -28,6 +29,7 @@ export function AdminDeleteConfirmDialog({
   onOpenChange,
   apartment,
   onConfirm,
+  isDeleting,
 }: AdminDeleteConfirmDialogProps) {
   const resolvedOpen = open && apartment !== null
   const firstImage = apartment ? getApartmentImageSrc(apartment.images) : undefined
@@ -37,17 +39,25 @@ export function AdminDeleteConfirmDialog({
   )
 
   return (
-    <Dialog open={resolvedOpen} onOpenChange={onOpenChange}>
+    <Dialog
+      open={resolvedOpen}
+      onOpenChange={(nextOpen) => {
+        if (isDeleting) return
+        onOpenChange(nextOpen)
+      }}
+    >
       {apartment ? (
         <DialogContent
           showCloseButton={false}
+          aria-busy={isDeleting}
           className="flex max-w-2xl flex-col overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-xl ring-0 transition-colors duration-300 dark:bg-neutral-800"
         >
           <DialogClose asChild>
             <button
               type="button"
               aria-label="Fermer"
-              className="absolute right-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition-all duration-200 ease-out hover:bg-neutral-100 dark:bg-neutral-800/80 dark:hover:bg-neutral-700/90"
+              disabled={isDeleting}
+              className="absolute right-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition-all duration-200 ease-out hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-800/80 dark:hover:bg-neutral-700/90"
             >
               <XIcon className="size-4 opacity-90" />
             </button>
@@ -101,6 +111,7 @@ export function AdminDeleteConfirmDialog({
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={isDeleting}
                   className="rounded-xl"
                 >
                   Annuler
@@ -109,12 +120,20 @@ export function AdminDeleteConfirmDialog({
               <Button
                 type="button"
                 variant="destructive"
+                disabled={isDeleting}
                 className="rounded-xl"
                 onClick={() => {
-                  onConfirm()
+                  void onConfirm()
                 }}
               >
-                Supprimer définitivement
+                {isDeleting ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="size-4 animate-spin" />
+                    Suppression...
+                  </span>
+                ) : (
+                  "Supprimer définitivement"
+                )}
               </Button>
             </div>
           </div>

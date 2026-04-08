@@ -20,6 +20,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { toast } from "sonner"
 
 import type { HoverSource } from "@/types/hover"
 import type { Apartment, DialogAnchorRect } from "@/types/apartments"
@@ -81,6 +82,11 @@ function canUseMapGridSync() {
     return false
   }
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message.trim()) return error.message
+  return fallback
 }
 
 function ApartmentCardShell({
@@ -199,6 +205,7 @@ export function ApartmentGrid({
   const [deleteApartmentId, setDeleteApartmentId] = useState<string | null>(
     null,
   )
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const editingApartment = useMemo(
     () => apartments.find((a) => a.id === editingApartmentId) ?? null,
@@ -235,12 +242,17 @@ export function ApartmentGrid({
   }
 
   const confirmDelete = async () => {
-    if (!deleteVictim) return
+    if (!deleteVictim || isDeleting) return
+    const apartmentName = deleteVictim.title
+    setIsDeleting(true)
     try {
       await deleteApartment(deleteVictim.id)
+      toast.success(`Appartement "${apartmentName}" supprimé`)
       setDeleteApartmentId(null)
-    } catch {
-      // toast déjà géré par le contexte
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Suppression impossible"))
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -296,10 +308,12 @@ export function ApartmentGrid({
         <AdminDeleteConfirmDialog
           open={deleteApartmentId !== null && deleteVictim !== null}
           onOpenChange={(open) => {
+            if (isDeleting) return
             if (!open) setDeleteApartmentId(null)
           }}
           apartment={deleteVictim}
           onConfirm={confirmDelete}
+          isDeleting={isDeleting}
         />
       ) : null}
       {adminMode && !adminReorderEnabled ? (

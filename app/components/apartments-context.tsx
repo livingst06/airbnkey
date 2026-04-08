@@ -7,7 +7,6 @@ import {
   useMemo,
   useState,
 } from "react"
-
 import { toast } from "sonner"
 
 import {
@@ -70,6 +69,16 @@ function clearApartmentOrderPersistence() {
   window.sessionStorage.removeItem(APARTMENTS_LOCAL_ORDER_KEY)
 }
 
+function actionErrorMessage(
+  fallback: string,
+  payload: { error?: string } | { ok: false; error: string },
+) {
+  if ("error" in payload && typeof payload.error === "string" && payload.error.trim()) {
+    return payload.error
+  }
+  return fallback
+}
+
 export function ApartmentsProvider({
   children,
   initialApartments,
@@ -89,8 +98,7 @@ export function ApartmentsProvider({
     async (input: ApartmentFormInput) => {
       const r = await createApartmentAction(input)
       if (!r.ok) {
-        toast.error("error" in r && r.error ? r.error : "Création impossible")
-        throw new Error("createApartmentAction failed")
+        throw new Error(actionErrorMessage("Création impossible", r))
       }
       const list = await syncFromDb()
       const created = list.find((a) => a.id === r.apartment.id) ?? r.apartment
@@ -103,8 +111,7 @@ export function ApartmentsProvider({
     async (id: string, input: ApartmentFormInput) => {
       const r = await updateApartmentAction(id, input)
       if (!r.ok) {
-        toast.error(r.error ?? "Mise à jour impossible")
-        throw new Error("updateApartmentAction failed")
+        throw new Error(actionErrorMessage("Mise à jour impossible", r))
       }
       await syncFromDb()
     },
@@ -115,8 +122,7 @@ export function ApartmentsProvider({
     async (id: string) => {
       const r = await deleteApartmentAction(id)
       if (!r.ok) {
-        toast.error(r.error ?? "Suppression impossible")
-        throw new Error("deleteApartmentAction failed")
+        throw new Error(actionErrorMessage("Suppression impossible", r))
       }
       await syncFromDb()
     },
