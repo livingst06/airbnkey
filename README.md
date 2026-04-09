@@ -27,9 +27,9 @@ pnpm start
 
 ### Variables optionnelles
 
-- `NEXT_PUBLIC_ADMIN_MODE=true` : active le toggle admin dans l'UI et les actions d'édition.
 - `NEXT_PUBLIC_MAPTILER_API_KEY` : active le fond MapTiler ; sinon fallback Carto.
-- `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` : requis pour l'upload image vers Supabase Storage.
+- `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` : requis pour l'upload image vers Supabase Storage et l'auth sociale.
+- `ADMIN_LIST` : emails admin autorisés, séparés par des virgules (ex: `admin1@example.com,admin2@example.com`).
 - `NEXT_PUBLIC_IMAGE_UPLOAD_FALLBACK=dataurl` : fallback local / debug si l'upload Supabase n'est pas configuré.
 
 ### Architecture runtime
@@ -55,4 +55,4 @@ Puis :
 
 ### Note production
 
-Le mode admin actuel repose volontairement sur `NEXT_PUBLIC_ADMIN_MODE` (feature flag simple), en attendant une future authentification login/mot de passe avec whitelist.
+Le site est accessible sans login. L'auth sociale (Google/Facebook/Apple) est optionnelle côté utilisateur, mais requise pour activer le mode admin. Seuls les emails présents dans `ADMIN_LIST` peuvent accéder aux mutations admin, et le toggle admin reste manuel dans l'UI.

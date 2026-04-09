@@ -1,27 +1,21 @@
 /**
  * Upload client d’une image vers une URL publique (DB : `string[]` d’URLs).
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js"
-
 import {
   blobToDataUrl,
   compressImageFileToBlob,
 } from "@/lib/image-compress"
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client"
 
-let browserClient: SupabaseClient | null = null
 const SUPABASE_UPLOAD_ERROR =
   "Upload image indisponible : configurez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY, ou utilisez NEXT_PUBLIC_IMAGE_UPLOAD_FALLBACK=dataurl."
 
-function getSupabaseBrowserClient(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
-  if (!url || !key) {
+function getUploadSupabaseClient() {
+  try {
+    return getSupabaseBrowserClient()
+  } catch {
     throw new Error(SUPABASE_UPLOAD_ERROR)
   }
-  if (!browserClient) {
-    browserClient = createClient(url, key)
-  }
-  return browserClient
 }
 
 /**
@@ -36,7 +30,7 @@ export async function uploadImage(file: File): Promise<string> {
   }
 
   const blob = await compressImageFileToBlob(file)
-  const supabase = getSupabaseBrowserClient()
+  const supabase = getUploadSupabaseClient()
   const id = crypto.randomUUID()
   const path = `apartments/${id}.jpg`
 

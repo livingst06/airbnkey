@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useEffect,
   useContext,
   useMemo,
   useSyncExternalStore,
@@ -11,7 +12,9 @@ const ADMIN_MODE_STORAGE_KEY = "airbnkey:admin-mode"
 const ADMIN_MODE_EVENT = "airbnkey:admin-mode-change"
 
 type AdminUiContextValue = {
-  isAdminAvailable: boolean
+  isSignedIn: boolean
+  userEmail: string | null
+  isAdminEligible: boolean
   isAdminMode: boolean
   setAdminMode: (next: boolean) => void
   toggleAdminMode: () => void
@@ -19,8 +22,8 @@ type AdminUiContextValue = {
 
 const AdminUiContext = createContext<AdminUiContextValue | null>(null)
 
-function readAdminModeSnapshot(isAdminAvailable: boolean): boolean {
-  if (!isAdminAvailable || typeof window === "undefined") return false
+function readAdminModeSnapshot(isAdminEligible: boolean): boolean {
+  if (!isAdminEligible || typeof window === "undefined") return false
   return window.localStorage.getItem(ADMIN_MODE_STORAGE_KEY) === "true"
 }
 
@@ -52,31 +55,43 @@ function writeAdminMode(next: boolean) {
 }
 
 export function AdminUiProvider({
+  initialUserEmail,
+  initialIsAdminEligible,
   children,
 }: {
+  initialUserEmail: string | null
+  initialIsAdminEligible: boolean
   children: React.ReactNode
 }) {
-  const isAdminAvailable = process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
+  const isSignedIn = Boolean(initialUserEmail)
+  const isAdminEligible = initialIsAdminEligible
   const isAdminMode = useSyncExternalStore(
     subscribeAdminMode,
-    () => readAdminModeSnapshot(isAdminAvailable),
+    () => readAdminModeSnapshot(isAdminEligible),
     () => false,
   )
 
+  useEffect(() => {
+    if (isAdminEligible) return
+    writeAdminMode(false)
+  }, [isAdminEligible])
+
   const value = useMemo<AdminUiContextValue>(
     () => ({
-      isAdminAvailable,
+      isSignedIn,
+      userEmail: initialUserEmail,
+      isAdminEligible,
       isAdminMode,
       setAdminMode: (next) => {
-        if (!isAdminAvailable) return
+        if (!isAdminEligible) return
         writeAdminMode(next)
       },
       toggleAdminMode: () => {
-        if (!isAdminAvailable) return
+        if (!isAdminEligible) return
         writeAdminMode(!isAdminMode)
       },
     }),
-    [isAdminAvailable, isAdminMode],
+    [initialUserEmail, isAdminEligible, isAdminMode, isSignedIn],
   )
 
   return (

@@ -5,6 +5,7 @@ import "./globals.css";
 import { AdminUiProvider } from "@/app/components/admin-ui-context";
 import { Navbar } from "@/app/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
+import { getCurrentUserEmail, isAdminEmail } from "@/lib/admin-auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const userEmail = await getCurrentUserEmail()
+  const isAdminEligible = isAdminEmail(userEmail)
+
   return (
     <html
       lang="en"
@@ -49,7 +53,10 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
-        <AdminUiProvider>
+        <AdminUiProvider
+          initialUserEmail={userEmail}
+          initialIsAdminEligible={isAdminEligible}
+        >
           <Navbar />
           {children}
           <Toaster />

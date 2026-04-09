@@ -3,9 +3,12 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react"
+import { usePathname, useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import { useAdminUi } from "@/app/components/admin-ui-context"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client"
 import { cn } from "@/lib/utils"
 
 const sectionNavLinks = [
@@ -18,9 +21,9 @@ type SectionId = (typeof sectionNavLinks)[number]["id"]
 type NavId = SectionId
 
 function AdminModeToggle() {
-  const { isAdminAvailable, isAdminMode, toggleAdminMode } = useAdminUi()
+  const { isAdminEligible, isAdminMode, toggleAdminMode } = useAdminUi()
 
-  if (!isAdminAvailable) return null
+  if (!isAdminEligible) return null
 
   return (
     <button
@@ -39,6 +42,145 @@ function AdminModeToggle() {
     >
       Admin
     </button>
+  )
+}
+
+type OAuthProvider = "google" | "facebook" | "apple"
+
+function AuthControls() {
+  const { isSignedIn, userEmail, setAdminMode } = useAdminUi()
+  const router = useRouter()
+  const pathname = usePathname()
+  const [pendingAction, setPendingAction] = useState<OAuthProvider | "signout" | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (menuRef.current?.contains(target)) return
+      setMenuOpen(false)
+    }
+    window.addEventListener("pointerdown", onPointerDown)
+    return () => window.removeEventListener("pointerdown", onPointerDown)
+  }, [menuOpen])
+
+  const signInWithProvider = useCallback(
+    async (provider: OAuthProvider) => {
+      if (pendingAction) return
+      setPendingAction(provider)
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const origin = window.location.origin
+        const nextPath = pathname || "/"
+        const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: { redirectTo },
+        })
+        if (error) throw error
+        setMenuOpen(false)
+        setPendingAction(null)
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message.trim()
+            ? error.message
+            : "Sign-in failed"
+        toast.error(message)
+        setPendingAction(null)
+      }
+    },
+    [pathname, pendingAction],
+  )
+
+  const signOut = useCallback(async () => {
+    if (pendingAction) return
+    setPendingAction("signout")
+    try {
+      const supabase = getSupabaseBrowserClient()
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      setAdminMode(false)
+      setPendingAction(null)
+      router.refresh()
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : "Sign-out failed"
+      toast.error(message)
+      setPendingAction(null)
+    }
+  }, [pendingAction, router, setAdminMode])
+
+  if (isSignedIn) {
+    return (
+      <div className="flex items-center gap-2">
+        {userEmail ? (
+          <span className="hidden max-w-[12rem] truncate text-xs text-muted-foreground md:inline">
+            {userEmail}
+          </span>
+        ) : null}
+        <button
+          type="button"
+          onClick={signOut}
+          disabled={pendingAction !== null}
+          className="rounded-full border border-white/10 bg-white/60 px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-lg backdrop-blur-md transition-colors duration-200 hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-800/60 dark:hover:bg-neutral-800/80"
+        >
+          {pendingAction === "signout" ? "Signing out..." : "Sign out"}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div ref={menuRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setMenuOpen((prev) => !prev)}
+        disabled={pendingAction !== null}
+        className="rounded-full border border-white/10 bg-white/60 px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-lg backdrop-blur-md transition-colors duration-200 hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-800/60 dark:hover:bg-neutral-800/80"
+      >
+        Sign in
+      </button>
+
+      {menuOpen ? (
+        <div className="absolute right-0 top-[calc(100%+0.5rem)] z-[110] min-w-48 rounded-2xl border border-white/10 bg-white/90 p-2 shadow-xl backdrop-blur-md dark:bg-neutral-900/90">
+          <button
+            type="button"
+            onClick={() => void signInWithProvider("google")}
+            disabled={pendingAction !== null}
+            className="w-full rounded-xl px-3 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {pendingAction === "google"
+              ? "Connecting to Google..."
+              : "Continue with Google"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void signInWithProvider("facebook")}
+            disabled={pendingAction !== null}
+            className="w-full rounded-xl px-3 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {pendingAction === "facebook"
+              ? "Connecting to Facebook..."
+              : "Continue with Facebook"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void signInWithProvider("apple")}
+            disabled={pendingAction !== null}
+            className="w-full rounded-xl px-3 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {pendingAction === "apple"
+              ? "Connecting to Apple..."
+              : "Continue with Apple"}
+          </button>
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -233,6 +375,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center justify-end gap-2 pr-4 xl:pr-8">
+          <AuthControls />
           <AdminModeToggle />
           <ThemeToggle />
         </div>

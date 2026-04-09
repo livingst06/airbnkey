@@ -13,6 +13,7 @@ import {
 } from "@/lib/apartments-db"
 import { formatApartmentFormErrorMessage } from "@/lib/apartment-form-error-message"
 import { apartmentFormSchema } from "@/lib/apartment-zod"
+import { isCurrentUserAdmin } from "@/lib/admin-auth"
 import type { ApartmentFormInput } from "@/lib/apartment-zod"
 import type { Apartment } from "@/types/apartments"
 
@@ -87,7 +88,7 @@ async function createApartmentWithUniqueSlug(input: ApartmentFormInput) {
 }
 
 export async function createApartmentAction(input: ApartmentFormInput) {
-  if (!isAdminEnv()) {
+  if (!(await isCurrentUserAdmin())) {
     return { ok: false as const, error: "Not authorized" }
   }
   const parsed = apartmentFormSchema.safeParse(input)
@@ -113,7 +114,7 @@ export async function updateApartmentAction(
   id: string,
   input: ApartmentFormInput,
 ) {
-  if (!isAdminEnv()) {
+  if (!(await isCurrentUserAdmin())) {
     return { ok: false as const, error: "Not authorized" }
   }
   const parsed = apartmentFormSchema.safeParse(input)
@@ -160,7 +161,7 @@ export async function updateApartmentAction(
 }
 
 export async function deleteApartmentAction(id: string) {
-  if (!isAdminEnv()) {
+  if (!(await isCurrentUserAdmin())) {
     return { ok: false as const, error: "Not authorized" }
   }
   try {
@@ -175,14 +176,10 @@ export async function deleteApartmentAction(id: string) {
   }
 }
 
-function isAdminEnv(): boolean {
-  return process.env.NEXT_PUBLIC_ADMIN_MODE === "true"
-}
-
 export async function updateApartmentsOrderAction(
   ordered: { id: string; position: number }[],
 ) {
-  if (!isAdminEnv()) {
+  if (!(await isCurrentUserAdmin())) {
     return { ok: false as const, error: "Not authorized" }
   }
   if (ordered.length === 0) {
