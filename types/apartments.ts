@@ -15,7 +15,7 @@ export type Apartment = {
     id: string
     slug: string
     title: string
-    city?: string | null
+    city: string
     street?: string | null
     guests: number
     beds: number
@@ -30,6 +30,6 @@ export type Apartment = {
     position: number
     /** URLs absolues, chemins sous /public, ou anciennes valeurs `data:image/...`. */
     images: string[]
-    /** Lien externe de réservation (optionnel). */
-    bookingUrl?: string | null
+    /** External booking URL. */
+    bookingUrl: string
   }

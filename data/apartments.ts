@@ -9,6 +9,7 @@ export const apartments: Apartment[] = [
     id: "1",
     slug: "studio-croisette",
     title: "Studio Croisette Vue Mer",
+    city: "Cannes",
     guests: 2,
     beds: 2,
     bathrooms: 1,
@@ -23,12 +24,14 @@ export const apartments: Apartment[] = [
       "/apartments/apt1/2.png",
       "/apartments/apt1/3.png",
       "/apartments/apt1/4.png"
-    ]
+    ],
+    bookingUrl: "https://www.airbnb.com/rooms/studio-croisette-vue-mer",
   },
   {
     id: "2",
     slug: "t2-centre-ville",
     title: "Appartement Centre Cannes",
+    city: "Cannes",
     guests: 4,
     beds: 4,
     bathrooms: 1,
@@ -43,12 +46,14 @@ export const apartments: Apartment[] = [
       "/apartments/apt2/2.png",
       "/apartments/apt2/3.png",
       "/apartments/apt2/4.png"
-    ]
+    ],
+    bookingUrl: "https://www.airbnb.com/rooms/appartement-centre-cannes",
   },
   {
     id: "3",
     slug: "villa-palm-beach",
     title: "Appartement Palm Beach",
+    city: "Cannes",
     guests: 6,
     beds: 6,
     bathrooms: 2,
@@ -63,6 +68,7 @@ export const apartments: Apartment[] = [
       "/apartments/apt3/2.png",
       "/apartments/apt3/3.png",
       "/apartments/apt3/4.png"
-    ]
+    ],
+    bookingUrl: "https://www.airbnb.com/rooms/appartement-palm-beach",
   }
 ]

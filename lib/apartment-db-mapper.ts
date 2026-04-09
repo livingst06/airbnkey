@@ -80,7 +80,7 @@ export function rowToApartment(row: ApartmentRow): Apartment {
     slug: row.slug,
     title: row.title,
     description: row.description,
-    city: row.city?.trim() ? row.city : null,
+    city: row.city.trim(),
     street: row.street?.trim() ? row.street : null,
     guests: normalizeNonNegativeInt(row.guests),
     beds: normalizeNonNegativeInt(row.beds),
@@ -95,7 +95,7 @@ export function rowToApartment(row: ApartmentRow): Apartment {
     position: normalizeNonNegativeInt(row.position),
     /** Chaque entrée : URL absolue, chemin `/...` (public), ou legacy `data:image/...`. */
     images: jsonValueToStringArray(row.images),
-    bookingUrl: row.bookingUrl ?? null,
+    bookingUrl: row.bookingUrl.trim(),
   }
 }
 
@@ -105,7 +105,7 @@ export function apartmentToDbPayload(a: {
   slug: string
   title: string
   description: string
-  city?: string | null
+  city: string
   street?: string | null
   guests: number
   beds: number
@@ -116,7 +116,7 @@ export function apartmentToDbPayload(a: {
   latitude: number
   longitude: number
   images: string[]
-  bookingUrl?: string | null
+  bookingUrl: string
   position?: number
 }) {
   return {
@@ -124,7 +124,7 @@ export function apartmentToDbPayload(a: {
     slug: a.slug,
     title: a.title,
     description: a.description,
-    city: a.city?.trim() || null,
+    city: a.city.trim(),
     street: a.street?.trim() || null,
     guests: a.guests,
     beds: a.beds,
@@ -135,7 +135,7 @@ export function apartmentToDbPayload(a: {
     longitude: a.longitude,
     advantages: a.advantages as Prisma.InputJsonValue,
     images: a.images as Prisma.InputJsonValue,
-    bookingUrl: a.bookingUrl ?? null,
+    bookingUrl: a.bookingUrl.trim(),
     position: a.position ?? 0,
   }
 }
@@ -146,7 +146,7 @@ export function apartmentToPrismaUpdateData(
 ): {
   title: string
   description: string
-  city: string | null
+  city: string
   street: string | null
   guests: number
   beds: number
@@ -157,12 +157,12 @@ export function apartmentToPrismaUpdateData(
   longitude: number
   advantages: Prisma.InputJsonValue
   images: Prisma.InputJsonValue
-  bookingUrl: string | null
+  bookingUrl: string
 } {
   return {
     title: data.title,
     description: data.description,
-    city: data.city?.trim() || null,
+    city: data.city.trim(),
     street: data.street?.trim() || null,
     guests: data.guests,
     beds: data.beds,
@@ -173,6 +173,6 @@ export function apartmentToPrismaUpdateData(
     longitude: data.longitude,
     advantages: data.advantages as Prisma.InputJsonValue,
     images: data.images as Prisma.InputJsonValue,
-    bookingUrl: data.bookingUrl ?? null,
+    bookingUrl: data.bookingUrl.trim(),
   }
 }

@@ -217,7 +217,7 @@ export function AdminApartmentDialog({
     if (apartment) {
       setTitle(apartment.title)
       setDescription(apartment.description)
-      setCity(apartment.city ?? "")
+      setCity(apartment.city)
       setStreet(apartment.street ?? "")
       setGuests(Number.isFinite(apartment.guests) ? apartment.guests : 0)
       setBeds(apartment.beds)
@@ -236,7 +236,7 @@ export function AdminApartmentDialog({
       setLatitude(apartment.latitude)
       setLongitude(apartment.longitude)
       setImages([...apartment.images])
-      setBookingUrl(apartment.bookingUrl?.trim() ? apartment.bookingUrl : "")
+      setBookingUrl(apartment.bookingUrl.trim())
     } else {
       setTitle("")
       setDescription("")

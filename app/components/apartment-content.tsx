@@ -62,10 +62,10 @@ function pluralize(count: number, singular: string, plural: string) {
 }
 
 function getApartmentLocationLine(
-  city: string | null | undefined,
+  city: string,
   street: string | null | undefined,
 ): string | null {
-  const normalizedCity = city?.trim() ?? ""
+  const normalizedCity = city.trim()
   if (!normalizedCity) return null
 
   const normalizedStreet = street?.trim() ?? ""
@@ -98,7 +98,7 @@ export function ApartmentContent({
   const isSplit = variant === "split"
 
   const listingHref = useMemo(() => {
-    const t = apartment.bookingUrl?.trim()
+    const t = apartment.bookingUrl.trim()
     if (
       !t ||
       (!t.startsWith("http://") && !t.startsWith("https://"))

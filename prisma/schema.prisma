@@ -12,9 +12,9 @@ model Apartment {
   slug        String   @unique
   title       String
   description String
-  city        String?
+  city        String
   street      String?
-  guests      Int      @default(0)
+  guests      Int      @default(1)
   beds        Int
   bathrooms   Int
   reviewsCount Int?
@@ -23,7 +23,7 @@ model Apartment {
   longitude   Float
   advantages  Json
   images      Json
-  bookingUrl  String?
+  bookingUrl  String
   /// Ordre d'affichage (0 = premier). Tri principal côté API.
   position    Int      @default(0)
   createdAt   DateTime @default(now())
