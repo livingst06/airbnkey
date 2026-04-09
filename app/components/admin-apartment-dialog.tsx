@@ -794,6 +794,7 @@ export function AdminApartmentDialog({
             <Button
               type="button"
               variant="outline"
+              disabled={isSaving}
               className="rounded-xl border-border text-foreground hover:bg-muted hover:text-foreground"
             >
               Cancel
