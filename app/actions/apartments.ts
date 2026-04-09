@@ -11,6 +11,7 @@ import {
   updateApartmentDb,
   updateApartmentsOrderDb,
 } from "@/lib/apartments-db"
+import { formatApartmentFormErrorMessage } from "@/lib/apartment-form-error-message"
 import { apartmentFormSchema } from "@/lib/apartment-zod"
 import type { ApartmentFormInput } from "@/lib/apartment-zod"
 import type { Apartment } from "@/types/apartments"
@@ -87,18 +88,24 @@ async function createApartmentWithUniqueSlug(input: ApartmentFormInput) {
 
 export async function createApartmentAction(input: ApartmentFormInput) {
   if (!isAdminEnv()) {
-    return { ok: false as const, error: "Non autorisé" }
+    return { ok: false as const, error: "Not authorized" }
   }
   const parsed = apartmentFormSchema.safeParse(input)
   if (!parsed.success) {
-    return { ok: false as const, error: "Données invalides", issues: parsed.error.flatten() }
+    const issues = parsed.error.flatten()
+    return {
+      ok: false as const,
+      error: "Invalid data",
+      userMessage: formatApartmentFormErrorMessage(issues),
+      issues,
+    }
   }
   try {
     const apartment = await createApartmentWithUniqueSlug(parsed.data)
     invalidateApartmentListCache()
     return { ok: true as const, apartment }
   } catch {
-    return { ok: false as const, error: "Création impossible" }
+    return { ok: false as const, error: "Creation failed" }
   }
 }
 
@@ -107,17 +114,23 @@ export async function updateApartmentAction(
   input: ApartmentFormInput,
 ) {
   if (!isAdminEnv()) {
-    return { ok: false as const, error: "Non autorisé" }
+    return { ok: false as const, error: "Not authorized" }
   }
   const parsed = apartmentFormSchema.safeParse(input)
   if (!parsed.success) {
-    return { ok: false as const, error: "Données invalides", issues: parsed.error.flatten() }
+    const issues = parsed.error.flatten()
+    return {
+      ok: false as const,
+      error: "Invalid data",
+      userMessage: formatApartmentFormErrorMessage(issues),
+      issues,
+    }
   }
   const p = parsed.data
   const current = await getApartmentsFresh()
   const existing = current.find((a) => a.id === id)
   if (!existing) {
-    return { ok: false as const, error: "Introuvable" }
+    return { ok: false as const, error: "Not found" }
   }
   try {
     const apartment = await updateApartmentDb(id, {
@@ -137,28 +150,28 @@ export async function updateApartmentAction(
       bookingUrl: p.bookingUrl,
     })
     if (!apartment) {
-      return { ok: false as const, error: "Mise à jour impossible" }
+      return { ok: false as const, error: "Update failed" }
     }
     invalidateApartmentListCache()
     return { ok: true as const, apartment }
   } catch {
-    return { ok: false as const, error: "Mise à jour impossible" }
+    return { ok: false as const, error: "Update failed" }
   }
 }
 
 export async function deleteApartmentAction(id: string) {
   if (!isAdminEnv()) {
-    return { ok: false as const, error: "Non autorisé" }
+    return { ok: false as const, error: "Not authorized" }
   }
   try {
     const deleted = await deleteApartmentDb(id)
     if (!deleted) {
-      return { ok: false as const, error: "Suppression impossible" }
+      return { ok: false as const, error: "Delete failed" }
     }
     invalidateApartmentListCache()
     return { ok: true as const }
   } catch {
-    return { ok: false as const, error: "Suppression impossible" }
+    return { ok: false as const, error: "Delete failed" }
   }
 }
 
@@ -170,30 +183,30 @@ export async function updateApartmentsOrderAction(
   ordered: { id: string; position: number }[],
 ) {
   if (!isAdminEnv()) {
-    return { ok: false as const, error: "Non autorisé" }
+    return { ok: false as const, error: "Not authorized" }
   }
   if (ordered.length === 0) {
     return { ok: true as const }
   }
   const current = await getApartmentsFresh()
   if (ordered.length !== current.length) {
-    return { ok: false as const, error: "Liste incomplète" }
+    return { ok: false as const, error: "Incomplete list" }
   }
   const expectedIds = new Set(current.map((a) => a.id))
   const seen = new Set<string>()
   for (const row of ordered) {
     if (!expectedIds.has(row.id) || seen.has(row.id)) {
-      return { ok: false as const, error: "Identifiants invalides" }
+      return { ok: false as const, error: "Invalid apartment IDs" }
     }
     seen.add(row.id)
   }
   if (seen.size !== expectedIds.size) {
-    return { ok: false as const, error: "Identifiants invalides" }
+    return { ok: false as const, error: "Invalid apartment IDs" }
   }
   const byPos = [...ordered].sort((a, b) => a.position - b.position)
   for (let i = 0; i < byPos.length; i++) {
     if (byPos[i].position !== i) {
-      return { ok: false as const, error: "Positions invalides" }
+      return { ok: false as const, error: "Invalid apartment positions" }
     }
   }
   try {
@@ -201,7 +214,7 @@ export async function updateApartmentsOrderAction(
     invalidateApartmentListCache()
     return { ok: true as const }
   } catch {
-    return { ok: false as const, error: "Ordre non enregistré" }
+    return { ok: false as const, error: "Order not saved" }
   }
 }
 

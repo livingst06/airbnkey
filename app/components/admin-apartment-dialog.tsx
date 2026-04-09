@@ -35,6 +35,10 @@ import { Loader2, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Apartment } from "@/types/apartments"
+import {
+  APARTMENT_CHARACTERISTIC_LABELS,
+  APARTMENT_FIELD_LABELS,
+} from "@/lib/apartment-field-labels"
 import { apartmentFormSchema } from "@/lib/apartment-zod"
 import { imageNeedsUnoptimized } from "@/lib/image-src"
 import { getMapStyleUrl } from "@/lib/map-style"
@@ -87,6 +91,14 @@ function errorMessage(error: unknown, fallback: string) {
   return fallback
 }
 
+function firstFormErrorMessage(messages: string[] | undefined): string | null {
+  if (!messages) return null
+  for (const message of messages) {
+    if (message.trim()) return message
+  }
+  return null
+}
+
 function formatLatLng(value: number) {
   if (!Number.isFinite(value)) return 0
   return value
@@ -131,7 +143,7 @@ function SortablePhoto({ src, index, unoptimized, onRemove }: SortablePhotoProps
         type="button"
         onClick={(e) => { e.stopPropagation(); onRemove() }}
         onPointerDown={(e) => e.stopPropagation()}
-        aria-label="Supprimer cette image"
+        aria-label="Remove this image"
         className="absolute right-2 top-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-card shadow-md transition-all hover:bg-muted active:scale-95"
       >
         <XIcon className="size-3.5 text-foreground" />
@@ -169,6 +181,8 @@ export function AdminApartmentDialog({
   const [bookingUrl, setBookingUrl] = useState("")
   const [imageImportBusy, setImageImportBusy] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[] | undefined>>({})
+  const [formError, setFormError] = useState<string | null>(null)
   const imagesRef = useRef(images)
   imagesRef.current = images
 
@@ -198,6 +212,8 @@ export function AdminApartmentDialog({
     if (!open) return
     committedRef.current = false
     setIsSaving(false)
+    setFieldErrors({})
+    setFormError(null)
     if (apartment) {
       setTitle(apartment.title)
       setDescription(apartment.description)
@@ -324,7 +340,7 @@ export function AdminApartmentDialog({
           try {
             urls.push(await uploadImage(file))
           } catch {
-            toast.error(`Image ignorée : ${file.name}`)
+            toast.error(`Image skipped: ${file.name}`)
           }
         }
         if (urls.length === 0) return
@@ -383,23 +399,17 @@ export function AdminApartmentDialog({
 
   const advantages = useMemo(() => parseTags(tagsText), [tagsText])
 
-  const canSubmit = useMemo(() => {
-    if (!title.trim()) return false
-    if (!description.trim()) return false
-    if (!Number.isFinite(guests) || guests < 0) return false
-    if (!Number.isFinite(beds) || beds < 0) return false
-    if (!Number.isFinite(bathrooms) || bathrooms < 0) return false
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return false
-    return true
-  }, [title, description, guests, beds, bathrooms, latitude, longitude])
+  const fieldError = (name: string) => fieldErrors[name]?.[0] ?? null
 
   const submit = async () => {
-    if (!canSubmit || isSaving) return
+    if (isSaving) return
+    setFieldErrors({})
+    setFormError(null)
 
     const input = {
       title: title.trim(),
       description: description.trim(),
-      city: city.trim() || undefined,
+      city: city.trim(),
       street: street.trim() || undefined,
       guests,
       beds,
@@ -412,23 +422,14 @@ export function AdminApartmentDialog({
       latitude: formatLatLng(latitude),
       longitude: formatLatLng(longitude),
       images: [...images],
-      bookingUrl: bookingUrl.trim() || undefined,
+      bookingUrl: bookingUrl.trim(),
     } satisfies Parameters<typeof apartmentFormSchema.safeParse>[0]
 
     const parsed = apartmentFormSchema.safeParse(input)
     if (!parsed.success) {
-      const fe = parsed.error.flatten().fieldErrors
-      const msg =
-        fe.bookingUrl?.[0] ??
-        fe.title?.[0] ??
-        fe.city?.[0] ??
-        fe.street?.[0] ??
-        fe.guests?.[0] ??
-        fe.reviewsCount?.[0] ??
-        fe.ratingAverage?.[0] ??
-        fe.images?.[0] ??
-        "Données invalides"
-      toast.error(msg)
+      const flattened = parsed.error.flatten()
+      setFieldErrors(flattened.fieldErrors)
+      setFormError(firstFormErrorMessage(flattened.formErrors))
       return
     }
 
@@ -437,15 +438,15 @@ export function AdminApartmentDialog({
       const apartmentName = parsed.data.title
       if (apartment) {
         await updateApartment(apartment.id, parsed.data)
-        toast.success(`Appartement "${apartmentName}" mis à jour`)
+        toast.success(`Apartment "${apartmentName}" updated`)
       } else {
         await addApartment(parsed.data)
-        toast.success(`Appartement "${apartmentName}" créé`)
+        toast.success(`Apartment "${apartmentName}" created`)
       }
       committedRef.current = true
       onOpenChange(false)
     } catch (error) {
-      toast.error(errorMessage(error, apartment ? "Mise à jour impossible" : "Création impossible"))
+      toast.error(errorMessage(error, apartment ? "Update failed" : "Creation failed"))
     } finally {
       setIsSaving(false)
     }
@@ -472,123 +473,156 @@ export function AdminApartmentDialog({
         <div className="no-scrollbar flex-1 overflow-y-auto px-5 py-7 md:px-8 md:py-8 space-y-3">
           <div className="pb-3">
             <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">
-              {apartment ? "Modifier l\u2019appartement" : "Ajouter un appartement"}
+              {apartment ? "Edit apartment" : "Add apartment"}
             </DialogTitle>
             <DialogDescription className="mt-1 text-sm text-muted-foreground">
               {apartment
-                ? "Mettez à jour les informations, les photos et la localisation."
-                : "Créez un nouvel appartement en quelques minutes."}
+                ? "Update details, photos, and location."
+                : "Create a new apartment in a few minutes."}
             </DialogDescription>
           </div>
 
           <div className="space-y-3">
-            {/* ── Infos principales ── */}
+            {formError ? (
+              <div className="rounded-xl border border-red-400/60 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-950/30 dark:text-red-200">
+                {formError}
+              </div>
+            ) : null}
+
+            {/* ── Main details ── */}
             <section className={SECTION_CLS}>
-              <h3 className={SECTION_TITLE_CLS}>Infos principales</h3>
+              <h3 className={SECTION_TITLE_CLS}>Main details</h3>
               <div className="space-y-4">
                 <div>
-                  <label className={LABEL_CLS}>Nom de l&apos;appartement</label>
+                  <label className={LABEL_CLS}>Apartment name</label>
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className={INPUT_CLS}
-                    placeholder="Ex: Studio Croisette Vue Mer"
+                    className={`${INPUT_CLS} ${fieldError("title") ? "border-red-500 focus:border-red-500" : ""}`}
+                    placeholder="e.g. Croisette Sea View Studio"
                   />
+                  {fieldError("title") ? (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("title")}</p>
+                  ) : null}
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>Description</label>
+                  <label className={LABEL_CLS}>{APARTMENT_FIELD_LABELS.description}</label>
                   <Textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Décrivez l'appartement..."
+                    placeholder="Describe the apartment..."
                     rows={4}
-                    className="w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:outline-none focus-visible:ring-0 transition-colors duration-150"
+                    className={`w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:outline-none focus-visible:ring-0 transition-colors duration-150 ${fieldError("description") ? "border-red-500 focus:border-red-500" : ""}`}
                   />
+                  {fieldError("description") ? (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("description")}</p>
+                  ) : null}
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className={LABEL_CLS}>Ville</label>
+                    <label className={LABEL_CLS}>{APARTMENT_FIELD_LABELS.city}</label>
                     <input
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className={INPUT_CLS}
-                      placeholder="Ex: Cannes"
+                      className={`${INPUT_CLS} ${fieldError("city") ? "border-red-500 focus:border-red-500" : ""}`}
+                      placeholder="e.g. Cannes"
                     />
+                    {fieldError("city") ? (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("city")}</p>
+                    ) : null}
                   </div>
                   <div>
-                    <label className={LABEL_CLS}>Rue</label>
+                    <label className={LABEL_CLS}>{APARTMENT_FIELD_LABELS.street}</label>
                     <input
                       value={street}
                       onChange={(e) => setStreet(e.target.value)}
-                      className={INPUT_CLS}
-                      placeholder="Ex: rue du 14 juillet"
+                      className={`${INPUT_CLS} ${fieldError("street") ? "border-red-500 focus:border-red-500" : ""}`}
+                      placeholder="e.g. 14 Juillet Street"
                     />
+                    {fieldError("street") ? (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("street")}</p>
+                    ) : null}
                   </div>
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>Lien de réservation</label>
+                  <label className={LABEL_CLS}>{APARTMENT_FIELD_LABELS.bookingUrl}</label>
                   <input
                     type="url"
                     value={bookingUrl}
                     onChange={(e) => setBookingUrl(e.target.value)}
-                    className={INPUT_CLS}
+                    className={`${INPUT_CLS} ${fieldError("bookingUrl") ? "border-red-500 focus:border-red-500" : ""}`}
                     placeholder="https://..."
                   />
+                  {fieldError("bookingUrl") ? (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("bookingUrl")}</p>
+                  ) : null}
                 </div>
               </div>
             </section>
 
-            {/* ── Caractéristiques ── */}
+            {/* ── Characteristics ── */}
             <section className={SECTION_CLS}>
-              <h3 className={SECTION_TITLE_CLS}>Caractéristiques</h3>
+              <h3 className={SECTION_TITLE_CLS}>Characteristics</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className={LABEL_CLS}>Invités</label>
+                    <label className={LABEL_CLS}>{APARTMENT_CHARACTERISTIC_LABELS.guests}</label>
                     <input
                       type="number"
                       value={guests}
                       onChange={(e) => setGuests(Number(e.target.value))}
                       min={0}
-                      className={NUMBER_INPUT_CLS}
+                      className={`${NUMBER_INPUT_CLS} ${fieldError("guests") ? "border-red-500 focus:border-red-500" : ""}`}
                     />
+                    {fieldError("guests") ? (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("guests")}</p>
+                    ) : null}
                   </div>
                   <div>
-                    <label className={LABEL_CLS}>Couchages</label>
+                    <label className={LABEL_CLS}>{APARTMENT_CHARACTERISTIC_LABELS.beds}</label>
                     <input
                       type="number"
                       value={beds}
                       onChange={(e) => setBeds(Number(e.target.value))}
                       min={0}
-                      className={NUMBER_INPUT_CLS}
+                      className={`${NUMBER_INPUT_CLS} ${fieldError("beds") ? "border-red-500 focus:border-red-500" : ""}`}
                     />
+                    {fieldError("beds") ? (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("beds")}</p>
+                    ) : null}
                   </div>
                   <div>
-                    <label className={LABEL_CLS}>Sdb</label>
+                    <label className={LABEL_CLS}>{APARTMENT_CHARACTERISTIC_LABELS.bathrooms}</label>
                     <input
                       type="number"
                       value={bathrooms}
                       onChange={(e) => setBathrooms(Number(e.target.value))}
                       min={0}
-                      className={NUMBER_INPUT_CLS}
+                      className={`${NUMBER_INPUT_CLS} ${fieldError("bathrooms") ? "border-red-500 focus:border-red-500" : ""}`}
                     />
+                    {fieldError("bathrooms") ? (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("bathrooms")}</p>
+                    ) : null}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className={LABEL_CLS}>Nombre d&apos;avis</label>
+                    <label className={LABEL_CLS}>{APARTMENT_CHARACTERISTIC_LABELS.reviewsCount}</label>
                     <input
                       type="number"
                       inputMode="numeric"
                       value={reviewsCount}
                       onChange={(e) => setReviewsCount(e.target.value)}
                       min={0}
-                      placeholder="Ex: 17"
-                      className={NUMBER_INPUT_CLS}
+                      placeholder="e.g. 17"
+                      className={`${NUMBER_INPUT_CLS} ${fieldError("reviewsCount") ? "border-red-500 focus:border-red-500" : ""}`}
                     />
+                    {fieldError("reviewsCount") ? (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("reviewsCount")}</p>
+                    ) : null}
                   </div>
                   <div>
-                    <label className={LABEL_CLS}>Note moyenne</label>
+                    <label className={LABEL_CLS}>{APARTMENT_CHARACTERISTIC_LABELS.ratingAverage}</label>
                     <input
                       type="number"
                       inputMode="decimal"
@@ -597,22 +631,28 @@ export function AdminApartmentDialog({
                       min={0}
                       max={5}
                       step="0.1"
-                      placeholder="Ex: 4.9"
-                      className={NUMBER_INPUT_CLS}
+                      placeholder="e.g. 4.9"
+                      className={`${NUMBER_INPUT_CLS} ${fieldError("ratingAverage") ? "border-red-500 focus:border-red-500" : ""}`}
                     />
+                    {fieldError("ratingAverage") ? (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("ratingAverage")}</p>
+                    ) : null}
                   </div>
                 </div>
                 <div>
                   <label className={LABEL_CLS}>
                     Tags{" "}
-                    <span className="font-normal text-muted-foreground">(séparés par des virgules)</span>
+                    <span className="font-normal text-muted-foreground">(comma separated)</span>
                   </label>
                   <input
                     value={tagsText}
                     onChange={(e) => setTagsText(e.target.value)}
-                    placeholder="terrasse, balcon, vue mer..."
-                    className={INPUT_CLS}
+                    placeholder="terrace, balcony, sea view..."
+                    className={`${INPUT_CLS} ${fieldError("advantages") ? "border-red-500 focus:border-red-500" : ""}`}
                   />
+                  {fieldError("advantages") ? (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("advantages")}</p>
+                  ) : null}
                   {advantages.length ? (
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {advantages.slice(0, 6).map((tag, idx) => (
@@ -648,7 +688,7 @@ export function AdminApartmentDialog({
                 onClick={openFilePicker}
                 role="button"
                 tabIndex={0}
-                aria-label="Ajouter des photos"
+                aria-label="Add photos"
                 aria-busy={imageImportBusy}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
@@ -658,12 +698,12 @@ export function AdminApartmentDialog({
                 }}
               >
                 <div className="text-sm font-medium text-foreground">
-                  {imageImportBusy ? "Optimisation en cours…" : "Glissez-déposez des images ici"}
+                  {imageImportBusy ? "Optimizing..." : "Drag and drop images here"}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   {imageImportBusy
-                    ? "Quelques secondes si les fichiers sont lourds."
-                    : "ou cliquez pour sélectionner · redimensionnement automatique"}
+                    ? "This can take a few seconds for large files."
+                    : "or click to select · automatic resize"}
                 </div>
               </div>
 
@@ -698,19 +738,22 @@ export function AdminApartmentDialog({
                 </DndContext>
               ) : (
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Aucune photo ajoutée. Un placeholder transparent sera utilisé.
+                  No photo added. A transparent placeholder will be used.
                 </p>
               )}
+              {fieldError("images") ? (
+                <p className="mt-2 text-xs text-red-600 dark:text-red-300">{fieldError("images")}</p>
+              ) : null}
             </section>
 
-            {/* ── Localisation ── */}
+            {/* ── Location ── */}
             <section className={SECTION_CLS}>
-              <h3 className={SECTION_TITLE_CLS}>Localisation</h3>
+              <h3 className={SECTION_TITLE_CLS}>Location</h3>
               <div className="overflow-hidden rounded-xl border border-border">
                 <div
                   ref={miniMapContainerRef}
                   className="relative h-[28rem] min-h-[28rem] w-full [&_.maplibregl-canvas]:!outline-none"
-                  aria-label="Mini carte de sélection"
+                  aria-label="Mini map selector"
                 />
               </div>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -721,8 +764,11 @@ export function AdminApartmentDialog({
                     value={latitude}
                     onChange={(e) => setLatitude(Number(e.target.value))}
                     step={0.0001}
-                    className={NUMBER_INPUT_CLS}
+                    className={`${NUMBER_INPUT_CLS} ${fieldError("latitude") ? "border-red-500 focus:border-red-500" : ""}`}
                   />
+                  {fieldError("latitude") ? (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("latitude")}</p>
+                  ) : null}
                 </div>
                 <div>
                   <label className={LABEL_CLS}>Longitude</label>
@@ -731,8 +777,11 @@ export function AdminApartmentDialog({
                     value={longitude}
                     onChange={(e) => setLongitude(Number(e.target.value))}
                     step={0.0001}
-                    className={NUMBER_INPUT_CLS}
+                    className={`${NUMBER_INPUT_CLS} ${fieldError("longitude") ? "border-red-500 focus:border-red-500" : ""}`}
                   />
+                  {fieldError("longitude") ? (
+                    <p className="mt-1 text-xs text-red-600 dark:text-red-300">{fieldError("longitude")}</p>
+                  ) : null}
                 </div>
               </div>
             </section>
@@ -747,21 +796,21 @@ export function AdminApartmentDialog({
               variant="outline"
               className="rounded-xl border-border text-foreground hover:bg-muted hover:text-foreground"
             >
-              Annuler
+              Cancel
             </Button>
           </DialogClose>
           <Button
             type="button"
             onClick={submit}
-            disabled={!canSubmit || isSaving}
+            disabled={isSaving}
             className="rounded-xl bg-foreground text-background hover:bg-foreground/80 disabled:opacity-40"
           >
             {isSaving ? (
               <span className="inline-flex items-center gap-2">
                 <Loader2 className="size-4 animate-spin" />
-                Enregistrement...
+                Saving...
               </span>
-            ) : apartment ? "Enregistrer" : "Créer"}
+            ) : apartment ? "Save" : "Create"}
           </Button>
         </div>
       </DialogContent>

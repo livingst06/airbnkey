@@ -269,7 +269,9 @@ export function ApartmentMap({
       className: "custom-popup",
     })
 
-    const meta = `${apartment.beds} couchages • ${apartment.bathrooms} salle de bain`
+    const bedLabel = apartment.beds === 1 ? "bed" : "beds"
+    const bathroomLabel = apartment.bathrooms === 1 ? "bathroom" : "bathrooms"
+    const meta = `${apartment.beds} ${bedLabel} • ${apartment.bathrooms} ${bathroomLabel}`
     const firstImage = getApartmentImageSrc(apartment.images)
     const popupContent = document.createElement("div")
     popupContent.className = "popup-card cursor-pointer"

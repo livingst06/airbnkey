@@ -3,6 +3,7 @@
 import { RotateCcw } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { APARTMENT_CHARACTERISTIC_LABELS } from "@/lib/apartment-field-labels"
 import { listingSectionLabel } from "@/lib/listing-ui"
 import { cn } from "@/lib/utils"
 
@@ -14,16 +15,16 @@ export type FilterTagOption = {
 export type ApartmentSort = "default" | "beds_asc" | "beds_desc"
 
 const SORT_OPTIONS: { value: ApartmentSort; label: string }[] = [
-  { value: "default", label: "Par défaut" },
-  { value: "beds_asc", label: "Couchages (croissant)" },
-  { value: "beds_desc", label: "Couchages (décroissant)" },
+  { value: "default", label: "Default" },
+  { value: "beds_asc", label: "Beds (ascending)" },
+  { value: "beds_desc", label: "Beds (descending)" },
 ]
 
 const BED_OPTIONS: { value: number | null; label: string }[] = [
-  { value: null, label: "Tous" },
-  { value: 2, label: "2+ lits" },
-  { value: 4, label: "4+ lits" },
-  { value: 6, label: "6+ lits" },
+  { value: null, label: "All" },
+  { value: 2, label: "2+ beds" },
+  { value: 4, label: "4+ beds" },
+  { value: 6, label: "6+ beds" },
 ]
 
 const CHIP_BASE =
@@ -88,22 +89,22 @@ export function FilterBar({
         )}
       >
         <label htmlFor="apartment-search" className={cn(listingSectionLabel, "sr-only")}>
-          Recherche
+          Search
         </label>
         <input
           id="apartment-search"
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Rechercher un appartement…"
-          aria-label="Rechercher un appartement"
+          placeholder="Search apartments..."
+          aria-label="Search apartments"
           className="min-h-12 w-full rounded-xl border border-border bg-background px-4 py-3 text-base font-normal leading-normal tracking-tight text-foreground shadow-none placeholder:text-muted-foreground/50 focus:border-border focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/12 dark:bg-background/80 dark:placeholder:text-muted-foreground/45 dark:focus:ring-primary/25"
           autoComplete="off"
         />
       </div>
 
       <div className="flex min-w-0 flex-col gap-2.5">
-        <span className={listingSectionLabel}>Couchages</span>
+        <span className={listingSectionLabel}>{APARTMENT_CHARACTERISTIC_LABELS.beds}</span>
         <div className="flex flex-wrap gap-x-2 gap-y-2.5">
           {BED_OPTIONS.map(({ value, label }) => {
             const active = bedsMin === value
@@ -123,7 +124,7 @@ export function FilterBar({
       </div>
 
       <div className="flex min-w-0 w-full flex-col gap-2.5 md:w-auto md:min-w-[220px]">
-        <span className={listingSectionLabel}>Trier par</span>
+        <span className={listingSectionLabel}>Sort by</span>
         <div className="flex flex-wrap gap-x-2 gap-y-2.5">
           {SORT_OPTIONS.map(({ value, label }) => {
             const active = sort === value
@@ -144,7 +145,7 @@ export function FilterBar({
 
       {availableTags.length > 0 ? (
         <div className="flex min-w-0 flex-col gap-2.5 md:max-w-xl">
-          <span className={listingSectionLabel}>Équipements</span>
+          <span className={listingSectionLabel}>Amenities</span>
           <div className="flex flex-wrap gap-x-2 gap-y-2.5">
             {availableTags.map(({ key, label }) => {
               const active = selectedTags.includes(key)
@@ -176,7 +177,7 @@ export function FilterBar({
           size="sm"
           disabled={!hasActiveFilters}
           onClick={onReset}
-          aria-label="Réinitialiser tous les filtres"
+          aria-label="Reset all filters"
           className={cn(
             "w-full shrink-0 justify-center gap-2 rounded-xl border border-transparent text-sm font-medium text-muted-foreground hover:border-border/60 hover:bg-muted/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-[0.35] disabled:hover:border-transparent disabled:hover:bg-transparent dark:hover:border-white/[0.08] dark:hover:bg-white/[0.05] dark:disabled:hover:bg-transparent md:w-auto md:px-4",
             compact ? "h-10 md:h-9 xl:h-9" : "h-10 md:h-9",
@@ -186,7 +187,7 @@ export function FilterBar({
             className="size-3.5 shrink-0 opacity-70"
             aria-hidden
           />
-          Réinitialiser
+          Reset
         </Button>
       </div>
     </div>

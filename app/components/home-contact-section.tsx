@@ -24,8 +24,8 @@ export function HomeContactSection({
         Contact
       </h2>
       <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-        Une question sur un logement ou une disponibilité ? Laissez-nous un
-        message, nous vous répondrons dans les meilleurs délais.
+        Have a question about an apartment or availability? Leave us a message
+        and we will reply as soon as possible.
       </p>
       <form onSubmit={onSubmit} className="max-w-xl space-y-4">
         <Textarea
@@ -33,7 +33,7 @@ export function HomeContactSection({
           name="message"
           value={message}
           onChange={(event) => onMessageChange(event.target.value)}
-          placeholder="Votre message…"
+          placeholder="Your message..."
           required
           minLength={5}
           rows={5}
@@ -45,7 +45,7 @@ export function HomeContactSection({
           disabled={isSubmitting}
           className="w-full rounded-xl text-base font-medium disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSubmitting ? "Envoi..." : "Envoyer"}
+          {isSubmitting ? "Sending..." : "Send"}
         </Button>
       </form>
     </section>

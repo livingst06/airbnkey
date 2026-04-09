@@ -12,7 +12,7 @@ export function AdminAddApartmentCard({ onAdd }: AdminAddApartmentCardProps) {
       <button
         type="button"
         onClick={onAdd}
-        aria-label="Ajouter un appartement"
+        aria-label="Add an apartment"
         className="group mx-0 flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-emerald-400/20 bg-emerald-400/[0.08] p-0 text-left shadow-sm backdrop-blur-md transition-[box-shadow,transform,background-color,border-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] md:hover:scale-[1.01] md:hover:bg-emerald-400/[0.12] md:hover:shadow-lg dark:border-emerald-300/16 dark:bg-emerald-300/[0.08] dark:md:hover:bg-emerald-300/[0.12]"
       >
         <div className="flex flex-col xl:min-h-[15rem] xl:flex-row">
@@ -25,7 +25,7 @@ export function AdminAddApartmentCard({ onAdd }: AdminAddApartmentCardProps) {
           </div>
           <div className="flex flex-1 items-center justify-center px-4 py-6 xl:px-6">
             <p className="text-center text-sm text-emerald-50/80 transition-colors duration-200 ease-out group-hover:text-emerald-50">
-              Ajouter un appartement
+              Add apartment
             </p>
           </div>
         </div>

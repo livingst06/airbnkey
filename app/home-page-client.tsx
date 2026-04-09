@@ -35,7 +35,7 @@ const ApartmentMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex h-full w-full items-center justify-center bg-card text-sm text-muted-foreground">
-        Chargement de la carte...
+        Loading map...
       </div>
     ),
   },
@@ -109,7 +109,7 @@ export function HomePageClient() {
       }
     }
     return Array.from(seen.entries())
-      .sort(([a], [b]) => a.localeCompare(b, "fr"))
+      .sort(([a], [b]) => a.localeCompare(b, "en"))
       .map(([key, label]) => ({ key, label }))
   }, [uiApartments])
 
@@ -142,11 +142,11 @@ export function HomePageClient() {
     const list = [...filteredApartments]
     if (sort === "beds_asc") {
       list.sort(
-        (a, b) => a.beds - b.beds || a.title.localeCompare(b.title, "fr"),
+        (a, b) => a.beds - b.beds || a.title.localeCompare(b.title, "en"),
       )
     } else if (sort === "beds_desc") {
       list.sort(
-        (a, b) => b.beds - a.beds || a.title.localeCompare(b.title, "fr"),
+        (a, b) => b.beds - a.beds || a.title.localeCompare(b.title, "en"),
       )
     }
     return list
@@ -179,7 +179,7 @@ export function HomePageClient() {
           setLocalOrderedIds(null)
         }
       } catch {
-        if (!cancelled) toast.error("Actualisation des appartements impossible")
+        if (!cancelled) toast.error("Apartment refresh failed")
       }
     }
 
@@ -249,7 +249,7 @@ export function HomePageClient() {
         body: JSON.stringify({ message }),
       })
       if (res.ok) {
-        toast.success("Message envoyé")
+        toast.success("Message sent")
         setMessage("")
       } else {
         const payload = (await res.json().catch(() => null)) as {
@@ -257,10 +257,10 @@ export function HomePageClient() {
         } | null
         const messageFromApi =
           payload && typeof payload.error === "string" ? payload.error : null
-        toast.error(messageFromApi ?? "Envoi impossible, réessayez plus tard.")
+        toast.error(messageFromApi ?? "Sending failed, please try again later.")
       }
     } catch {
-      toast.error("Envoi impossible, réessayez plus tard.")
+      toast.error("Sending failed, please try again later.")
     } finally {
       setIsSubmitting(false)
     }
@@ -274,12 +274,12 @@ export function HomePageClient() {
             Airbnkey
           </h1>
           <p className="mt-4 max-w-xl text-[15px] font-normal leading-relaxed text-muted-foreground md:mt-3">
-            Locations d’appartements à Cannes
+            Apartment rentals in Cannes
           </p>
         </section>
 
         <section
-          id="appartements"
+          id="apartments"
           className="scroll-mt-20 max-lg:flex max-lg:flex-col"
         >
           <div
@@ -301,10 +301,10 @@ export function HomePageClient() {
                   <div className="flex items-end justify-end gap-4 xl:px-1">
                     <p className="mb-0 whitespace-nowrap text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground">
                       {sortedApartments.length === 0
-                        ? "0 appartement"
+                        ? "0 apartments"
                         : sortedApartments.length === 1
-                          ? "1 appartement"
-                          : `${sortedApartments.length} appartements`}
+                          ? "1 apartment"
+                          : `${sortedApartments.length} apartments`}
                     </p>
                   </div>
                   <FilterBar
@@ -323,10 +323,10 @@ export function HomePageClient() {
                 </div>
                 <p className="mb-0 text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground lg:mb-4 xl:hidden">
                   {sortedApartments.length === 0
-                    ? "0 appartement trouvé"
+                    ? "0 apartments found"
                     : sortedApartments.length === 1
-                      ? "1 appartement trouvé"
-                      : `${sortedApartments.length} appartements trouvés`}
+                      ? "1 apartment found"
+                      : `${sortedApartments.length} apartments found`}
                 </p>
               </div>
               <div

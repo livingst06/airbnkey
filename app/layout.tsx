@@ -28,13 +28,13 @@ export const metadata: Metadata = {
     default: "Airbnkey",
     template: "%s | Airbnkey",
   },
-  description: "Locations d’appartements à Cannes",
+  description: "Apartment rentals in Cannes",
   icons: {
     icon: "/favicon.svg",
   },
 };
 
-/** Layout global (thème + navigation), sans chargement direct des appartements. */
+/** Global layout (theme + navbar), without apartment loading. */
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -42,7 +42,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html
-      lang="fr"
+      lang="en"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

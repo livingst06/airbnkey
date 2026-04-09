@@ -39,7 +39,7 @@ export function ApartmentCardAdmin({
         <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
           <button
             type="button"
-            aria-label="Modifier cet appartement"
+            aria-label="Edit this apartment"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
@@ -48,13 +48,13 @@ export function ApartmentCardAdmin({
             className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-orange-300/55 bg-orange-400 px-3 py-2 text-xs font-semibold tracking-tight text-orange-950 shadow-[0_10px_24px_rgba(251,146,60,0.32)] transition-all duration-200 ease-out hover:scale-[1.02] hover:bg-orange-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-orange-200/35 dark:bg-orange-400 dark:text-orange-950 dark:hover:bg-orange-300"
           >
             <Pencil className="size-3.5 shrink-0" aria-hidden strokeWidth={2.2} />
-            <span>Modifier</span>
+            <span>Edit</span>
           </button>
           <Button
             type="button"
             size="icon"
             variant="ghost"
-            aria-label="Supprimer cet appartement"
+            aria-label="Delete this apartment"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()

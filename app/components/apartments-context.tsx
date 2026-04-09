@@ -16,6 +16,7 @@ import {
   updateApartmentAction,
   updateApartmentsOrderAction,
 } from "@/app/actions/apartments"
+import { mapAdminActionErrorToUserMessage } from "@/lib/apartment-form-error-message"
 import type { ApartmentFormInput } from "@/lib/apartment-zod"
 import type { Apartment } from "@/types/apartments"
 
@@ -71,10 +72,15 @@ function clearApartmentOrderPersistence() {
 
 function actionErrorMessage(
   fallback: string,
-  payload: { error?: string } | { ok: false; error: string },
+  payload:
+    | { error?: string; userMessage?: string }
+    | { ok: false; error: string; userMessage?: string },
 ) {
-  if ("error" in payload && typeof payload.error === "string" && payload.error.trim()) {
-    return payload.error
+  if ("userMessage" in payload && typeof payload.userMessage === "string" && payload.userMessage.trim()) {
+    return payload.userMessage
+  }
+  if ("error" in payload && typeof payload.error === "string") {
+    return mapAdminActionErrorToUserMessage(payload.error, fallback)
   }
   return fallback
 }
@@ -98,7 +104,7 @@ export function ApartmentsProvider({
     async (input: ApartmentFormInput) => {
       const r = await createApartmentAction(input)
       if (!r.ok) {
-        throw new Error(actionErrorMessage("Création impossible", r))
+        throw new Error(actionErrorMessage("Creation failed", r))
       }
       const list = await syncFromDb()
       const created = list.find((a) => a.id === r.apartment.id) ?? r.apartment
@@ -111,7 +117,7 @@ export function ApartmentsProvider({
     async (id: string, input: ApartmentFormInput) => {
       const r = await updateApartmentAction(id, input)
       if (!r.ok) {
-        throw new Error(actionErrorMessage("Mise à jour impossible", r))
+        throw new Error(actionErrorMessage("Update failed", r))
       }
       await syncFromDb()
     },
@@ -122,7 +128,7 @@ export function ApartmentsProvider({
     async (id: string) => {
       const r = await deleteApartmentAction(id)
       if (!r.ok) {
-        throw new Error(actionErrorMessage("Suppression impossible", r))
+        throw new Error(actionErrorMessage("Delete failed", r))
       }
       await syncFromDb()
     },
@@ -136,9 +142,7 @@ export function ApartmentsProvider({
         const r = await updateApartmentsOrderAction(ordered)
         if (!r.ok) {
           clearApartmentOrderPersistence()
-          toast.error(
-            "error" in r && r.error ? r.error : "Ordre non enregistré",
-          )
+          toast.error(actionErrorMessage("Order could not be saved.", r))
           await syncFromDb()
           return
         }

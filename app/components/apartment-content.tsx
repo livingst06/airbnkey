@@ -57,6 +57,10 @@ function formatRatingAverage(value: number): string {
   return value.toFixed(1)
 }
 
+function pluralize(count: number, singular: string, plural: string) {
+  return `${count} ${count === 1 ? singular : plural}`
+}
+
 function getApartmentLocationLine(
   city: string | null | undefined,
   street: string | null | undefined,
@@ -113,7 +117,7 @@ export function ApartmentContent({
   const visibleAdvantages = advantages.slice(0, 3)
   const extraAdvantageCount = Math.max(0, advantages.length - 3)
 
-  const metaLine = `${apartment.beds} couchages • ${apartment.bathrooms} salle${apartment.bathrooms > 1 ? "s" : ""} de bain`
+  const metaLine = `${pluralize(apartment.beds, "bed", "beds")} • ${pluralize(apartment.bathrooms, "bathroom", "bathrooms")}`
   const description = apartment.description?.trim() ?? ""
   const locationLine = getApartmentLocationLine(apartment.city, apartment.street)
   const hasRatingSummary =
@@ -295,7 +299,7 @@ export function ApartmentContent({
                       <Badge
                         variant="outline"
                         className="border-white/10 bg-white/[0.03] px-2 py-0.5 text-[0.66rem] leading-none text-muted-foreground dark:bg-white/[0.04]"
-                        title={`${extraAdvantageCount} autre${extraAdvantageCount > 1 ? "s" : ""}`}
+                        title={`${extraAdvantageCount} more`}
                       >
                         +{extraAdvantageCount}
                       </Badge>
@@ -314,7 +318,7 @@ export function ApartmentContent({
               {advantages.length > 0 ? (
                 <section className="space-y-0">
                   <h3 className={cn(listingSectionLabel, "sr-only")}>
-                    Équipements
+                    Amenities
                   </h3>
                   <div className={cn("flex flex-wrap gap-2", isSplit && "xl:gap-1.5")}>
                     {visibleAdvantages.map((advantage: string, idx: number) => (
@@ -338,7 +342,7 @@ export function ApartmentContent({
                             "xl:px-2.5 xl:py-1 xl:text-[0.7rem] xl:leading-none",
                           "bg-muted/20 dark:bg-white/[0.04]",
                         )}
-                        title={`${extraAdvantageCount} autre${extraAdvantageCount > 1 ? "s" : ""}`}
+                        title={`${extraAdvantageCount} more`}
                       >
                         +{extraAdvantageCount}
                       </Badge>

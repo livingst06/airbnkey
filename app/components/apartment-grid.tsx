@@ -247,10 +247,10 @@ export function ApartmentGrid({
     setIsDeleting(true)
     try {
       await deleteApartment(deleteVictim.id)
-      toast.success(`Appartement "${apartmentName}" supprimé`)
+      toast.success(`Apartment "${apartmentName}" deleted`)
       setDeleteApartmentId(null)
     } catch (error) {
-      toast.error(getErrorMessage(error, "Suppression impossible"))
+      toast.error(getErrorMessage(error, "Delete failed"))
     } finally {
       setIsDeleting(false)
     }
@@ -263,10 +263,10 @@ export function ApartmentGrid({
         role="status"
       >
         <p className="max-w-sm text-base font-medium text-foreground">
-          Aucun appartement ne correspond à votre recherche
+          No apartment matches your search
         </p>
         <p className="max-w-xs text-sm text-muted-foreground">
-          Élargissez les critères ou réinitialisez les filtres.
+          Broaden your filters or reset them.
         </p>
         <Button
           type="button"
@@ -275,7 +275,7 @@ export function ApartmentGrid({
           onClick={onResetFilters}
           className="rounded-xl"
         >
-          Réinitialiser les filtres
+          Reset filters
         </Button>
       </div>
     )
@@ -319,8 +319,7 @@ export function ApartmentGrid({
       {adminMode && !adminReorderEnabled ? (
         <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-orange-500/20 bg-orange-500/8 px-4 py-3 text-sm text-muted-foreground">
           <p>
-            Le drag-and-drop est disponible quand les filtres sont réinitialisés
-            et que le tri par défaut est actif.
+            Drag-and-drop is available when filters are reset and default sorting is active.
           </p>
           <Button
             type="button"
@@ -329,7 +328,7 @@ export function ApartmentGrid({
             onClick={onResetFilters}
             className="shrink-0 rounded-xl"
           >
-            Réinitialiser
+            Reset
           </Button>
         </div>
       ) : null}
@@ -379,10 +378,10 @@ export function ApartmentGrid({
               role="status"
             >
               <p className="max-w-sm text-base font-medium text-foreground">
-                Aucun appartement ne correspond à votre recherche
+                No apartment matches your search
               </p>
               <p className="max-w-xs text-sm text-muted-foreground">
-                Réinitialisez les filtres ou ajoutez un nouvel appartement.
+                Reset filters or add a new apartment.
               </p>
               <Button
                 type="button"
@@ -391,7 +390,7 @@ export function ApartmentGrid({
                 onClick={onResetFilters}
                 className="rounded-xl"
               >
-                Réinitialiser les filtres
+                Reset filters
               </Button>
             </div>
           ) : null}

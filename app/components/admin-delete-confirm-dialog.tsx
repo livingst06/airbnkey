@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Loader2, XIcon } from "lucide-react"
+import { APARTMENT_CHARACTERISTIC_LABELS } from "@/lib/apartment-field-labels"
 
 import { useMemo } from "react"
 
@@ -55,7 +56,7 @@ export function AdminDeleteConfirmDialog({
           <DialogClose asChild>
             <button
               type="button"
-              aria-label="Fermer"
+              aria-label="Close"
               disabled={isDeleting}
               className="absolute right-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition-all duration-200 ease-out hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-800/80 dark:hover:bg-neutral-700/90"
             >
@@ -66,10 +67,10 @@ export function AdminDeleteConfirmDialog({
           <div className="no-scrollbar flex-1 overflow-y-auto p-6 md:p-8">
             <div className="space-y-2">
               <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground">
-                Supprimer cet appartement ?
+                Delete this apartment?
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">
-                Cette action est définitive.
+                This action is permanent.
               </DialogDescription>
             </div>
 
@@ -89,7 +90,7 @@ export function AdminDeleteConfirmDialog({
                   {apartment.title}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {apartment.beds} couchages • {apartment.bathrooms} salle de bain
+                  {apartment.beds} {APARTMENT_CHARACTERISTIC_LABELS.beds.toLowerCase()} • {apartment.bathrooms} {APARTMENT_CHARACTERISTIC_LABELS.bathrooms.toLowerCase()}
                 </div>
                 {apartment.advantages?.length ? (
                   <div className="flex flex-wrap gap-2 pt-2">
@@ -114,7 +115,7 @@ export function AdminDeleteConfirmDialog({
                   disabled={isDeleting}
                   className="rounded-xl"
                 >
-                  Annuler
+                  Cancel
                 </Button>
               </DialogClose>
               <Button
@@ -129,10 +130,10 @@ export function AdminDeleteConfirmDialog({
                 {isDeleting ? (
                   <span className="inline-flex items-center gap-2">
                     <Loader2 className="size-4 animate-spin" />
-                    Suppression...
+                    Deleting...
                   </span>
                 ) : (
-                  "Supprimer définitivement"
+                  "Delete permanently"
                 )}
               </Button>
             </div>

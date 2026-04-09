@@ -9,8 +9,8 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
 
 const sectionNavLinks = [
-  { id: "appartements", href: "/#appartements", label: "Appartements" },
-  { id: "about", href: "/#about", label: "À propos" },
+  { id: "apartments", href: "/#apartments", label: "Apartments" },
+  { id: "about", href: "/#about", label: "About" },
   { id: "contact", href: "/#contact", label: "Contact" },
 ] as const
 
@@ -27,7 +27,7 @@ function AdminModeToggle() {
       type="button"
       onClick={toggleAdminMode}
       aria-label={
-        isAdminMode ? "Désactiver le mode admin" : "Activer le mode admin"
+        isAdminMode ? "Disable admin mode" : "Enable admin mode"
       }
       aria-pressed={isAdminMode}
       className={cn(
@@ -45,8 +45,8 @@ function AdminModeToggle() {
 export function Navbar() {
   const navLinks = useMemo(() => sectionNavLinks, [])
 
-  const [activeSection, setActiveSection] = useState<SectionId>("appartements")
-  const activeNavIdRef = useRef<NavId>("appartements")
+  const [activeSection, setActiveSection] = useState<SectionId>("apartments")
+  const activeNavIdRef = useRef<NavId>("apartments")
 
   const indicatorRef = useRef<HTMLSpanElement | null>(null)
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
@@ -176,7 +176,7 @@ export function Navbar() {
           <Link
             href="/"
             className="transition-opacity hover:opacity-80"
-            aria-label="Airbnkey — accueil"
+            aria-label="Airbnkey home"
           >
             <Image
               src="/favicon.svg"
@@ -193,7 +193,7 @@ export function Navbar() {
 
         <nav
           className="hidden min-w-0 justify-self-center md:flex"
-          aria-label="Navigation principale"
+          aria-label="Main navigation"
         >
           <div
             ref={linksWrapperRef}
