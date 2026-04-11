@@ -47,6 +47,35 @@ function AdminModeToggle() {
 
 type OAuthProvider = "google" | "facebook" | "apple"
 
+function resolveAuthRedirectOrigin() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+  const siteOrigin = (() => {
+    if (!siteUrl) return null
+    try {
+      return new URL(siteUrl).origin
+    } catch {
+      return null
+    }
+  })()
+
+  if (typeof window === "undefined") return siteOrigin
+
+  const currentOrigin = window.location.origin
+  const hostname = window.location.hostname
+  const isLocalhost =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1"
+
+  // In production-like contexts, prefer the canonical site origin
+  // to avoid accidental fallback to localhost-based auth setup.
+  if (!isLocalhost && siteOrigin) {
+    return siteOrigin
+  }
+
+  return currentOrigin
+}
+
 function AuthControls() {
   const { isSignedIn, userEmail, setAdminMode } = useAdminUi()
   const router = useRouter()
@@ -73,7 +102,10 @@ function AuthControls() {
       setPendingAction(provider)
       try {
         const supabase = getSupabaseBrowserClient()
-        const origin = window.location.origin
+        const origin = resolveAuthRedirectOrigin()
+        if (!origin) {
+          throw new Error("Sign-in unavailable: missing NEXT_PUBLIC_SITE_URL")
+        }
         const nextPath = pathname || "/"
         const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
         const { error } = await supabase.auth.signInWithOAuth({

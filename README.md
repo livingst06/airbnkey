@@ -32,6 +32,22 @@ pnpm start
 - `ADMIN_LIST` : emails admin autorisés, séparés par des virgules (ex: `admin1@example.com,admin2@example.com`).
 - `NEXT_PUBLIC_IMAGE_UPLOAD_FALLBACK=dataurl` : fallback local / debug si l'upload Supabase n'est pas configuré.
 
+### Étanchéité DEV / PROD
+
+- Utiliser **deux projets Supabase distincts**:
+  - `airbnkey-dev` pour localhost et la base de dev
+  - `airbnkey-prod` pour Vercel et la base de prod
+- Ne jamais partager les clés `NEXT_PUBLIC_SUPABASE_*` ni `DATABASE_URL` entre dev et prod.
+- En prod Vercel, `NEXT_PUBLIC_SITE_URL` doit pointer vers l'URL publique (`https://airbnkey.vercel.app` ou domaine custom).
+
+### OAuth Google/Facebook/Apple (règles de redirect)
+
+- Côté provider (Google Cloud, Meta, Apple): redirect OAuth vers `https://<supabase-ref>/auth/v1/callback`.
+- Côté Supabase URL Configuration:
+  - DEV: `Site URL = http://localhost:3000`, redirect `http://localhost:3000/auth/callback`
+  - PROD: `Site URL = https://airbnkey.vercel.app`, redirect `https://airbnkey.vercel.app/auth/callback`
+- Si un login prod redirige vers localhost, c'est généralement que la prod pointe encore vers le projet Supabase de dev.
+
 ### Architecture runtime
 
 - Le layout global ne charge plus les appartements ni le provider client.
@@ -47,11 +63,12 @@ pnpm build
 
 Puis :
 
-1. Vérifier que `DATABASE_URL` pointe vers la bonne base de données de production.
-2. Exécuter `pnpm db:push` avant le premier déploiement si le schéma n'est pas encore appliqué.
-3. Si la contrainte `position` unique est ajoutée sur une base existante, exécuter d'abord `pnpm db:backfill-positions`.
-4. Renseigner les mêmes variables dans Vercel avant le déploiement.
-5. Vérifier que `/` et `/admin` lisent bien les appartements après déploiement.
+1. Créer une migration en dev: `pnpm db:migrate:dev --name <description>`.
+2. Tester localement et committer `prisma/migrations/*`.
+3. Vérifier le statut migration: `pnpm db:migrate:status`.
+4. Appliquer en production (avec `DATABASE_URL` prod): `pnpm db:migrate:deploy`.
+5. Déployer l'app sur Vercel.
+6. Vérifier le login OAuth et les droits admin whitelist en prod.
 
 ### Note production
 
