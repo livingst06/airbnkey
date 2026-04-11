@@ -1,9 +1,9 @@
 import { ApartmentsProvider } from "@/app/components/apartments-context"
 import { HomePageClient } from "@/app/home-page-client"
-import { getApartmentsCached } from "@/lib/apartments-db"
+import { getApartmentsFresh } from "@/lib/apartments-db"
 
 export default async function HomePage() {
-  const initialApartments = await getApartmentsCached().catch((error) => {
+  const initialApartments = await getApartmentsFresh().catch((error) => {
     console.error("[home-page] apartments load failed", error)
     return []
   })
