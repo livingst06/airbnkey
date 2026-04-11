@@ -23,7 +23,7 @@ model Apartment {
   longitude   Float
   advantages  Json
   images      Json
-  bookingUrl  String
+  bookingUrl  String?
   /// Ordre d'affichage (0 = premier). Tri principal côté API.
   position    Int      @default(0)
   createdAt   DateTime @default(now())

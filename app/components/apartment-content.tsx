@@ -98,7 +98,7 @@ export function ApartmentContent({
   const isSplit = variant === "split"
 
   const listingHref = useMemo(() => {
-    const t = apartment.bookingUrl.trim()
+    const t = apartment.bookingUrl?.trim() ?? ""
     if (
       !t ||
       (!t.startsWith("http://") && !t.startsWith("https://"))

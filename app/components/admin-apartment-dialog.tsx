@@ -236,7 +236,7 @@ export function AdminApartmentDialog({
       setLatitude(apartment.latitude)
       setLongitude(apartment.longitude)
       setImages([...apartment.images])
-      setBookingUrl(apartment.bookingUrl.trim())
+      setBookingUrl(apartment.bookingUrl?.trim() ?? "")
     } else {
       setTitle("")
       setDescription("")
@@ -545,7 +545,10 @@ export function AdminApartmentDialog({
                   </div>
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>{APARTMENT_FIELD_LABELS.bookingUrl}</label>
+                  <label className={LABEL_CLS}>
+                    {APARTMENT_FIELD_LABELS.bookingUrl}{" "}
+                    <span className="font-normal text-muted-foreground">(optional)</span>
+                  </label>
                   <input
                     type="url"
                     value={bookingUrl}

@@ -4,16 +4,15 @@ import { APARTMENT_FIELD_LABELS } from "@/lib/apartment-field-labels"
 const bookingUrlField = z
   .string()
   .transform((value) => value.trim())
-  .refine((value) => value.length > 0, {
-    message: `${APARTMENT_FIELD_LABELS.bookingUrl} is required`,
-  })
+  .transform((value) => (value.length === 0 ? null : value))
   .refine(
-    (value) => value.startsWith("http://") || value.startsWith("https://"),
+    (value) => value === null || value.startsWith("http://") || value.startsWith("https://"),
     {
       message: `${APARTMENT_FIELD_LABELS.bookingUrl} must start with http:// or https://`,
     },
   )
   .refine((value) => {
+    if (value === null) return true
     try {
       const parsed = new URL(value)
       return parsed.protocol === "http:" || parsed.protocol === "https:"

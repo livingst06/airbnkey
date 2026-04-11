@@ -95,7 +95,7 @@ export function rowToApartment(row: ApartmentRow): Apartment {
     position: normalizeNonNegativeInt(row.position),
     /** Chaque entrée : URL absolue, chemin `/...` (public), ou legacy `data:image/...`. */
     images: jsonValueToStringArray(row.images),
-    bookingUrl: row.bookingUrl.trim(),
+    bookingUrl: row.bookingUrl?.trim() || null,
   }
 }
 
@@ -116,7 +116,7 @@ export function apartmentToDbPayload(a: {
   latitude: number
   longitude: number
   images: string[]
-  bookingUrl: string
+  bookingUrl?: string | null
   position?: number
 }) {
   return {
@@ -135,7 +135,7 @@ export function apartmentToDbPayload(a: {
     longitude: a.longitude,
     advantages: a.advantages as Prisma.InputJsonValue,
     images: a.images as Prisma.InputJsonValue,
-    bookingUrl: a.bookingUrl.trim(),
+    bookingUrl: a.bookingUrl?.trim() || null,
     position: a.position ?? 0,
   }
 }
@@ -157,7 +157,7 @@ export function apartmentToPrismaUpdateData(
   longitude: number
   advantages: Prisma.InputJsonValue
   images: Prisma.InputJsonValue
-  bookingUrl: string
+  bookingUrl?: string | null
 } {
   return {
     title: data.title,
@@ -173,6 +173,6 @@ export function apartmentToPrismaUpdateData(
     longitude: data.longitude,
     advantages: data.advantages as Prisma.InputJsonValue,
     images: data.images as Prisma.InputJsonValue,
-    bookingUrl: data.bookingUrl.trim(),
+    bookingUrl: data.bookingUrl?.trim() || null,
   }
 }

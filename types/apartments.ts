@@ -30,6 +30,6 @@ export type Apartment = {
     position: number
     /** URLs absolues, chemins sous /public, ou anciennes valeurs `data:image/...`. */
     images: string[]
-    /** External booking URL. */
-    bookingUrl: string
+    /** External booking URL (optional). */
+    bookingUrl?: string | null
   }
