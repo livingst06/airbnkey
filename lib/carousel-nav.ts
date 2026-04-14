@@ -4,4 +4,4 @@ export const carouselNavButtonClass =
 
 /** Classes pour ChevronLeft / ChevronRight (référence unique). */
 export const carouselChevronIconClass =
-  "h-5 w-5 text-black/70 dark:text-white/80"
+  "h-5 w-5 text-white/80"
