@@ -32,6 +32,8 @@ export function ApartmentCard({
   className,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null)
+  const isMapHoverHighlight =
+    hoverSource === "map" && hoveredApartmentId === apartment.id
 
   useEffect(() => {
     if (hoverSource !== "map" || hoveredApartmentId !== apartment.id) return
@@ -102,7 +104,9 @@ export function ApartmentCard({
           role="article"
           aria-labelledby={titleId}
           className={cn(
-            "group flex gap-0 overflow-hidden rounded-2xl border border-border/65 bg-card/92 p-0 shadow-[0_12px_28px_rgba(16,18,24,0.08)] dark:shadow-[0_16px_32px_rgba(0,0,0,0.32)]",
+            "group flex gap-0 overflow-hidden rounded-2xl border border-border/65 bg-card/92 p-0 shadow-[0_12px_28px_rgba(16,18,24,0.08)] transition-colors duration-200 dark:shadow-[0_16px_32px_rgba(0,0,0,0.32)]",
+            isMapHoverHighlight &&
+              "border-slate-500/70 dark:border-slate-300/75",
             isSplit
               ? "h-full flex-col xl:min-h-[15rem] xl:flex-row"
               : "h-full flex-col",

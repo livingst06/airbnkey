@@ -74,7 +74,7 @@ export function FilterBar({
   return (
     <div
       className={cn(
-          "flex flex-col gap-6 rounded-2xl border border-solid border-border/50 bg-card/55 p-5 shadow-[0_10px_22px_rgba(16,18,24,0.06)] transition-[background-color,border-color] duration-200 md:flex-row md:flex-wrap md:items-start md:gap-x-8 md:gap-y-6 md:p-6 lg:gap-x-10",
+        "flex flex-col gap-6 rounded-2xl border border-solid border-border/50 bg-card/55 p-5 shadow-[0_10px_22px_rgba(16,18,24,0.06)] transition-[background-color,border-color] duration-200 md:flex-row md:flex-wrap md:items-start md:gap-x-8 md:gap-y-6 md:p-6 lg:gap-x-10",
         compact
           ? "xl:gap-4 xl:gap-x-5 xl:gap-y-4 xl:p-4"
           : null,

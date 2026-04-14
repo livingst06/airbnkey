@@ -296,8 +296,8 @@ export function HomePageClient() {
                 "max-lg:min-h-0 lg:flex-1",
               )}
             >
-              <div className="flex shrink-0 flex-col gap-5 border-b border-border/45 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0 xl:gap-4">
-                <div className="flex flex-col gap-3 xl:rounded-[1.75rem] xl:border xl:border-border/55 xl:bg-card/65 xl:p-4 xl:shadow-[0_14px_30px_rgba(16,18,24,0.08)] xl:backdrop-blur-xl">
+              <div className="flex shrink-0 flex-col gap-4 border-b border-border/45 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0 xl:gap-3">
+                <div className="flex flex-col gap-3">
                   <div className="flex items-end justify-end gap-4 xl:px-1">
                     <p className="mb-0 whitespace-nowrap text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground">
                       {sortedApartments.length === 0
@@ -330,7 +330,7 @@ export function HomePageClient() {
                 </p>
               </div>
               <div
-                className="@container no-scrollbar min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain xl:rounded-[1.75rem] xl:border xl:border-border/45 xl:bg-card/50 xl:p-3"
+                className="@container no-scrollbar min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain"
                 data-list-scroll
               >
                 <div

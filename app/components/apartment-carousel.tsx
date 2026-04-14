@@ -106,6 +106,7 @@ export function ApartmentCarousel({
   const navButtonClass = cn(
     "absolute inset-y-0 z-[14] my-auto rounded-full border border-white/22 bg-black/38 text-white/95 shadow-[0_10px_26px_rgba(0,0,0,0.36)] backdrop-blur-md",
     "transition-colors duration-200 ease-out hover:bg-black/54",
+    "opacity-100 md:pointer-events-none md:opacity-0 md:group-hover:pointer-events-auto md:group-hover:opacity-100",
     "focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-0",
     layout === "split" ? "h-9 w-9 xl:h-8 xl:w-8" : "h-10 w-10",
   )
