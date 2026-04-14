@@ -24,29 +24,32 @@ function getUploadSupabaseClient() {
  * - Sinon : upload vers Supabase Storage (bucket `apartments`).
  */
 export async function uploadImage(file: File): Promise<string> {
+  const blob = await compressImageFileToBlob(file)
   if (process.env.NEXT_PUBLIC_IMAGE_UPLOAD_FALLBACK === "dataurl") {
-    const blob = await compressImageFileToBlob(file)
     return blobToDataUrl(blob)
   }
 
-  const blob = await compressImageFileToBlob(file)
   const supabase = getUploadSupabaseClient()
   const id = crypto.randomUUID()
   const path = `apartments/${id}.jpg`
 
-  const { error } = await supabase.storage
-    .from("apartments")
-    .upload(path, blob, {
-      contentType: blob.type || "image/jpeg",
-      upsert: false,
-    })
+  try {
+    const { error } = await supabase.storage
+      .from("apartments")
+      .upload(path, blob, {
+        contentType: blob.type || "image/jpeg",
+        upsert: false,
+      })
 
-  if (error) {
-    throw new Error(error.message)
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const { data } = supabase.storage.from("apartments").getPublicUrl(path)
+    // TODO: add signed URLs or access control if needed in production
+    return data.publicUrl
+  } catch {
+    // Storage can fail when bucket/policies are not ready; keep admin flow usable.
+    return blobToDataUrl(blob)
   }
-
-  const { data } = supabase.storage.from("apartments").getPublicUrl(path)
-
-  // TODO: add signed URLs or access control if needed in production
-  return data.publicUrl
 }

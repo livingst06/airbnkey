@@ -681,9 +681,15 @@ export function AdminApartmentDialog({
                     ? "border-foreground bg-muted/80"
                     : "border-border bg-muted hover:border-foreground/40 hover:bg-muted/70"
                 } ${imageImportBusy ? "pointer-events-none opacity-60" : ""}`}
+                onDragEnter={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setIsDraggingImages(true)
+                }}
                 onDragOver={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
+                  e.dataTransfer.dropEffect = "copy"
                   setIsDraggingImages(true)
                 }}
                 onDragLeave={() => setIsDraggingImages(false)}
