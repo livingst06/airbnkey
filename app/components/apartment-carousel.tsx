@@ -105,10 +105,10 @@ export function ApartmentCarousel({
   }
 
   const imageHoverClass =
-    "md:transition-[transform,filter] md:duration-300 md:ease-out md:group-hover:scale-[1.03] md:group-hover:brightness-105 md:will-change-[transform]"
+    "md:transition-[filter] md:duration-300 md:ease-out md:group-hover:brightness-105"
   const navButtonClass = cn(
     "absolute inset-y-0 z-[14] my-auto rounded-full border border-white/30 bg-black/45 text-white/95 shadow-[0_12px_28px_rgba(0,0,0,0.4)] backdrop-blur-md",
-    "transition-all duration-200 ease-out hover:bg-black/62 hover:scale-[1.03] active:scale-[0.96]",
+    "transition-colors duration-200 ease-out hover:bg-black/62",
     "focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-0",
     layout === "split" ? "h-9 w-9 xl:h-8 xl:w-8" : "h-10 w-10",
   )

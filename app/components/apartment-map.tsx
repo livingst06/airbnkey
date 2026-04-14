@@ -95,9 +95,10 @@ const MARKER_HOVER_EMPHASIS_TOKENS = MARKER_HOVER_EMPHASIS_CLASS.split(" ")
 const MARKER_IDLE_BG = "#e5e7eb"
 const MARKER_IDLE_TEXT = "#000000"
 const MARKER_IDLE_BORDER = "transparent"
-const MARKER_ACTIVE_BG = "#000000"
+// Gris foncé explicite (évite l'effet "noir pur" visuellement).
+const MARKER_ACTIVE_BG = "#4b5563"
 const MARKER_ACTIVE_TEXT = "#ffffff"
-const MARKER_ACTIVE_BORDER = "#000000"
+const MARKER_ACTIVE_BORDER = "#4b5563"
 
 function canUseMapHoverInteractions() {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {

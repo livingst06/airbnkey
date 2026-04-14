@@ -23,7 +23,6 @@ type Props = {
 export function ApartmentCard({
   apartment,
   priority = false,
-  selectedApartmentId = null,
   hoveredApartmentId = null,
   hoverSource = null,
   layout = "default",
@@ -32,10 +31,6 @@ export function ApartmentCard({
   footerSlot,
   className,
 }: Props) {
-  const isSyncedHover = hoveredApartmentId === apartment.id
-  const isListHoverHighlight =
-    selectedApartmentId === apartment.id && !isSyncedHover
-  const isMapHoverDesktop = isSyncedHover && hoverSource === "map"
   const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -88,7 +83,6 @@ export function ApartmentCard({
   }, [hoverSource, hoveredApartmentId, apartment.id])
 
   const titleId = `${titleIdPrefix}-${apartment.id}`
-  const isHighlighted = isSyncedHover || isListHoverHighlight
   const isSplit = layout === "desktopSplit"
 
   const inner = (
@@ -108,13 +102,10 @@ export function ApartmentCard({
           role="article"
           aria-labelledby={titleId}
           className={cn(
-            "group flex gap-0 overflow-hidden rounded-2xl border border-border/55 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-white/10",
+            "group flex gap-0 overflow-hidden rounded-2xl border border-border/55 bg-card p-0 shadow-sm dark:border-white/10",
             isSplit
-              ? "h-full flex-col bg-card md:hover:scale-[1.01] md:hover:shadow-[0_16px_36px_rgba(0,0,0,0.18)] xl:min-h-[15rem] xl:flex-row xl:hover:scale-100"
-              : "h-full flex-col bg-card md:hover:scale-[1.01] md:hover:shadow-lg",
-            isHighlighted && "shadow-md dark:shadow-black/40",
-            isSyncedHover && "shadow-lg",
-            isMapHoverDesktop && "card-map-bounce",
+              ? "h-full flex-col xl:min-h-[15rem] xl:flex-row"
+              : "h-full flex-col",
             className,
           )}
         >
