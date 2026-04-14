@@ -83,14 +83,21 @@ const MARKER_ROOT_CLASS =
   "relative inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
 /** Inner : apparence du pill + transitions (scale/hover emphasis uniquement ici) */
 const MARKER_INNER_CLASS =
-  "relative z-[1] inline-flex items-center justify-center min-w-[56px] h-7 max-lg:min-h-8 px-2 rounded-full border border-neutral-200 bg-white text-neutral-900 shadow-sm transition-all duration-300 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+  "relative z-[1] inline-flex items-center justify-center min-w-[56px] h-7 max-lg:min-h-8 px-2 rounded-full border border-transparent shadow-sm transition-all duration-300 hover:shadow-md"
 const MARKER_SELECTED_CLASS =
-  "ring-2 ring-primary border-primary shadow-lg"
+  "shadow-lg"
 const MARKER_SELECTED_TOKENS = MARKER_SELECTED_CLASS.split(" ")
 /** Emphase sync hover : uniquement sur inner (scale autorisé) */
 const MARKER_HOVER_EMPHASIS_CLASS =
-  "scale-[1.2] border-primary bg-primary/15 text-primary shadow-md dark:bg-primary/20"
+  "scale-[1.2] shadow-md"
 const MARKER_HOVER_EMPHASIS_TOKENS = MARKER_HOVER_EMPHASIS_CLASS.split(" ")
+
+const MARKER_IDLE_BG = "#e5e7eb"
+const MARKER_IDLE_TEXT = "#000000"
+const MARKER_IDLE_BORDER = "transparent"
+const MARKER_ACTIVE_BG = "#000000"
+const MARKER_ACTIVE_TEXT = "#ffffff"
+const MARKER_ACTIVE_BORDER = "#000000"
 
 function canUseMapHoverInteractions() {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -109,6 +116,19 @@ function shouldTrackViewportResizes() {
 
 function isTouchDeviceMapMode() {
   return !canUseMapHoverInteractions()
+}
+
+function applyMarkerVisualState(inner: HTMLElement, active: boolean) {
+  if (active) {
+    inner.style.backgroundColor = MARKER_ACTIVE_BG
+    inner.style.color = MARKER_ACTIVE_TEXT
+    inner.style.borderColor = MARKER_ACTIVE_BORDER
+    return
+  }
+
+  inner.style.backgroundColor = MARKER_IDLE_BG
+  inner.style.color = MARKER_IDLE_TEXT
+  inner.style.borderColor = MARKER_IDLE_BORDER
 }
 
 export function ApartmentMap({
@@ -259,6 +279,7 @@ export function ApartmentMap({
 
     const inner = document.createElement("div")
     inner.className = MARKER_INNER_CLASS
+    applyMarkerVisualState(inner, false)
     inner.innerHTML = `<span class="text-[12px] font-semibold leading-none">${price}€</span>`
     el.appendChild(inner)
 
@@ -627,9 +648,11 @@ export function ApartmentMap({
 
     for (const [id, slot] of Object.entries(markersById)) {
       const isSelected = id === selectedId
+      const isHovered = hoveredId !== null && id === hoveredId
       for (const token of MARKER_SELECTED_TOKENS) {
         slot.inner.classList.toggle(token, isSelected)
       }
+      applyMarkerVisualState(slot.inner, isSelected || isHovered)
 
       for (const token of MARKER_HOVER_EMPHASIS_TOKENS) {
         slot.inner.classList.remove(token)
@@ -650,13 +673,16 @@ export function ApartmentMap({
   useEffect(() => {
     selectedApartmentIdRef.current = selectedApartmentId
     const markersById = markersByIdRef.current
+    const hoveredId = hoveredApartmentIdRef.current
 
     for (const [id, slot] of Object.entries(markersById)) {
       const { inner } = slot
       const isSelected = id === selectedApartmentId
+      const isHovered = hoveredId !== null && id === hoveredId
       for (const token of MARKER_SELECTED_TOKENS) {
         inner.classList.toggle(token, isSelected)
       }
+      applyMarkerVisualState(inner, isSelected || isHovered)
     }
   }, [selectedApartmentId])
 
@@ -673,6 +699,7 @@ export function ApartmentMap({
       for (const token of MARKER_HOVER_EMPHASIS_TOKENS) {
         inner.classList.remove(token)
       }
+      applyMarkerVisualState(inner, id === selectedApartmentIdRef.current)
       inner.style.zIndex = ""
     }
 
@@ -683,6 +710,7 @@ export function ApartmentMap({
       for (const token of MARKER_HOVER_EMPHASIS_TOKENS) {
         inner.classList.add(token)
       }
+      applyMarkerVisualState(inner, true)
       inner.style.zIndex = "30"
     }
 
