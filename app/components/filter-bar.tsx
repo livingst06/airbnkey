@@ -34,8 +34,8 @@ const chipToggleClasses = (active: boolean) =>
   cn(
     CHIP_BASE,
     active
-      ? "border-primary/30 bg-primary/12 text-foreground dark:border-primary/35 dark:bg-primary/18"
-      : "border-transparent bg-muted/40 text-foreground/90 hover:bg-muted/55 dark:bg-white/[0.06] dark:text-foreground/88 dark:hover:bg-white/[0.1]",
+      ? "border-border bg-accent/70 text-foreground"
+      : "border-transparent bg-muted/50 text-foreground/88 hover:bg-muted/70",
   )
 
 type FilterBarProps = {
@@ -74,12 +74,11 @@ export function FilterBar({
   return (
     <div
       className={cn(
-        "flex flex-col gap-6 rounded-2xl border border-solid border-transparent p-5 shadow-none transition-[background-color,border-color] duration-200 md:flex-row md:flex-wrap md:items-start md:gap-x-8 md:gap-y-6 md:p-6 lg:gap-x-10",
+          "flex flex-col gap-6 rounded-2xl border border-solid border-border/50 bg-card/55 p-5 shadow-[0_10px_22px_rgba(16,18,24,0.06)] transition-[background-color,border-color] duration-200 md:flex-row md:flex-wrap md:items-start md:gap-x-8 md:gap-y-6 md:p-6 lg:gap-x-10",
         compact
           ? "xl:gap-4 xl:gap-x-5 xl:gap-y-4 xl:p-4"
           : null,
-        hasActiveFilters &&
-          "border-border/50 bg-muted/20 dark:border-white/[0.08] dark:bg-white/[0.03]",
+        hasActiveFilters && "border-border/75 bg-card/75",
       )}
     >
       <div
@@ -98,7 +97,7 @@ export function FilterBar({
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search apartments..."
           aria-label="Search apartments"
-          className="min-h-12 w-full rounded-xl border border-border bg-background px-4 py-3 text-base font-normal leading-normal tracking-tight text-foreground shadow-none placeholder:text-muted-foreground/50 focus:border-border focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/12 dark:bg-background/80 dark:placeholder:text-muted-foreground/45 dark:focus:ring-primary/25"
+          className="min-h-12 w-full rounded-xl border border-border/80 bg-background/85 px-4 py-3 text-base font-normal leading-normal tracking-tight text-foreground shadow-none placeholder:text-muted-foreground/60 focus:border-border focus:outline-none focus:ring-2 focus:ring-primary/20"
           autoComplete="off"
         />
       </div>
@@ -167,7 +166,7 @@ export function FilterBar({
 
       <div
         className={cn(
-          "flex w-full basis-full flex-col gap-1 border-t border-border/40 dark:border-white/[0.08]",
+          "flex w-full basis-full flex-col gap-1 border-t border-border/45",
           compact ? "pt-6 xl:pt-4" : "pt-6",
         )}
       >
@@ -179,7 +178,7 @@ export function FilterBar({
           onClick={onReset}
           aria-label="Reset all filters"
           className={cn(
-            "w-full shrink-0 justify-center gap-2 rounded-xl border border-transparent text-sm font-medium text-muted-foreground hover:border-border/60 hover:bg-muted/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-[0.35] disabled:hover:border-transparent disabled:hover:bg-transparent dark:hover:border-white/[0.08] dark:hover:bg-white/[0.05] dark:disabled:hover:bg-transparent md:w-auto md:px-4",
+            "w-full shrink-0 justify-center gap-2 rounded-xl border border-transparent text-sm font-medium text-muted-foreground hover:border-border/60 hover:bg-muted/35 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-[0.35] disabled:hover:border-transparent disabled:hover:bg-transparent md:w-auto md:px-4",
             compact ? "h-10 md:h-9 xl:h-9" : "h-10 md:h-9",
           )}
         >

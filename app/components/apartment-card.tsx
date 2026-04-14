@@ -102,7 +102,7 @@ export function ApartmentCard({
           role="article"
           aria-labelledby={titleId}
           className={cn(
-            "group flex gap-0 overflow-hidden rounded-2xl border border-border/55 bg-card p-0 shadow-sm dark:border-white/10",
+            "group flex gap-0 overflow-hidden rounded-2xl border border-border/65 bg-card/92 p-0 shadow-[0_12px_28px_rgba(16,18,24,0.08)] dark:shadow-[0_16px_32px_rgba(0,0,0,0.32)]",
             isSplit
               ? "h-full flex-col xl:min-h-[15rem] xl:flex-row"
               : "h-full flex-col",

@@ -55,7 +55,7 @@ const MAX_IMAGES = 8
  * Utilise les variables CSS du projet → s'adapte automatiquement light / dark.
  */
 const INPUT_CLS =
-  "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-foreground focus:outline-none transition-colors duration-150"
+  "w-full rounded-xl border border-border/80 bg-background/90 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-border focus:outline-none transition-colors duration-150"
 
 /** Même chose pour les <input type="number"> : on y ajoute la suppression des spinners natifs. */
 const NUMBER_INPUT_CLS =
@@ -65,10 +65,10 @@ const NUMBER_INPUT_CLS =
 const LABEL_CLS = "mb-1.5 block text-sm font-medium text-foreground"
 
 const SECTION_CLS =
-  "rounded-2xl bg-card p-5 shadow-sm dark:shadow-none dark:border dark:border-white/10"
+  "rounded-2xl border border-border/65 bg-card/82 p-5 shadow-[0_10px_24px_rgba(16,18,24,0.07)]"
 
 const SECTION_TITLE_CLS =
-  "mb-5 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+  "mb-5 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground/95"
 
 function parseTags(tagsText: string): string[] {
   const parts = tagsText
@@ -144,7 +144,7 @@ function SortablePhoto({ src, index, unoptimized, onRemove }: SortablePhotoProps
         onClick={(e) => { e.stopPropagation(); onRemove() }}
         onPointerDown={(e) => e.stopPropagation()}
         aria-label="Remove this image"
-        className="absolute right-2 top-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-card shadow-md transition-all hover:bg-muted active:scale-95"
+        className="absolute right-2 top-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-border/60 bg-card shadow-md transition-colors hover:bg-muted/70"
       >
         <XIcon className="size-3.5 text-foreground" />
       </button>
@@ -456,14 +456,14 @@ export function AdminApartmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="flex flex-col gap-0 overflow-hidden border-0 bg-background p-0 shadow-2xl ring-0 inset-0 top-0 left-0 translate-x-0 translate-y-0 w-screen max-w-none h-dvh rounded-none sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:h-[66dvh] sm:w-[50vw] sm:max-w-none sm:rounded-3xl"
+        className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden border-0 bg-background p-0 shadow-2xl ring-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[66dvh] sm:w-[50vw] sm:max-w-none sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:border sm:border-border/70 sm:bg-card/95 sm:shadow-[0_26px_58px_rgba(16,18,24,0.22)]"
       >
         {/* Bouton fermer */}
         <DialogClose asChild>
           <button
             type="button"
             aria-label="Fermer"
-            className="absolute right-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card shadow-sm transition-all duration-150 hover:bg-muted"
+            className="absolute right-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/85 shadow-sm transition-colors duration-150 hover:bg-muted/80"
           >
             <XIcon className="size-4 text-muted-foreground" />
           </button>
@@ -676,10 +676,10 @@ export function AdminApartmentDialog({
             <section className={SECTION_CLS}>
               <h3 className={SECTION_TITLE_CLS}>Photos</h3>
               <div
-                className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-150 ${
+                className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors duration-150 ${
                   isDraggingImages
-                    ? "border-foreground bg-muted/80"
-                    : "border-border bg-muted hover:border-foreground/40 hover:bg-muted/70"
+                    ? "border-border bg-muted/80"
+                    : "border-border/80 bg-muted/55 hover:border-border hover:bg-muted/75"
                 } ${imageImportBusy ? "pointer-events-none opacity-60" : ""}`}
                 onDragEnter={(e) => {
                   e.preventDefault()
@@ -798,13 +798,13 @@ export function AdminApartmentDialog({
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-border/70 bg-card/95 px-6 py-4 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
           <DialogClose asChild>
             <Button
               type="button"
               variant="outline"
               disabled={isSaving}
-              className="rounded-xl border-border text-foreground hover:bg-muted hover:text-foreground"
+              className="rounded-xl border-border/80 bg-card/80 text-foreground hover:bg-muted/60 hover:text-foreground"
             >
               Cancel
             </Button>
@@ -813,7 +813,7 @@ export function AdminApartmentDialog({
             type="button"
             onClick={submit}
             disabled={isSaving}
-            className="rounded-xl bg-foreground text-background hover:bg-foreground/80 disabled:opacity-40"
+            className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
           >
             {isSaving ? (
               <span className="inline-flex items-center gap-2">

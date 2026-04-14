@@ -268,13 +268,7 @@ export function ApartmentGrid({
         <p className="max-w-xs text-sm text-muted-foreground">
           Broaden your filters or reset them.
         </p>
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          onClick={onResetFilters}
-          className="rounded-xl"
-        >
+        <Button type="button" variant="default" size="sm" onClick={onResetFilters} className="rounded-xl">
           Reset filters
         </Button>
       </div>
@@ -317,7 +311,7 @@ export function ApartmentGrid({
         />
       ) : null}
       {adminMode && !adminReorderEnabled ? (
-        <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-orange-500/20 bg-orange-500/8 px-4 py-3 text-sm text-muted-foreground">
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-foreground/85">
           <p>
             Drag-and-drop is available when filters are reset and default sorting is active.
           </p>
@@ -326,7 +320,7 @@ export function ApartmentGrid({
             variant="outline"
             size="sm"
             onClick={onResetFilters}
-            className="shrink-0 rounded-xl"
+              className="shrink-0 rounded-xl border-border/70 bg-card/70 hover:bg-muted/45"
           >
             Reset
           </Button>

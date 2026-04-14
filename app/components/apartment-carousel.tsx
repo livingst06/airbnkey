@@ -46,9 +46,6 @@ export function ApartmentCarousel({
 
   const hasMultipleImages = safeImages.length > 1
 
-  const currentSrc = safeImages[currentIndex]
-  const unoptimized = imageNeedsUnoptimized(currentSrc)
-
   const goToPrevious = (e?: React.MouseEvent) => {
     e?.stopPropagation()
     if (!hasMultipleImages) return
@@ -107,8 +104,8 @@ export function ApartmentCarousel({
   const imageHoverClass =
     "md:transition-[filter] md:duration-300 md:ease-out md:group-hover:brightness-105"
   const navButtonClass = cn(
-    "absolute inset-y-0 z-[14] my-auto rounded-full border border-white/30 bg-black/45 text-white/95 shadow-[0_12px_28px_rgba(0,0,0,0.4)] backdrop-blur-md",
-    "transition-colors duration-200 ease-out hover:bg-black/62",
+    "absolute inset-y-0 z-[14] my-auto rounded-full border border-white/22 bg-black/38 text-white/95 shadow-[0_10px_26px_rgba(0,0,0,0.36)] backdrop-blur-md",
+    "transition-colors duration-200 ease-out hover:bg-black/54",
     "focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-0",
     layout === "split" ? "h-9 w-9 xl:h-8 xl:w-8" : "h-10 w-10",
   )
@@ -143,29 +140,38 @@ export function ApartmentCarousel({
       )}
     >
       <div
-        key={`${currentIndex}-${currentSrc}`}
-        className="absolute inset-0 z-0 animate-in fade-in duration-200 ease-out"
+        className="absolute inset-0 z-0 overflow-hidden"
+        aria-live="polite"
       >
-        <Image
-          src={currentSrc}
-          alt={`${title} — photo ${currentIndex + 1} sur ${safeImages.length}`}
-          fill
-          className={cn(
-            "m-0 h-full w-full p-0 object-cover",
-            imageHoverClass,
-          )}
-          sizes={
-            layout === "split"
-              ? "(min-width: 1536px) 180px, (min-width: 1280px) 168px, (min-width: 1024px) 156px, 100vw"
-              : "(min-width: 1536px) 14vw, (min-width: 1024px) 18vw, (min-width: 640px) 42vw, 100vw"
-          }
-          priority={imagePriority && currentIndex === 0}
-          unoptimized={unoptimized}
-        />
+        <div
+          className="flex h-full w-full transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+        >
+          {safeImages.map((src, index) => (
+            <div key={`${src}-${index}`} className="relative h-full min-w-full">
+              <Image
+                src={src}
+                alt={`${title} — photo ${index + 1} sur ${safeImages.length}`}
+                fill
+                className={cn(
+                  "m-0 h-full w-full p-0 object-cover",
+                  imageHoverClass,
+                )}
+                sizes={
+                  layout === "split"
+                    ? "(min-width: 1536px) 180px, (min-width: 1280px) 168px, (min-width: 1024px) 156px, 100vw"
+                    : "(min-width: 1536px) 14vw, (min-width: 1024px) 18vw, (min-width: 640px) 42vw, 100vw"
+                }
+                priority={imagePriority && index === 0}
+                unoptimized={imageNeedsUnoptimized(src)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
       <div
         className={cn(
-          "pointer-events-none absolute inset-x-0 bottom-0 z-[10] bg-gradient-to-t from-black/88 via-black/38 to-transparent",
+          "pointer-events-none absolute inset-x-0 bottom-0 z-[10] bg-gradient-to-t from-black/82 via-black/30 to-transparent",
           layout === "split" ? "h-24 xl:h-20" : "h-28",
         )}
         aria-hidden
@@ -179,7 +185,7 @@ export function ApartmentCarousel({
             aria-label="Image précédente"
             className={cn(navButtonClass, "left-3")}
           >
-            <span className="grid h-full w-full place-items-center rounded-full ring-1 ring-white/12">
+            <span className="grid h-full w-full place-items-center rounded-full ring-1 ring-white/18">
               <ChevronLeft className={carouselChevronIconClass} />
             </span>
           </button>
@@ -189,7 +195,7 @@ export function ApartmentCarousel({
             aria-label="Image suivante"
             className={cn(navButtonClass, "right-3")}
           >
-            <span className="grid h-full w-full place-items-center rounded-full ring-1 ring-white/12">
+            <span className="grid h-full w-full place-items-center rounded-full ring-1 ring-white/18">
               <ChevronRight className={carouselChevronIconClass} />
             </span>
           </button>
@@ -205,8 +211,8 @@ export function ApartmentCarousel({
                 key={`dot-${index}`}
                 aria-hidden
                 className={cn(
-                  "h-1.5 w-1.5 rounded-full bg-white/65 transition-all duration-200",
-                  index === currentIndex && "w-2.5 bg-white",
+                  "h-1.5 w-1.5 rounded-full bg-white/60 transition-all duration-200",
+                  index === currentIndex && "w-2.5 bg-white/95",
                 )}
               />
             ))}

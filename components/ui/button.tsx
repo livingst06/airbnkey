@@ -5,22 +5,22 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all duration-150 ease-out outline-none select-none hover:scale-[1.02] active:scale-95 active:shadow-inner focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-colors duration-150 ease-out outline-none select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:shadow-md [a]:hover:bg-primary/80",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
         outline:
-          "border border-neutral-200 bg-white text-neutral-900 shadow-sm hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-md aria-expanded:bg-neutral-100 aria-expanded:text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 dark:aria-expanded:bg-neutral-700",
+          "border-border/80 bg-card text-card-foreground shadow-sm hover:bg-accent/70 hover:text-card-foreground aria-expanded:bg-accent/70 aria-expanded:text-card-foreground",
         secondary:
-          "bg-neutral-100 text-neutral-900 shadow-sm hover:bg-neutral-200/90 hover:shadow-md dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 aria-expanded:bg-neutral-100 dark:aria-expanded:bg-neutral-800",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/85 aria-expanded:bg-secondary/85",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
-          "bg-destructive/10 text-destructive shadow-sm hover:bg-destructive/20 hover:shadow-md focus-visible:ring-destructive/30 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "bg-destructive/12 text-destructive shadow-sm hover:bg-destructive/20 focus-visible:ring-destructive/30 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link:
-          "text-primary underline-offset-4 hover:underline hover:scale-100 active:scale-100 active:shadow-none",
+          "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default:

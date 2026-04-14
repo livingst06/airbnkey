@@ -34,10 +34,10 @@ function AdminModeToggle() {
       }
       aria-pressed={isAdminMode}
       className={cn(
-        "relative z-[100] flex h-8 shrink-0 items-center rounded-full border px-3 text-xs font-medium shadow-lg backdrop-blur-md transition-colors duration-200",
+        "relative z-[100] flex h-8 shrink-0 items-center rounded-full border px-3 text-xs font-medium shadow-sm backdrop-blur-md transition-colors duration-200",
         isAdminMode
-          ? "border-orange-500/35 bg-orange-500/15 text-orange-600 dark:text-orange-300"
-          : "border-white/10 bg-white/60 text-foreground/75 dark:bg-neutral-800/60 dark:text-foreground/80",
+          ? "border-orange-500/35 bg-orange-500/15 text-orange-700 dark:text-orange-300"
+          : "border-border/70 bg-card/70 text-foreground/80",
       )}
     >
       Admin
@@ -159,7 +159,7 @@ function AuthControls() {
           type="button"
           onClick={signOut}
           disabled={pendingAction !== null}
-          className="rounded-full border border-white/10 bg-white/60 px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-lg backdrop-blur-md transition-colors duration-200 hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-800/60 dark:hover:bg-neutral-800/80"
+          className="rounded-full border border-border/70 bg-card/75 px-3 py-1.5 text-xs font-medium text-foreground/85 shadow-sm backdrop-blur-md transition-colors duration-200 hover:bg-card disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pendingAction === "signout" ? "Signing out..." : "Sign out"}
         </button>
@@ -173,13 +173,13 @@ function AuthControls() {
         type="button"
         onClick={() => setMenuOpen((prev) => !prev)}
         disabled={pendingAction !== null}
-        className="rounded-full border border-white/10 bg-white/60 px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-lg backdrop-blur-md transition-colors duration-200 hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-800/60 dark:hover:bg-neutral-800/80"
+        className="rounded-full border border-border/70 bg-card/75 px-3 py-1.5 text-xs font-medium text-foreground/85 shadow-sm backdrop-blur-md transition-colors duration-200 hover:bg-card disabled:cursor-not-allowed disabled:opacity-60"
       >
         Sign in
       </button>
 
       {menuOpen ? (
-        <div className="absolute right-0 top-[calc(100%+0.5rem)] z-[110] min-w-48 rounded-2xl border border-white/10 bg-white/90 p-2 shadow-xl backdrop-blur-md dark:bg-neutral-900/90">
+        <div className="absolute right-0 top-[calc(100%+0.5rem)] z-[110] min-w-48 rounded-2xl border border-border/70 bg-card/95 p-2 shadow-[0_20px_42px_rgba(16,18,24,0.18)] backdrop-blur-md">
           <button
             type="button"
             onClick={() => void signInWithProvider("google")}
@@ -340,11 +340,10 @@ export function Navbar() {
     return () => window.removeEventListener("hashchange", handleHashChange)
   }, [])
 
-  const indicatorBgClass =
-    "bg-foreground/10 dark:bg-white/10"
+  const indicatorBgClass = "bg-accent/85"
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/60 backdrop-blur-md dark:border-white/5 dark:bg-neutral-900/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/78 backdrop-blur-xl">
       <div className="grid h-14 w-full grid-cols-[auto_1fr_auto] items-center md:h-16">
         <div className="flex items-center pl-4 xl:pl-8">
           <Link
@@ -371,12 +370,12 @@ export function Navbar() {
         >
           <div
             ref={linksWrapperRef}
-            className="relative flex items-center gap-6 md:gap-8"
+            className="relative flex items-center gap-6 rounded-full border border-border/60 bg-card/55 px-2 py-1 md:gap-8"
           >
             <span
               ref={indicatorRef}
               aria-hidden
-              className={`pointer-events-none absolute top-1/2 left-0 z-0 -translate-y-1/2 rounded-lg ${indicatorBgClass} transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]`}
+              className={`pointer-events-none absolute top-1/2 left-0 z-0 -translate-y-1/2 rounded-full ${indicatorBgClass} transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]`}
             />
 
             {navLinks.map(({ id, href, label }) => {
@@ -384,7 +383,7 @@ export function Navbar() {
               const className =
                 isActive
                   ? "relative z-10 font-medium text-foreground opacity-100"
-                  : "relative z-10 text-foreground/70 transition-colors duration-200 hover:text-foreground"
+                  : "relative z-10 text-foreground/60 transition-colors duration-200 hover:text-foreground"
               return (
                 <Link
                   key={href}

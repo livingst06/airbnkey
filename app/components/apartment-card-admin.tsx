@@ -45,7 +45,7 @@ export function ApartmentCardAdmin({
               e.stopPropagation()
               onEdit()
             }}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-orange-300/55 bg-orange-400 px-3 py-2 text-xs font-semibold tracking-tight text-orange-950 shadow-[0_10px_24px_rgba(251,146,60,0.32)] transition-all duration-200 ease-out hover:scale-[1.02] hover:bg-orange-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-orange-200/35 dark:bg-orange-400 dark:text-orange-950 dark:hover:bg-orange-300"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-amber-500/45 bg-amber-500/85 px-3 py-2 text-xs font-semibold tracking-tight text-amber-950 shadow-[0_8px_20px_rgba(217,119,6,0.3)] transition-colors duration-200 ease-out hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <Pencil className="size-3.5 shrink-0" aria-hidden strokeWidth={2.2} />
             <span>Edit</span>
@@ -60,7 +60,7 @@ export function ApartmentCardAdmin({
               e.stopPropagation()
               onDelete()
             }}
-            className="h-10 w-10 rounded-full border border-black/14 bg-white/90 text-neutral-900 shadow-[0_6px_18px_rgba(0,0,0,0.16)] backdrop-blur-md transition-all duration-200 ease-out hover:border-red-500/40 hover:bg-red-500/92 hover:text-white active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-white/22 dark:bg-black/62 dark:text-white dark:hover:border-red-400/45 dark:hover:bg-red-500/82"
+            className="h-10 w-10 rounded-full border border-border/70 bg-card/85 text-foreground shadow-[0_6px_18px_rgba(0,0,0,0.16)] backdrop-blur-md transition-colors duration-200 ease-out hover:border-red-500/40 hover:bg-red-500/88 hover:text-white focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <X className="size-5 shrink-0" aria-hidden strokeWidth={2} />
           </Button>

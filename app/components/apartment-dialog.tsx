@@ -178,11 +178,11 @@ export function ApartmentDialog({
       <DialogContent
         showCloseButton={false}
         anchorPosition={anchorPosition}
-        className="flex max-h-[min(90dvh,56rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-xl ring-0 transition-colors duration-150 ease-out dark:bg-neutral-800"
+        className="flex max-h-[min(90dvh,56rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-3xl border border-border/70 bg-card/95 p-0 shadow-[0_26px_58px_rgba(16,18,24,0.22)] ring-0 transition-colors duration-150 ease-out"
       >
         <DialogClose
           aria-label="Fermer"
-          className="absolute right-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition-[background-color,transform,opacity] duration-150 ease-out hover:bg-neutral-100 active:scale-95 dark:bg-neutral-800/80 dark:hover:bg-neutral-700/90"
+          className="absolute right-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-card/80 shadow-sm backdrop-blur transition-[background-color,opacity] duration-150 ease-out hover:bg-muted/70"
         >
           <XIcon className="size-4 opacity-90" />
         </DialogClose>

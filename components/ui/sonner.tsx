@@ -29,7 +29,7 @@ function getServerTheme(): "light" | "dark" {
 
 /** Base neutre : glass + blur + animations (success/error via `richColors` natif Sonner) */
 const defaultToastClassName =
-  "rounded-2xl px-6 py-4 backdrop-blur-xl border shadow-xl transition-all duration-300 ease-out bg-white/80 dark:bg-neutral-800/80 border-neutral-200 dark:border-neutral-700 text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:slide-in-from-top-4"
+  "rounded-2xl border border-border/80 bg-card/95 px-5 py-3 text-foreground shadow-[0_18px_46px_rgba(16,18,24,0.18)] backdrop-blur-xl transition-colors duration-200 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:slide-in-from-top-4"
 
 const Toaster = ({ toastOptions, ...props }: ToasterProps) => {
   const theme = useSyncExternalStore(

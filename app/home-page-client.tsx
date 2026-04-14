@@ -267,13 +267,13 @@ export function HomePageClient() {
   }
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-none px-3 pb-8 pt-6 sm:px-5 lg:px-6 2xl:px-10">
-      <div className="space-y-10 md:space-y-16">
-        <section className="mt-6 text-center md:text-left">
-          <h1 className="text-[1.875rem] font-semibold leading-[1.1] tracking-tight text-foreground sm:text-[2rem] md:text-[2.125rem]">
+    <main className="mx-auto min-h-screen w-full max-w-none px-3 pb-10 pt-6 sm:px-5 lg:px-7 2xl:px-12">
+      <div className="space-y-12 md:space-y-[4.5rem]">
+        <section className="mt-7 text-center md:text-left">
+          <h1 className="text-[2rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.15rem] md:text-[2.35rem]">
             Airbnkey
           </h1>
-          <p className="mt-4 max-w-xl text-[15px] font-normal leading-relaxed text-muted-foreground md:mt-3">
+          <p className="mt-3 max-w-xl text-[0.95rem] font-normal leading-relaxed text-muted-foreground/95 md:mt-3">
             Apartment rentals in Cannes
           </p>
         </section>
@@ -296,8 +296,8 @@ export function HomePageClient() {
                 "max-lg:min-h-0 lg:flex-1",
               )}
             >
-              <div className="flex shrink-0 flex-col gap-5 border-b border-border/40 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0 xl:gap-4">
-                <div className="flex flex-col gap-3 xl:rounded-[1.75rem] xl:border xl:border-border/50 xl:bg-background/70 xl:p-4 xl:shadow-sm xl:backdrop-blur">
+              <div className="flex shrink-0 flex-col gap-5 border-b border-border/45 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0 xl:gap-4">
+                <div className="flex flex-col gap-3 xl:rounded-[1.75rem] xl:border xl:border-border/55 xl:bg-card/65 xl:p-4 xl:shadow-[0_14px_30px_rgba(16,18,24,0.08)] xl:backdrop-blur-xl">
                   <div className="flex items-end justify-end gap-4 xl:px-1">
                     <p className="mb-0 whitespace-nowrap text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground">
                       {sortedApartments.length === 0
@@ -330,12 +330,12 @@ export function HomePageClient() {
                 </p>
               </div>
               <div
-                className="@container no-scrollbar min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain xl:bg-background/55 xl:p-3"
+                className="@container no-scrollbar min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain xl:rounded-[1.75rem] xl:border xl:border-border/45 xl:bg-card/50 xl:p-3"
                 data-list-scroll
               >
                 <div
                   key={listAnimKey}
-                  className="animate-in fade-in-0 zoom-in-95 duration-300 max-lg:pb-1"
+                  className="animate-in fade-in-0 duration-300 max-lg:pb-1"
                 >
                   <ApartmentGrid
                     apartments={sortedApartments}
@@ -364,7 +364,7 @@ export function HomePageClient() {
             >
               <div
                 className={cn(
-                  "w-full overflow-hidden rounded-2xl border border-white/10 shadow-xl dark:border-white/5 xl:rounded-[2rem]",
+                  "w-full overflow-hidden rounded-2xl border border-border/55 bg-card/45 shadow-[0_22px_54px_rgba(16,18,24,0.16)] xl:rounded-[2rem]",
                   "max-lg:h-[clamp(15rem,56dvh,28rem)] max-lg:min-h-[15rem] max-lg:shrink-0",
                   "lg:h-full lg:min-h-0 lg:flex-1 lg:shrink-0",
                 )}

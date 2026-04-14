@@ -83,13 +83,13 @@ const MARKER_ROOT_CLASS =
   "relative inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
 /** Inner : apparence du pill + transitions (scale/hover emphasis uniquement ici) */
 const MARKER_INNER_CLASS =
-  "relative z-[1] inline-flex items-center justify-center min-w-[56px] h-7 max-lg:min-h-8 px-2 rounded-full border border-transparent shadow-sm transition-all duration-300 hover:shadow-md"
+  "relative z-[1] inline-flex h-7 min-w-[56px] items-center justify-center rounded-full border border-transparent px-2 shadow-sm transition-all duration-250 max-lg:min-h-8 hover:shadow-md"
 const MARKER_SELECTED_CLASS =
   "shadow-lg"
 const MARKER_SELECTED_TOKENS = MARKER_SELECTED_CLASS.split(" ")
 /** Emphase sync hover : uniquement sur inner (scale autorisé) */
 const MARKER_HOVER_EMPHASIS_CLASS =
-  "scale-[1.2] shadow-md"
+  "scale-[1.14] shadow-md"
 const MARKER_HOVER_EMPHASIS_TOKENS = MARKER_HOVER_EMPHASIS_CLASS.split(" ")
 
 const MARKER_IDLE_BG = "#e5e7eb"
@@ -760,7 +760,7 @@ export function ApartmentMap({
   }, [hoveredApartmentId])
 
   return (
-    <div className="map-mobile-shell relative h-full min-h-0 w-full overflow-hidden bg-white dark:bg-neutral-800">
+    <div className="map-mobile-shell relative h-full min-h-0 w-full overflow-hidden bg-card">
       <div
         ref={mapContainerRef}
         className="map-mobile-surface h-full w-full min-h-0"

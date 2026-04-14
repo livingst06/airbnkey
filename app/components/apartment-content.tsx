@@ -45,11 +45,11 @@ const splitListingMetaClassName =
 
 const listingDescriptionClassName = cn(
   listingDetailBody,
-  "line-clamp-4 max-sm:line-clamp-5 text-[0.8125rem] text-muted-foreground",
+  "line-clamp-4 max-sm:line-clamp-5 text-[0.8125rem] text-muted-foreground/95",
 )
 
 const splitListingDescriptionClassName = cn(
-  "xl:line-clamp-2 xl:text-[0.78rem] xl:leading-5 xl:text-muted-foreground/85",
+  "xl:line-clamp-2 xl:text-[0.78rem] xl:leading-5 xl:text-muted-foreground/90",
 )
 
 function formatRatingAverage(value: number): string {
@@ -243,15 +243,15 @@ export function ApartmentContent({
                 {titleBlock}
               </div>
 
-              <div className="h-px w-14 bg-white/8" aria-hidden />
+              <div className="h-px w-14 bg-border/70" aria-hidden />
 
               <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                 {splitMetaItems.map(({ key, icon: Icon, label }) => (
                   <div
                     key={`${apartment.id}-${key}`}
-                    className="flex items-center gap-2.5 text-[0.82rem] text-muted-foreground"
+                    className="flex items-center gap-2.5 text-[0.82rem] text-muted-foreground/95"
                   >
-                    <Icon className="size-3.5 shrink-0 text-foreground/80" aria-hidden />
+                    <Icon className="size-3.5 shrink-0 text-foreground/75" aria-hidden />
                     <span className="line-clamp-1">{label}</span>
                   </div>
                 ))}
@@ -275,7 +275,7 @@ export function ApartmentContent({
                       <Badge
                         key={`${apartment.id}-adv-${idx}-${advantage}`}
                         variant="outline"
-                        className="border-white/10 bg-white/[0.03] px-2 py-0.5 text-[0.66rem] leading-none text-muted-foreground"
+                        className="border-border/70 bg-muted/45 px-2 py-0.5 text-[0.66rem] leading-none text-muted-foreground"
                       >
                         {advantage}
                       </Badge>
@@ -283,7 +283,7 @@ export function ApartmentContent({
                     {extraAdvantageCount > 0 ? (
                       <Badge
                         variant="outline"
-                        className="border-white/10 bg-white/[0.03] px-2 py-0.5 text-[0.66rem] leading-none text-muted-foreground dark:bg-white/[0.04]"
+                        className="border-border/70 bg-muted/45 px-2 py-0.5 text-[0.66rem] leading-none text-muted-foreground"
                         title={`${extraAdvantageCount} more`}
                       >
                         +{extraAdvantageCount}

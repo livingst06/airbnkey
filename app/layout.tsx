@@ -1,21 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { AdminUiProvider } from "@/app/components/admin-ui-context";
 import { Navbar } from "@/app/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { getCurrentUserEmail, isAdminEmail } from "@/lib/admin-auth";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
@@ -51,7 +40,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
+        className="min-h-screen bg-background text-foreground antialiased transition-colors duration-300"
       >
         <AdminUiProvider
           initialUserEmail={userEmail}
