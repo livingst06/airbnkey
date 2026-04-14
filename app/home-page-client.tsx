@@ -269,15 +269,6 @@ export function HomePageClient() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-none px-3 pb-10 pt-6 sm:px-5 lg:px-7 2xl:px-12">
       <div className="space-y-12 md:space-y-[4.5rem]">
-        <section className="mt-7 text-center md:text-left">
-          <h1 className="text-[2rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.15rem] md:text-[2.35rem]">
-            Airbnkey
-          </h1>
-          <p className="mt-3 max-w-xl text-[0.95rem] font-normal leading-relaxed text-muted-foreground/95 md:mt-3">
-            Apartment rentals in Cannes
-          </p>
-        </section>
-
         <section
           id="apartments"
           className="scroll-mt-20 max-lg:flex max-lg:flex-col"

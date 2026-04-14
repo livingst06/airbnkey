@@ -113,6 +113,7 @@ export function ApartmentCarousel({
 
   return (
     <div
+      onPointerDownCapture={(e) => e.stopPropagation()}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onClick={() => {
@@ -182,6 +183,7 @@ export function ApartmentCarousel({
         <>
           <button
             type="button"
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={goToPrevious}
             aria-label="Image précédente"
             className={cn(navButtonClass, "left-3")}
@@ -192,6 +194,7 @@ export function ApartmentCarousel({
           </button>
           <button
             type="button"
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={goToNext}
             aria-label="Image suivante"
             className={cn(navButtonClass, "right-3")}
