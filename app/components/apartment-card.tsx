@@ -108,10 +108,10 @@ export function ApartmentCard({
           role="article"
           aria-labelledby={titleId}
           className={cn(
-            "group flex gap-0 overflow-hidden rounded-xl border border-border/60 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-border/50",
+            "group flex gap-0 overflow-hidden rounded-2xl border border-border/55 p-0 shadow-sm transition-[box-shadow,transform] duration-150 ease-out motion-reduce:transition-none dark:border-white/10",
             isSplit
-              ? "h-full flex-col border-white/8 bg-white/[0.02] md:hover:scale-[1.01] md:hover:shadow-lg xl:min-h-[15rem] xl:flex-row xl:hover:scale-100 dark:bg-white/[0.015]"
-              : "h-full flex-col md:hover:scale-[1.01] md:hover:shadow-lg",
+              ? "h-full flex-col bg-card md:hover:scale-[1.01] md:hover:shadow-[0_16px_36px_rgba(0,0,0,0.18)] xl:min-h-[15rem] xl:flex-row xl:hover:scale-100"
+              : "h-full flex-col bg-card md:hover:scale-[1.01] md:hover:shadow-lg",
             isHighlighted && "shadow-md dark:shadow-black/40",
             isSyncedHover && "shadow-lg",
             isMapHoverDesktop && "card-map-bounce",

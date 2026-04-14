@@ -5,7 +5,6 @@ import Image from "next/image"
 
 import {
   carouselChevronIconClass,
-  carouselNavButtonClass,
 } from "@/lib/carousel-nav"
 import { getApartmentImages, imageNeedsUnoptimized } from "@/lib/image-src"
 import { cn } from "@/lib/utils"
@@ -25,6 +24,7 @@ type ApartmentCarouselProps = {
   /** Grille : LCP sur la première image de la première carte */
   imagePriority?: boolean
   layout?: "default" | "split"
+  onImageClick?: () => void
 }
 
 export function ApartmentCarousel({
@@ -32,6 +32,7 @@ export function ApartmentCarousel({
   title,
   imagePriority = false,
   layout = "default",
+  onImageClick,
 }: ApartmentCarouselProps) {
   const safeImages = getApartmentImages(images).slice(0, MAX_IMAGES)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -41,6 +42,7 @@ export function ApartmentCarousel({
     y: number
     id: number
   } | null>(null)
+  const didSwipeRef = useRef(false)
 
   const hasMultipleImages = safeImages.length > 1
 
@@ -90,10 +92,12 @@ export function ApartmentCarousel({
     if (Math.abs(dx) <= Math.abs(dy) * SWIPE_HORIZONTAL_DOMINANCE) return
 
     if (dx < 0) {
+      didSwipeRef.current = true
       setCurrentIndex((prev) =>
         prev === safeImages.length - 1 ? 0 : prev + 1,
       )
     } else {
+      didSwipeRef.current = true
       setCurrentIndex((prev) =>
         prev === 0 ? safeImages.length - 1 : prev - 1,
       )
@@ -102,18 +106,41 @@ export function ApartmentCarousel({
 
   const imageHoverClass =
     "md:transition-[transform,filter] md:duration-300 md:ease-out md:group-hover:scale-[1.03] md:group-hover:brightness-105 md:will-change-[transform]"
+  const navButtonClass = cn(
+    "absolute inset-y-0 z-[14] my-auto rounded-full border border-white/30 bg-black/45 text-white/95 shadow-[0_12px_28px_rgba(0,0,0,0.4)] backdrop-blur-md",
+    "transition-all duration-200 ease-out hover:bg-black/62 hover:scale-[1.03] active:scale-[0.96]",
+    "focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-0",
+    layout === "split" ? "h-9 w-9 xl:h-8 xl:w-8" : "h-10 w-10",
+  )
 
   return (
     <div
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onClick={() => {
+        if (!onImageClick) return
+        if (didSwipeRef.current) {
+          didSwipeRef.current = false
+          return
+        }
+        onImageClick()
+      }}
+      role={onImageClick ? "button" : undefined}
+      tabIndex={onImageClick ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (!onImageClick) return
+        if (e.key !== "Enter" && e.key !== " ") return
+        e.preventDefault()
+        onImageClick()
+      }}
+      data-layout={layout}
       className={cn(
         "group relative h-full w-full overflow-hidden",
+        onImageClick && "cursor-pointer",
         layout === "split"
           ? "aspect-[3/2] xl:min-h-full xl:aspect-auto"
           : "aspect-[3/2]",
       )}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      data-layout={layout}
     >
       <div
         key={`${currentIndex}-${currentSrc}`}
@@ -136,6 +163,13 @@ export function ApartmentCarousel({
           unoptimized={unoptimized}
         />
       </div>
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-x-0 bottom-0 z-[10] bg-gradient-to-t from-black/88 via-black/38 to-transparent",
+          layout === "split" ? "h-24 xl:h-20" : "h-28",
+        )}
+        aria-hidden
+      />
 
       {hasMultipleImages ? (
         <>
@@ -143,23 +177,39 @@ export function ApartmentCarousel({
             type="button"
             onClick={goToPrevious}
             aria-label="Image précédente"
-            className={`${carouselNavButtonClass} left-3 z-[12] opacity-70 hover:opacity-100`}
+            className={cn(navButtonClass, "left-3")}
           >
-            <ChevronLeft className={carouselChevronIconClass} />
+            <span className="grid h-full w-full place-items-center rounded-full ring-1 ring-white/12">
+              <ChevronLeft className={carouselChevronIconClass} />
+            </span>
           </button>
           <button
             type="button"
             onClick={goToNext}
             aria-label="Image suivante"
-            className={`${carouselNavButtonClass} right-3 z-[12] opacity-70 hover:opacity-100`}
+            className={cn(navButtonClass, "right-3")}
           >
-            <ChevronRight className={carouselChevronIconClass} />
+            <span className="grid h-full w-full place-items-center rounded-full ring-1 ring-white/12">
+              <ChevronRight className={carouselChevronIconClass} />
+            </span>
           </button>
           <div
-            className="pointer-events-none absolute right-2 top-2 z-[11] rounded-full bg-black/45 px-2 py-0.5 text-[0.625rem] font-medium tabular-nums text-white/95 backdrop-blur-sm"
-            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-x-0 bottom-3 z-[12] flex items-center justify-center gap-2",
+              layout === "split" && "xl:bottom-2.5 xl:gap-1.5",
+            )}
+            aria-label={`Image ${currentIndex + 1} sur ${safeImages.length}`}
           >
-            {currentIndex + 1}/{safeImages.length}
+            {safeImages.map((_, index) => (
+              <span
+                key={`dot-${index}`}
+                aria-hidden
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full bg-white/65 transition-all duration-200",
+                  index === currentIndex && "w-2.5 bg-white",
+                )}
+              />
+            ))}
           </div>
         </>
       ) : null}

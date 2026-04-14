@@ -23,7 +23,6 @@ import {
   listingTagBadgeClass,
 } from "@/lib/listing-ui"
 import {
-  getBookingCtaLabel,
   getBookingProvider,
   openBookingUrlInNewTab,
 } from "@/lib/booking-provider"
@@ -198,14 +197,14 @@ export function ApartmentContent({
         className={cn(
           "relative shrink-0 overflow-hidden",
           isDialog
-            ? "rounded-t-3xl"
+            ? "rounded-t-2xl"
             : isSplit
               ? selectionFrameInset
                 ? "w-full rounded-t-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:h-full xl:w-[17rem] xl:rounded-l-[max(0px,calc(var(--radius-xl)-0.125rem))] xl:rounded-tr-none"
-                : "w-full rounded-t-xl xl:h-full xl:w-[17rem] xl:rounded-l-xl xl:rounded-tr-none"
+                : "w-full rounded-t-2xl xl:h-full xl:w-[17rem] xl:rounded-l-2xl xl:rounded-tr-none"
             : selectionFrameInset
               ? "rounded-t-[max(0px,calc(var(--radius-xl)-0.125rem))]"
-              : "rounded-t-xl",
+              : "rounded-t-2xl",
           isSplit ? "w-full xl:self-stretch" : "w-full",
         )}
       >
@@ -214,28 +213,14 @@ export function ApartmentContent({
           title={apartment.title}
           imagePriority={!isDialog && imagePriority}
           layout={isSplit ? "split" : "default"}
+          onImageClick={
+            listingHref
+              ? () => {
+                  openBookingUrlInNewTab(listingHref)
+                }
+              : undefined
+          }
         />
-        {listingHref ? (
-          <div
-            className={cn(
-              "group/cta pointer-events-none absolute inset-x-0 bottom-0 z-[13] bg-gradient-to-t from-black/92 via-black/65 via-35% to-transparent",
-              isSplit ? "px-3 pb-3 pt-14 xl:px-2 xl:pb-2 xl:pt-10" : "px-3 pb-3 pt-14",
-            )}
-          >
-            <button
-              type="button"
-              className="pointer-events-auto flex min-h-10 w-full cursor-pointer items-center justify-center px-2 py-2 text-center text-[0.8125rem] font-semibold tracking-tight text-white/95 [text-shadow:0_1px_4px_rgba(0,0,0,0.9)] outline-none transition-transform duration-100 ease-out focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97] md:hover:brightness-110"
-              onClick={(e) => {
-                e.stopPropagation()
-                openBookingUrlInNewTab(listingHref)
-              }}
-            >
-              <span className="inline-block md:transition-transform md:duration-150 md:ease-out md:group-hover/cta:scale-[1.02]">
-                {getBookingCtaLabel(bookingProvider)}
-              </span>
-            </button>
-          </div>
-        ) : null}
       </div>
 
       <CardContent
