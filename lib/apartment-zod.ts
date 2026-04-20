@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { MAX_APARTMENT_IMAGES } from "@/lib/apartment-image-constraints"
 import { APARTMENT_FIELD_LABELS } from "@/lib/apartment-field-labels"
 
 const bookingUrlField = z
@@ -62,7 +63,12 @@ export const apartmentFormSchema = z.object({
   advantages: z.array(z.string()),
   latitude: z.coerce.number().finite(),
   longitude: z.coerce.number().finite(),
-  images: z.array(z.string()),
+  images: z
+    .array(z.string())
+    .max(
+      MAX_APARTMENT_IMAGES,
+      `You can upload up to ${MAX_APARTMENT_IMAGES} ${APARTMENT_FIELD_LABELS.images}`,
+    ),
   bookingUrl: bookingUrlField,
 }).superRefine((value, ctx) => {
   const hasReviewsCount = value.reviewsCount !== null

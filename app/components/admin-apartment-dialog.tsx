@@ -39,6 +39,7 @@ import {
   APARTMENT_CHARACTERISTIC_LABELS,
   APARTMENT_FIELD_LABELS,
 } from "@/lib/apartment-field-labels"
+import { MAX_APARTMENT_IMAGES } from "@/lib/apartment-image-constraints"
 import { apartmentFormSchema } from "@/lib/apartment-zod"
 import { imageNeedsUnoptimized } from "@/lib/image-src"
 import { getMapStyleUrl } from "@/lib/map-style"
@@ -48,7 +49,7 @@ import { useApartments } from "./apartments-context"
 /** Délai après ouverture du dialog : l'anim zoom + layout doivent être stabilisés avant `new Map()`. */
 const MINI_MAP_INIT_DELAY_MS = 200
 
-const MAX_IMAGES = 8
+const MAX_IMAGES = MAX_APARTMENT_IMAGES
 
 /**
  * Classes partagées entre tous les champs de saisie.
@@ -330,7 +331,15 @@ export function AdminApartmentDialog({
     const fileArr = Array.from(files)
     const room = Math.max(0, MAX_IMAGES - imagesRef.current.length)
     const toProcess = fileArr.slice(0, room)
-    if (toProcess.length === 0) return
+    if (toProcess.length === 0) {
+      toast.error(`You can upload up to ${MAX_IMAGES} photos.`)
+      return
+    }
+    if (fileArr.length > room) {
+      toast.error(
+        `Only ${room} more photo${room > 1 ? "s are" : " is"} allowed (max ${MAX_IMAGES}).`,
+      )
+    }
 
     void (async () => {
       setImageImportBusy(true)
@@ -339,8 +348,9 @@ export function AdminApartmentDialog({
         for (const file of toProcess) {
           try {
             urls.push(await uploadImage(file))
-          } catch {
-            toast.error(`Image skipped: ${file.name}`)
+          } catch (error) {
+            const message = errorMessage(error, "Image skipped")
+            toast.error(`${file.name}: ${message}`)
           }
         }
         if (urls.length === 0) return
@@ -712,7 +722,7 @@ export function AdminApartmentDialog({
                 <div className="mt-1 text-xs text-muted-foreground">
                   {imageImportBusy
                     ? "This can take a few seconds for large files."
-                    : "or click to select · automatic resize"}
+                    : `or click to select · up to ${MAX_IMAGES} photos`}
                 </div>
               </div>
 
