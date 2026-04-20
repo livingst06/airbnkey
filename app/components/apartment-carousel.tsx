@@ -6,11 +6,12 @@ import Image from "next/image"
 import {
   carouselChevronIconClass,
 } from "@/lib/carousel-nav"
+import { MAX_APARTMENT_IMAGES } from "@/lib/apartment-image-constraints"
 import { getApartmentImages, imageNeedsUnoptimized } from "@/lib/image-src"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-const MAX_IMAGES = 8
+const MAX_IMAGES = MAX_APARTMENT_IMAGES
 
 /** Distance mini (px) pour compter un swipe horizontal — sans preventDefault sur touchmove */
 const SWIPE_THRESHOLD_PX = 50
