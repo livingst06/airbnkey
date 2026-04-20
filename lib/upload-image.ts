@@ -4,10 +4,16 @@
 import {
   ACCEPTED_IMAGE_MIME_TYPE_SET,
 } from "@/lib/apartment-image-constraints"
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client"
 
 type UploadApiSuccess = {
   url: string
   sizeBytes: number
+}
+
+type UploadSourceApiSuccess = {
+  sourcePath: string
+  token: string
 }
 
 type UploadApiFailure = {
@@ -25,12 +31,50 @@ export async function uploadImage(file: File): Promise<string> {
     )
   }
 
-  const payload = new FormData()
-  payload.append("file", file)
+  const sourceResponse = await fetch("/api/admin/images/signed-upload-url", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ fileName: file.name }),
+  })
+
+  let sourceBody: UploadSourceApiSuccess | UploadApiFailure = {}
+  try {
+    sourceBody = (await sourceResponse.json()) as UploadSourceApiSuccess | UploadApiFailure
+  } catch {
+    // Keep generic message below when the API response is not JSON.
+  }
+  if (!sourceResponse.ok) {
+    if (
+      "error" in sourceBody &&
+      typeof sourceBody.error === "string" &&
+      sourceBody.error.trim()
+    ) {
+      throw new Error(sourceBody.error)
+    }
+    throw new Error("Image upload failed")
+  }
+  if (
+    !("sourcePath" in sourceBody) ||
+    typeof sourceBody.sourcePath !== "string" ||
+    !sourceBody.sourcePath.trim() ||
+    typeof sourceBody.token !== "string" ||
+    !sourceBody.token.trim()
+  ) {
+    throw new Error("Image upload failed")
+  }
+
+  const supabase = getSupabaseBrowserClient()
+  const { error: signedUploadError } = await supabase.storage
+    .from("apartments")
+    .uploadToSignedUrl(sourceBody.sourcePath, sourceBody.token, file)
+  if (signedUploadError) {
+    throw new Error(signedUploadError.message)
+  }
 
   const response = await fetch("/api/admin/images", {
     method: "POST",
-    body: payload,
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ sourcePath: sourceBody.sourcePath }),
   })
   let body: UploadApiSuccess | UploadApiFailure = {}
   try {
