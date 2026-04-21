@@ -181,6 +181,8 @@ export function AdminApartmentDialog({
   const [images, setImages] = useState<string[]>([])
   const [bookingUrl, setBookingUrl] = useState("")
   const [imageImportBusy, setImageImportBusy] = useState(false)
+  const [imageImportDoneCount, setImageImportDoneCount] = useState(0)
+  const [imageImportTotalCount, setImageImportTotalCount] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[] | undefined>>({})
   const [formError, setFormError] = useState<string | null>(null)
@@ -343,6 +345,8 @@ export function AdminApartmentDialog({
 
     void (async () => {
       setImageImportBusy(true)
+      setImageImportDoneCount(0)
+      setImageImportTotalCount(toProcess.length)
       try {
         const urls: string[] = []
         for (const file of toProcess) {
@@ -351,12 +355,16 @@ export function AdminApartmentDialog({
           } catch (error) {
             const message = errorMessage(error, "Image skipped")
             toast.error(`${file.name}: ${message}`)
+          } finally {
+            setImageImportDoneCount((prev) => prev + 1)
           }
         }
         if (urls.length === 0) return
         setImages((p) => [...p, ...urls])
       } finally {
         setImageImportBusy(false)
+        setImageImportDoneCount(0)
+        setImageImportTotalCount(0)
       }
     })()
   }
@@ -413,6 +421,10 @@ export function AdminApartmentDialog({
 
   const submit = async () => {
     if (isSaving) return
+    if (imageImportBusy) {
+      toast.info("Please wait until all images finish uploading.")
+      return
+    }
     setFieldErrors({})
     setFormError(null)
 
@@ -717,11 +729,16 @@ export function AdminApartmentDialog({
                 }}
               >
                 <div className="text-sm font-medium text-foreground">
-                  {imageImportBusy ? "Optimizing..." : "Drag and drop images here"}
+                  {imageImportBusy ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="size-4 animate-spin" />
+                      Processing images...
+                    </span>
+                  ) : "Drag and drop images here"}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   {imageImportBusy
-                    ? "This can take a few seconds for large files."
+                    ? `Please wait (${imageImportDoneCount}/${imageImportTotalCount}) while upload and optimization complete.`
                     : `or click to select · up to ${MAX_IMAGES} photos`}
                 </div>
               </div>
@@ -822,13 +839,13 @@ export function AdminApartmentDialog({
           <Button
             type="button"
             onClick={submit}
-            disabled={isSaving}
+            disabled={isSaving || imageImportBusy}
             className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
           >
-            {isSaving ? (
+            {isSaving || imageImportBusy ? (
               <span className="inline-flex items-center gap-2">
                 <Loader2 className="size-4 animate-spin" />
-                Saving...
+                {isSaving ? "Saving..." : "Processing photos..."}
               </span>
             ) : apartment ? "Save" : "Create"}
           </Button>
