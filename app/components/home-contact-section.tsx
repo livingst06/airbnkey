@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 
 type HomeContactSectionProps = {
   message: string
+  isSignedIn: boolean
   isSubmitting: boolean
   onMessageChange: (message: string) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
@@ -14,6 +15,7 @@ type HomeContactSectionProps = {
 
 export function HomeContactSection({
   message,
+  isSignedIn,
   isSubmitting,
   onMessageChange,
   onSubmit,
@@ -45,11 +47,16 @@ export function HomeContactSection({
           />
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isSignedIn}
             className="w-full rounded-xl text-base font-medium disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? "Sending..." : "Send"}
           </Button>
+          {!isSignedIn ? (
+            <p className="text-sm text-muted-foreground">
+              You need to sign in to use the contact form.
+            </p>
+          ) : null}
         </form>
       </div>
     </section>

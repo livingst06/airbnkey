@@ -42,7 +42,7 @@ const ApartmentMap = dynamic(
 )
 
 export function HomePageClient() {
-  const { isAdminMode } = useAdminUi()
+  const { isAdminMode, isSignedIn } = useAdminUi()
   const { apartments, syncFromDb } = useApartments()
   const [localOrderedIds, setLocalOrderedIds] = useState<string[] | null>(null)
 
@@ -241,6 +241,10 @@ export function HomePageClient() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!isSignedIn) {
+      toast.error("Please sign in to send a message.")
+      return
+    }
     setIsSubmitting(true)
     try {
       const res = await fetch("/api/contact", {
@@ -380,6 +384,7 @@ export function HomePageClient() {
         <HomeAboutSection />
         <HomeContactSection
           message={message}
+          isSignedIn={isSignedIn}
           isSubmitting={isSubmitting}
           onMessageChange={setMessage}
           onSubmit={handleSubmit}

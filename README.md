@@ -30,6 +30,8 @@ pnpm start
 - `NEXT_PUBLIC_MAPTILER_API_KEY` : active le fond MapTiler ; sinon fallback Carto.
 - `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` : requis pour l'upload image vers Supabase Storage et l'auth sociale.
 - `ADMIN_LIST` : emails admin autorisés, séparés par des virgules (ex: `admin1@example.com,admin2@example.com`).
+- `EMAIL_CEO` : destinataire des messages du formulaire de contact.
+- `RESEND_API_KEY` : clé API Resend utilisée côté serveur pour envoyer les messages de contact.
 - `NEXT_PUBLIC_IMAGE_UPLOAD_FALLBACK=dataurl` : fallback local / debug si l'upload Supabase n'est pas configuré.
 
 ### Étanchéité DEV / PROD
