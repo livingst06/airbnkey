@@ -71,19 +71,12 @@ function mapPinAnchorFromMarkerRoot(el: HTMLElement): DialogAnchorRect {
   }
 }
 
-function derivePriceFromApartment(apartment: Apartment) {
-  // Prix dérivé simple (pas de champ `price` dans le modèle existant).
-  // L'objectif ici est l'affichage visuel du marker, pas la tarification réelle.
-  const base = 80
-  return Math.round(base + apartment.beds * 25 + apartment.bathrooms * 15)
-}
-
 /** Root : aucune classe transform/scale — MapLibre garde translate(...) sur ce nœud */
 const MARKER_ROOT_CLASS =
   "relative inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
 /** Inner : apparence du pill + transitions (scale/hover emphasis uniquement ici) */
 const MARKER_INNER_CLASS =
-  "relative z-[1] inline-flex h-7 min-w-[56px] items-center justify-center rounded-full border border-transparent px-2 shadow-sm transition-all duration-250 max-lg:min-h-8 hover:shadow-md"
+  "relative z-[1] inline-flex h-7 min-w-[56px] max-w-[180px] items-center justify-center rounded-full border border-transparent px-3 shadow-sm transition-all duration-250 max-lg:min-h-8 hover:shadow-md"
 const MARKER_SELECTED_CLASS =
   "shadow-lg"
 const MARKER_SELECTED_TOKENS = MARKER_SELECTED_CLASS.split(" ")
@@ -274,14 +267,13 @@ export function ApartmentMap({
     el.type = "button"
     el.tabIndex = 0
 
-    const price = derivePriceFromApartment(apartment)
-    el.setAttribute("aria-label", `${apartment.title} - ${price}€`)
+    el.setAttribute("aria-label", apartment.title)
     el.className = MARKER_ROOT_CLASS
 
     const inner = document.createElement("div")
     inner.className = MARKER_INNER_CLASS
     applyMarkerVisualState(inner, false)
-    inner.innerHTML = `<span class="text-[12px] font-semibold leading-none">${price}€</span>`
+    inner.innerHTML = `<span class="max-w-[156px] truncate text-[12px] font-semibold leading-none">${escapeHtml(apartment.title)}</span>`
     el.appendChild(inner)
 
     const popup = new maplibregl.Popup({
