@@ -48,6 +48,8 @@ import { useApartments } from "./apartments-context"
 
 /** Délai après ouverture du dialog : l'anim zoom + layout doivent être stabilisés avant `new Map()`. */
 const MINI_MAP_INIT_DELAY_MS = 200
+const MINI_MAP_EXPAND_RESIZE_DELAY_MS = 280
+const DESKTOP_MEDIA_QUERY = "(min-width: 640px)"
 
 const MAX_IMAGES = MAX_APARTMENT_IMAGES
 
@@ -103,6 +105,13 @@ function firstFormErrorMessage(messages: string[] | undefined): string | null {
 function formatLatLng(value: number) {
   if (!Number.isFinite(value)) return 0
   return value
+}
+
+function canUseDesktopFullscreenMap() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false
+  }
+  return window.matchMedia(DESKTOP_MEDIA_QUERY).matches
 }
 
 type SortablePhotoProps = {
@@ -199,6 +208,11 @@ export function AdminApartmentDialog({
   const miniMapContainerRef = useRef<HTMLDivElement | null>(null)
   const miniMapRef = useRef<maplibregl.Map | null>(null)
   const miniMarkerRef = useRef<maplibregl.Marker | null>(null)
+  const miniMapFullscreenButtonRef = useRef<HTMLButtonElement | null>(null)
+  const fullscreenCenterRef = useRef<[number, number] | null>(null)
+  const isMapExpandedRef = useRef(false)
+  const mapExpandResizeTimerRef = useRef<number | null>(null)
+  const [isMapExpanded, setIsMapExpanded] = useState(false)
 
   const [isDraggingImages, setIsDraggingImages] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -261,6 +275,12 @@ export function AdminApartmentDialog({
   useEffect(() => {
     if (open) return
     suppressPickerAfterDropRef.current = false
+    isMapExpandedRef.current = false
+    setIsMapExpanded(false)
+    if (mapExpandResizeTimerRef.current !== null) {
+      window.clearTimeout(mapExpandResizeTimerRef.current)
+      mapExpandResizeTimerRef.current = null
+    }
     if (suppressPickerTimeoutRef.current) {
       clearTimeout(suppressPickerTimeoutRef.current)
       suppressPickerTimeoutRef.current = null
@@ -286,6 +306,36 @@ export function AdminApartmentDialog({
       })
 
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
+      if (canUseDesktopFullscreenMap()) {
+        const fullscreenControl: maplibregl.IControl = {
+          onAdd: () => {
+            const wrapper = document.createElement("div")
+            wrapper.className = "maplibregl-ctrl maplibregl-ctrl-group"
+
+            const button = document.createElement("button")
+            button.type = "button"
+            button.className = "maplibregl-ctrl-icon"
+            button.textContent = "↗"
+            button.style.fontSize = "16px"
+            button.style.lineHeight = "1"
+            button.title = "Open expanded map"
+            button.setAttribute("aria-label", "Open expanded map")
+            button.addEventListener("click", (event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              setIsMapExpanded((prev) => !prev)
+            })
+
+            miniMapFullscreenButtonRef.current = button
+            wrapper.appendChild(button)
+            return wrapper
+          },
+          onRemove: () => {
+            miniMapFullscreenButtonRef.current = null
+          },
+        }
+        map.addControl(fullscreenControl, "top-right")
+      }
       mapInstance = map
       miniMapRef.current = map
 
@@ -300,9 +350,15 @@ export function AdminApartmentDialog({
       miniMarkerRef.current = marker
 
       map.on("click", (e) => {
-        setLongitude(e.lngLat.lng)
-        setLatitude(e.lngLat.lat)
-        marker.setLngLat([e.lngLat.lng, e.lngLat.lat])
+        const nextLng = e.lngLat.lng
+        const nextLat = e.lngLat.lat
+        setLongitude(nextLng)
+        setLatitude(nextLat)
+        marker.setLngLat([nextLng, nextLat])
+        if (isMapExpandedRef.current) {
+          fullscreenCenterRef.current = [nextLng, nextLat]
+          setIsMapExpanded(false)
+        }
       })
       map.on("load", () => map.resize())
 
@@ -321,8 +377,47 @@ export function AdminApartmentDialog({
       }
       miniMapRef.current = null
       miniMarkerRef.current = null
+      miniMapFullscreenButtonRef.current = null
+      if (mapExpandResizeTimerRef.current !== null) {
+        window.clearTimeout(mapExpandResizeTimerRef.current)
+        mapExpandResizeTimerRef.current = null
+      }
     }
   }, [open])
+
+  useEffect(() => {
+    isMapExpandedRef.current = isMapExpanded
+    const map = miniMapRef.current
+    const button = miniMapFullscreenButtonRef.current
+    if (button) {
+      button.textContent = isMapExpanded ? "↙" : "↗"
+      const label = isMapExpanded ? "Close expanded map" : "Open expanded map"
+      button.title = label
+      button.setAttribute("aria-label", label)
+    }
+    if (!map) return
+    const resizeMap = () => {
+      map.resize()
+      if (!isMapExpanded && fullscreenCenterRef.current) {
+        map.easeTo({ center: fullscreenCenterRef.current, duration: 260 })
+        fullscreenCenterRef.current = null
+      }
+    }
+    requestAnimationFrame(() => resizeMap())
+    if (mapExpandResizeTimerRef.current !== null) {
+      window.clearTimeout(mapExpandResizeTimerRef.current)
+    }
+    mapExpandResizeTimerRef.current = window.setTimeout(() => {
+      mapExpandResizeTimerRef.current = null
+      resizeMap()
+    }, MINI_MAP_EXPAND_RESIZE_DELAY_MS)
+    return () => {
+      if (mapExpandResizeTimerRef.current !== null) {
+        window.clearTimeout(mapExpandResizeTimerRef.current)
+        mapExpandResizeTimerRef.current = null
+      }
+    }
+  }, [isMapExpanded])
 
   useEffect(() => {
     miniMarkerRef.current?.setLngLat([longitude, latitude])
@@ -785,12 +880,30 @@ export function AdminApartmentDialog({
             {/* ── Location ── */}
             <section className={SECTION_CLS}>
               <h3 className={SECTION_TITLE_CLS}>Location</h3>
-              <div className="overflow-hidden rounded-xl border border-border">
+              <div
+                className={`${
+                  isMapExpanded
+                    ? "fixed inset-0 z-[120] bg-background/70 p-4 backdrop-blur-sm"
+                    : "relative"
+                } transition-opacity duration-300 ease-out`}
+              >
                 <div
-                  ref={miniMapContainerRef}
-                  className="relative h-[28rem] min-h-[28rem] w-full [&_.maplibregl-canvas]:!outline-none"
-                  aria-label="Mini map selector"
-                />
+                  className={`overflow-hidden border border-border transition-all duration-300 ease-out ${
+                    isMapExpanded
+                      ? "h-[calc(100dvh-2rem)] rounded-2xl shadow-2xl"
+                      : "rounded-xl"
+                  }`}
+                >
+                  <div
+                    ref={miniMapContainerRef}
+                    className={`relative w-full transition-[height] duration-300 ease-out [&_.maplibregl-canvas]:!outline-none [&_.maplibregl-ctrl-top-right]:!flex [&_.maplibregl-ctrl-top-right]:items-start [&_.maplibregl-ctrl-top-right]:gap-2 [&_.maplibregl-ctrl-top-right_.maplibregl-ctrl]:!m-0 ${
+                      isMapExpanded
+                        ? "h-[calc(100dvh-2rem)]"
+                        : "h-[28rem] min-h-[28rem]"
+                    }`}
+                    aria-label="Mini map selector"
+                  />
+                </div>
               </div>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
