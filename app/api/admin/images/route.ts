@@ -14,6 +14,13 @@ function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status })
 }
 
+const SIGNED_UPLOAD_SOURCE_PATH_PATTERN =
+  /^apartments\/raw\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{1,10}$/
+
+function isSignedUploadSourcePath(sourcePath: string) {
+  return SIGNED_UPLOAD_SOURCE_PATH_PATTERN.test(sourcePath)
+}
+
 async function processAndStoreBuffer(
   supabase: SupabaseClient,
   sourceBuffer: Buffer,
@@ -65,6 +72,9 @@ export async function POST(request: Request) {
       const sourcePath = body.sourcePath?.trim()
       if (!sourcePath) {
         return jsonError("Missing source path for image processing.", 400)
+      }
+      if (!isSignedUploadSourcePath(sourcePath)) {
+        return jsonError("Invalid source path for image processing.", 400)
       }
 
       const { data: sourceBlob, error: downloadError } = await supabase.storage
