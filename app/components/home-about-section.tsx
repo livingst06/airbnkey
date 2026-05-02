@@ -22,8 +22,8 @@ export function HomeAboutSection() {
         </div>
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border/60 shadow-[0_18px_36px_rgba(16,18,24,0.14)]">
           <Image
-            src="/apartments/apt1/1.png"
-            alt="Bright apartment living room in Cannes"
+            src="/about-cannes.png"
+            alt="Cannes waterfront at sunset"
             fill
             className="object-cover"
             sizes="(min-width: 1024px) 480px, 100vw"
