@@ -10,8 +10,15 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin-client"
 
 export const runtime = "nodejs"
 
+const RAW_UPLOAD_SOURCE_PATH_PATTERN =
+  /^apartments\/raw\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{1,10}$/
+
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status })
+}
+
+function isRawUploadSourcePath(sourcePath: string): boolean {
+  return RAW_UPLOAD_SOURCE_PATH_PATTERN.test(sourcePath)
 }
 
 async function processAndStoreBuffer(
@@ -65,6 +72,9 @@ export async function POST(request: Request) {
       const sourcePath = body.sourcePath?.trim()
       if (!sourcePath) {
         return jsonError("Missing source path for image processing.", 400)
+      }
+      if (!isRawUploadSourcePath(sourcePath)) {
+        return jsonError("Invalid source path for image processing.", 400)
       }
 
       const { data: sourceBlob, error: downloadError } = await supabase.storage
