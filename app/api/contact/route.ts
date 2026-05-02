@@ -59,8 +59,6 @@ export async function POST(request: Request) {
       subject: `New contact message from ${userEmail}`,
       replyTo: userEmail,
       text: [
-        "A signed-in user sent a message from the Airbnkey contact form.",
-        "",
         `From: ${userEmail}`,
         "",
         "Message:",
