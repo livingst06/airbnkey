@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     "http://192.168.1.21:3000",
   ],
   experimental: {
-    middlewareClientMaxBodySize: "50mb",
+    proxyClientMaxBodySize: "50mb",
   },
   images: {
     remotePatterns: [
