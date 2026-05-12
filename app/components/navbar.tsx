@@ -2,11 +2,13 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { Map } from "lucide-react"
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import { useAdminUi } from "@/app/components/admin-ui-context"
+import { useMapLayout } from "@/app/components/map-layout-context"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client"
 import { cn } from "@/lib/utils"
@@ -41,6 +43,34 @@ function AdminModeToggle() {
       )}
     >
       Admin
+    </button>
+  )
+}
+
+function MapLayoutToggle() {
+  const pathname = usePathname()
+  const { mapOnly, toggleMapOnly } = useMapLayout()
+
+  if (pathname !== "/") return null
+
+  return (
+    <button
+      type="button"
+      onClick={toggleMapOnly}
+      aria-label={
+        mapOnly
+          ? "Show list and map side by side"
+          : "Show map full width"
+      }
+      aria-pressed={mapOnly}
+      className={cn(
+        "relative z-[100] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-medium shadow-sm backdrop-blur-md transition-colors duration-200",
+        mapOnly
+          ? "border-primary/40 bg-primary/12 text-foreground"
+          : "border-border/70 bg-card/70 text-foreground/80",
+      )}
+    >
+      <Map className="size-4 shrink-0 opacity-90" aria-hidden />
     </button>
   )
 }
@@ -395,6 +425,7 @@ export function Navbar() {
         <div className="flex items-center justify-end gap-2 pr-4 xl:pr-8">
           <AuthControls />
           <AdminModeToggle />
+          <MapLayoutToggle />
           <ThemeToggle />
         </div>
       </div>

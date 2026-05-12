@@ -5,6 +5,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react
 import { toast } from "sonner"
 
 import { useAdminUi } from "@/app/components/admin-ui-context"
+import { useMapLayout } from "@/app/components/map-layout-context"
 import type { HoverSource } from "@/types/hover"
 import type { DialogAnchorRect } from "@/types/apartments"
 import { cn } from "@/lib/utils"
@@ -35,6 +36,7 @@ const ApartmentMap = dynamic(
 
 export function HomePageClient() {
   const { isAdminMode, isSignedIn } = useAdminUi()
+  const { mapOnly } = useMapLayout()
   const { apartments, syncFromDb } = useApartments()
   const [localOrderedIds, setLocalOrderedIds] = useState<string[] | null>(null)
 
@@ -193,14 +195,18 @@ export function HomePageClient() {
             className={cn(
               "grid min-h-0 grid-cols-1 items-stretch gap-6",
               "max-lg:flex max-lg:flex-col max-lg:min-h-0",
-              "lg:h-[calc(100vh-6rem)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8 lg:overflow-hidden",
-              "xl:h-[calc(100vh-7.5rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:gap-6",
+              "lg:h-[calc(100vh-6rem)] lg:grid lg:gap-8 lg:overflow-hidden",
+              "xl:h-[calc(100vh-7.5rem)] xl:gap-6",
+              mapOnly
+                ? "lg:grid-cols-1 xl:grid-cols-1"
+                : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]",
             )}
           >
             <section
               className={cn(
                 "order-1 flex min-h-0 min-w-0 flex-col pr-0 sm:pr-1 lg:order-1 lg:h-full lg:pr-2",
                 "max-lg:min-h-0 lg:flex-1",
+                mapOnly && "hidden",
               )}
             >
               <div className="flex shrink-0 flex-col gap-4 border-b border-border/45 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0 xl:gap-3">
@@ -248,7 +254,9 @@ export function HomePageClient() {
               <div
                 className={cn(
                   "w-full overflow-hidden rounded-2xl border border-border/55 bg-card/45 shadow-[0_22px_54px_rgba(16,18,24,0.16)] xl:rounded-[2rem]",
-                  "max-lg:h-[clamp(15rem,56dvh,28rem)] max-lg:min-h-[15rem] max-lg:shrink-0",
+                  mapOnly
+                    ? "max-lg:h-[calc(100dvh-6rem)] max-lg:min-h-[16rem] max-lg:shrink-0"
+                    : "max-lg:h-[clamp(15rem,56dvh,28rem)] max-lg:min-h-[15rem] max-lg:shrink-0",
                   "lg:h-full lg:min-h-0 lg:flex-1 lg:shrink-0",
                 )}
               >

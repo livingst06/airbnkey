@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { AdminUiProvider } from "@/app/components/admin-ui-context";
+import { MapLayoutProvider } from "@/app/components/map-layout-context";
 import { Navbar } from "@/app/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { getCurrentUserEmail, isAdminEmail } from "@/lib/admin-auth";
@@ -46,9 +47,11 @@ export default async function RootLayout({
           initialUserEmail={userEmail}
           initialIsAdminEligible={isAdminEligible}
         >
-          <Navbar />
-          {children}
-          <Toaster />
+          <MapLayoutProvider>
+            <Navbar />
+            {children}
+            <Toaster />
+          </MapLayoutProvider>
         </AdminUiProvider>
       </body>
     </html>
