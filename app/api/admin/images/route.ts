@@ -58,8 +58,7 @@ export async function POST(request: Request) {
   try {
     const contentType = request.headers.get("content-type")?.toLowerCase() ?? ""
 
-    // Preferred production flow: client uploads raw image directly to Supabase
-    // using a signed upload URL, then requests server-side optimization by path.
+    // Optional: JSON `{ sourcePath }` if a blob is already in the bucket at that path.
     if (contentType.includes("application/json")) {
       const body = (await request.json()) as { sourcePath?: string }
       const sourcePath = body.sourcePath?.trim()
@@ -83,7 +82,7 @@ export async function POST(request: Request) {
       return NextResponse.json(result)
     }
 
-    // Local/dev fallback path: still accept multipart payloads directly.
+    // Primary path: multipart file from browser (optimize + upload in one hop).
     let formData: FormData
     try {
       formData = await request.formData()
