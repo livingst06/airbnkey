@@ -6,12 +6,22 @@ import {
   ACCEPTED_IMAGE_MIME_TYPE_SET,
 } from "@/lib/apartment-image-constraints"
 import { processImageForStorage } from "@/lib/server-image-pipeline"
-import { createSupabaseAdminClient } from "@/lib/supabase/admin-client"
+import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin-client"
 
 export const runtime = "nodejs"
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status })
+}
+
+function mapUploadErrorMessage(raw: string): string {
+  const lower = raw.toLowerCase()
+  if (lower.includes("signature verification failed")) {
+    return (
+      "Supabase a refusé la clé serveur : signature JWT invalide. Dans Vercel, collez SUPABASE_SERVICE_ROLE_KEY depuis Settings > API > service_role secret (pas la clé anon), pour le même projet que NEXT_PUBLIC_SUPABASE_URL ; sans guillemets dans le champ secret."
+    )
+  }
+  return raw
 }
 
 async function processAndStoreBuffer(
@@ -47,13 +57,11 @@ export async function POST(request: Request) {
     return jsonError("Not authorized", 403)
   }
 
-  const supabase = createSupabaseAdminClient()
-  if (!supabase) {
-    return jsonError(
-      "Image upload is not configured. Missing SUPABASE_SERVICE_ROLE_KEY.",
-      500,
-    )
+  const adminResult = tryCreateSupabaseAdminClient()
+  if (!adminResult.ok) {
+    return jsonError(adminResult.error, 500)
   }
+  const supabase = adminResult.client
 
   try {
     const contentType = request.headers.get("content-type")?.toLowerCase() ?? ""
@@ -109,7 +117,11 @@ export async function POST(request: Request) {
     return NextResponse.json(result)
   } catch (error) {
     if (error instanceof Error && error.message.trim()) {
-      return jsonError(error.message, 400)
+      const raw = error.message
+      const msg = mapUploadErrorMessage(raw)
+      const isServerMisconfig =
+        raw.toLowerCase().includes("signature verification") || msg !== raw
+      return jsonError(msg, isServerMisconfig ? 503 : 400)
     }
     return jsonError(
       "Image optimization failed. Please try another image with less visual detail.",
