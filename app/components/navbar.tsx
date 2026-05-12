@@ -48,32 +48,18 @@ function AdminModeToggle() {
 type OAuthProvider = "google" | "facebook" | "apple"
 
 function resolveAuthRedirectOrigin() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
-  const siteOrigin = (() => {
-    if (!siteUrl) return null
-    try {
-      return new URL(siteUrl).origin
-    } catch {
-      return null
-    }
-  })()
-
-  if (typeof window === "undefined") return siteOrigin
-
-  const currentOrigin = window.location.origin
-  const hostname = window.location.hostname
-  const isLocalhost =
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "::1"
-
-  // In production-like contexts, prefer the canonical site origin
-  // to avoid accidental fallback to localhost-based auth setup.
-  if (!isLocalhost && siteOrigin) {
-    return siteOrigin
+  if (typeof window !== "undefined") {
+    // Use the host the user is actually on (e.g. airbnkey.fr vs airbnkey.vercel.app).
+    return window.location.origin
   }
 
-  return currentOrigin
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+  if (!siteUrl) return null
+  try {
+    return new URL(siteUrl).origin
+  } catch {
+    return null
+  }
 }
 
 function AuthControls() {
@@ -104,7 +90,9 @@ function AuthControls() {
         const supabase = getSupabaseBrowserClient()
         const origin = resolveAuthRedirectOrigin()
         if (!origin) {
-          throw new Error("Sign-in unavailable: missing NEXT_PUBLIC_SITE_URL")
+          throw new Error(
+            "Sign-in unavailable: configure NEXT_PUBLIC_SITE_URL for server-side use.",
+          )
         }
         const nextPath = pathname || "/"
         const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
