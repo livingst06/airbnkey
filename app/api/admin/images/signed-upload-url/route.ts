@@ -1,21 +1,13 @@
 import { NextResponse } from "next/server"
 
 import { isCurrentUserAdmin } from "@/lib/admin-auth"
+import { createRawApartmentUploadPath } from "@/lib/apartment-image-upload-path"
 import { createSupabaseAdminClient } from "@/lib/supabase/admin-client"
 
 export const runtime = "nodejs"
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status })
-}
-
-function sanitizeExtension(fileName: string | undefined): string {
-  const raw = fileName?.trim().toLowerCase() ?? ""
-  if (!raw.includes(".")) return "jpg"
-  const ext = raw.slice(raw.lastIndexOf(".") + 1)
-  if (!ext) return "jpg"
-  if (!/^[a-z0-9]{1,10}$/.test(ext)) return "jpg"
-  return ext
 }
 
 export async function POST(request: Request) {
@@ -38,8 +30,7 @@ export async function POST(request: Request) {
     return jsonError("Invalid request payload.", 400)
   }
 
-  const ext = sanitizeExtension(body.fileName)
-  const sourcePath = `apartments/raw/${crypto.randomUUID()}.${ext}`
+  const sourcePath = createRawApartmentUploadPath(body.fileName)
 
   const { data, error } = await supabase.storage
     .from("apartments")
