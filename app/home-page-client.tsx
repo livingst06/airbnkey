@@ -1,14 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import {
-  type FormEvent,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useState,
-} from "react"
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { useAdminUi } from "@/app/components/admin-ui-context"
@@ -17,7 +10,6 @@ import type { DialogAnchorRect } from "@/types/apartments"
 import { cn } from "@/lib/utils"
 
 import { ApartmentGrid } from "./components/apartment-grid"
-import { FilterBar, type ApartmentSort } from "./components/filter-bar"
 import { HomeAboutSection } from "./components/home-about-section"
 import { HomeContactSection } from "./components/home-contact-section"
 import {
@@ -70,12 +62,6 @@ export function HomePageClient() {
   const [message, setMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [search, setSearch] = useState("")
-  const deferredSearch = useDeferredValue(search)
-  const [bedsMin, setBedsMin] = useState<number | null>(null)
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [sort, setSort] = useState<ApartmentSort>("default")
-
   const readStoredOrder = useCallback(() => {
     if (typeof window === "undefined") return null
 
@@ -98,68 +84,7 @@ export function HomePageClient() {
     return applyApartmentOrder(apartments, ordered)
   }, [apartments, localOrderedIds])
 
-  const availableTags = useMemo(() => {
-    const seen = new Map<string, string>()
-    for (const a of uiApartments) {
-      for (const raw of a.advantages) {
-        const trimmed = raw.trim()
-        if (!trimmed) continue
-        const key = trimmed.toLowerCase()
-        if (!seen.has(key)) seen.set(key, trimmed)
-      }
-    }
-    return Array.from(seen.entries())
-      .sort(([a], [b]) => a.localeCompare(b, "en"))
-      .map(([key, label]) => ({ key, label }))
-  }, [uiApartments])
-
-  const filteredApartments = useMemo(() => {
-    const q = deferredSearch.trim().toLowerCase()
-    return uiApartments.filter((a) => {
-      if (q) {
-        const title = a.title.toLowerCase()
-        const desc = a.description.toLowerCase()
-        if (!title.includes(q) && !desc.includes(q)) return false
-      }
-      if (bedsMin !== null) {
-        const b = Number(a.beds)
-        if (!Number.isFinite(b) || b < bedsMin) return false
-      }
-      if (selectedTags.length > 0) {
-        const advKeys = new Set(
-          a.advantages
-            .map((t) => t.trim().toLowerCase())
-            .filter(Boolean),
-        )
-        const matches = selectedTags.some((t) => advKeys.has(t))
-        if (!matches) return false
-      }
-      return true
-    })
-  }, [uiApartments, deferredSearch, bedsMin, selectedTags])
-
-  const sortedApartments = useMemo(() => {
-    const list = [...filteredApartments]
-    if (sort === "beds_asc") {
-      list.sort(
-        (a, b) => a.beds - b.beds || a.title.localeCompare(b.title, "en"),
-      )
-    } else if (sort === "beds_desc") {
-      list.sort(
-        (a, b) => b.beds - a.beds || a.title.localeCompare(b.title, "en"),
-      )
-    }
-    return list
-  }, [filteredApartments, sort])
-
-  const adminReorderEnabled =
-    isAdminMode &&
-    deferredSearch.trim() === "" &&
-    bedsMin === null &&
-    selectedTags.length === 0 &&
-    sort === "default"
-
-  const listAnimKey = `${sort}:${[...filteredApartments].map((a) => a.id).sort().join("|")}`
+  const listAnimKey = [...uiApartments].map((a) => a.id).sort().join("|")
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -206,7 +131,7 @@ export function HomePageClient() {
   }, [readStoredOrder, syncFromDb])
 
   useEffect(() => {
-    const ids = new Set(filteredApartments.map((a) => a.id))
+    const ids = new Set(uiApartments.map((a) => a.id))
     if (selectedApartmentId && !ids.has(selectedApartmentId)) {
       setSelectedApartmentId(null)
     }
@@ -219,25 +144,12 @@ export function HomePageClient() {
       setHoverSource(null)
     }
   }, [
-    filteredApartments,
+    uiApartments,
     selectedApartmentId,
     dialogApartmentId,
     hoveredApartmentId,
     openApartmentDialog,
   ])
-
-  const toggleTag = useCallback((key: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
-    )
-  }, [])
-
-  const resetFilters = useCallback(() => {
-    setSearch("")
-    setBedsMin(null)
-    setSelectedTags([])
-    setSort("default")
-  }, [])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -292,37 +204,15 @@ export function HomePageClient() {
               )}
             >
               <div className="flex shrink-0 flex-col gap-4 border-b border-border/45 pb-3 max-lg:mb-0 lg:mb-0 lg:border-b-0 lg:pb-0 xl:gap-3">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-end justify-end gap-4 xl:px-1">
-                    <p className="mb-0 whitespace-nowrap text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground">
-                      {sortedApartments.length === 0
-                        ? "0 apartments"
-                        : sortedApartments.length === 1
-                          ? "1 apartment"
-                          : `${sortedApartments.length} apartments`}
-                    </p>
-                  </div>
-                  <FilterBar
-                    search={search}
-                    onSearchChange={setSearch}
-                    bedsMin={bedsMin}
-                    onBedsMinChange={setBedsMin}
-                    selectedTags={selectedTags}
-                    onToggleTag={toggleTag}
-                    availableTags={availableTags}
-                    sort={sort}
-                    onSortChange={setSort}
-                    onReset={resetFilters}
-                    compact
-                  />
+                <div className="flex items-end justify-end gap-4 xl:px-1">
+                  <p className="mb-0 whitespace-nowrap text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground">
+                    {uiApartments.length === 0
+                      ? "0 apartments"
+                      : uiApartments.length === 1
+                        ? "1 apartment"
+                        : `${uiApartments.length} apartments`}
+                  </p>
                 </div>
-                <p className="mb-0 text-xs font-medium tabular-nums leading-normal tracking-normal text-muted-foreground lg:mb-4 xl:hidden">
-                  {sortedApartments.length === 0
-                    ? "0 apartments found"
-                    : sortedApartments.length === 1
-                      ? "1 apartment found"
-                      : `${sortedApartments.length} apartments found`}
-                </p>
               </div>
               <div
                 className="@container no-scrollbar min-h-0 pt-1 max-lg:pb-6 max-lg:pt-2 lg:flex-1 lg:overflow-y-auto lg:scroll-smooth lg:overscroll-y-contain"
@@ -333,9 +223,8 @@ export function HomePageClient() {
                   className="animate-in fade-in-0 duration-300 max-lg:pb-1"
                 >
                   <ApartmentGrid
-                    apartments={sortedApartments}
+                    apartments={uiApartments}
                     adminMode={isAdminMode}
-                    adminReorderEnabled={adminReorderEnabled}
                     selectedApartmentId={selectedApartmentId}
                     setSelectedApartmentId={setSelectedApartmentId}
                     dialogApartmentId={dialogApartmentId}
@@ -346,7 +235,6 @@ export function HomePageClient() {
                     hoverSource={hoverSource}
                     setHoverSource={setHoverSource}
                     hoverLock={hoverLock}
-                    onResetFilters={resetFilters}
                   />
                 </div>
               </div>
@@ -365,7 +253,7 @@ export function HomePageClient() {
                 )}
               >
                 <ApartmentMap
-                  apartments={sortedApartments}
+                  apartments={uiApartments}
                   selectedApartmentId={selectedApartmentId}
                   hoveredApartmentId={hoveredApartmentId}
                   setSelectedApartmentId={setSelectedApartmentId}

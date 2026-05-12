@@ -469,7 +469,7 @@ export function ApartmentMap({
         if (retryTimeoutId != null) {
           window.clearTimeout(retryTimeoutId)
         }
-        // Avoid a per-frame retry loop when filters currently hide all apartments.
+        // Avoid a per-frame retry loop while the apartment list is still empty.
         retryTimeoutId = window.setTimeout(tryInitMap, 250)
         return
       }

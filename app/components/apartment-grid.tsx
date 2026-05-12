@@ -24,7 +24,6 @@ import { toast } from "sonner"
 
 import type { HoverSource } from "@/types/hover"
 import type { Apartment, DialogAnchorRect } from "@/types/apartments"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useApartments } from "./apartments-context"
 import { ApartmentCardPublic } from "./apartment-card-public"
@@ -48,7 +47,6 @@ const AdminDeleteConfirmDialog = dynamic(() =>
 type ApartmentGridProps = {
   apartments: Apartment[]
   adminMode: boolean
-  adminReorderEnabled: boolean
   selectedApartmentId: string | null
   dialogApartmentId: string | null
   dialogAnchorRect: DialogAnchorRect | null
@@ -59,7 +57,6 @@ type ApartmentGridProps = {
   hoverSource: HoverSource
   setHoverSource: (source: HoverSource) => void
   hoverLock: boolean
-  onResetFilters: () => void
 }
 
 type ApartmentListSlotProps = {
@@ -180,7 +177,6 @@ function DraggableApartmentListSlot(props: ApartmentListSlotProps) {
 export function ApartmentGrid({
   apartments,
   adminMode,
-  adminReorderEnabled,
   selectedApartmentId,
   dialogApartmentId,
   dialogAnchorRect,
@@ -191,7 +187,6 @@ export function ApartmentGrid({
   hoverSource,
   setHoverSource,
   hoverLock,
-  onResetFilters,
 }: ApartmentGridProps) {
   const { reorderApartments, deleteApartment } = useApartments()
   const dialogApartment = useMemo(
@@ -259,18 +254,15 @@ export function ApartmentGrid({
   if (apartments.length === 0 && !adminMode) {
     return (
       <div
-        className="flex animate-in fade-in-0 zoom-in-95 flex-col items-center justify-center gap-5 rounded-2xl border border-dashed border-border/70 bg-muted/25 px-6 py-14 text-center duration-300"
+        className="flex animate-in fade-in-0 zoom-in-95 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border/70 bg-muted/25 px-6 py-14 text-center duration-300"
         role="status"
       >
         <p className="max-w-sm text-base font-medium text-foreground">
-          No apartment matches your search
+          No apartments available yet
         </p>
         <p className="max-w-xs text-sm text-muted-foreground">
-          Broaden your filters or reset them.
+          Check back soon for new listings.
         </p>
-        <Button type="button" variant="default" size="sm" onClick={onResetFilters} className="rounded-xl">
-          Reset filters
-        </Button>
       </div>
     )
   }
@@ -310,23 +302,7 @@ export function ApartmentGrid({
           isDeleting={isDeleting}
         />
       ) : null}
-      {adminMode && !adminReorderEnabled ? (
-        <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-foreground/85">
-          <p>
-            Drag-and-drop is available when filters are reset and default sorting is active.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onResetFilters}
-              className="shrink-0 rounded-xl border-border/70 bg-card/70 hover:bg-muted/45"
-          >
-            Reset
-          </Button>
-        </div>
-      ) : null}
-      {adminMode && adminReorderEnabled ? (
+      {adminMode ? (
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -335,6 +311,19 @@ export function ApartmentGrid({
         >
           <SortableContext items={itemIds} strategy={rectSortingStrategy}>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-1 lg:gap-4">
+              {apartments.length === 0 ? (
+                <div
+                  className="flex animate-in fade-in-0 zoom-in-95 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border/70 bg-muted/25 px-6 py-14 text-center duration-300"
+                  role="status"
+                >
+                  <p className="max-w-sm text-base font-medium text-foreground">
+                    No apartments yet
+                  </p>
+                  <p className="max-w-xs text-sm text-muted-foreground">
+                    Add a new apartment to get started.
+                  </p>
+                </div>
+              ) : null}
               {apartments.map((apartment: Apartment, index: number) => (
                 <DraggableApartmentListSlot
                   key={apartment.id}
@@ -366,28 +355,6 @@ export function ApartmentGrid({
         </DndContext>
       ) : (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-1 lg:gap-4">
-          {apartments.length === 0 && adminMode ? (
-            <div
-              className="flex animate-in fade-in-0 zoom-in-95 flex-col items-center justify-center gap-5 rounded-2xl border border-dashed border-border/70 bg-muted/25 px-6 py-14 text-center duration-300"
-              role="status"
-            >
-              <p className="max-w-sm text-base font-medium text-foreground">
-                No apartment matches your search
-              </p>
-              <p className="max-w-xs text-sm text-muted-foreground">
-                Reset filters or add a new apartment.
-              </p>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={onResetFilters}
-                className="rounded-xl"
-              >
-                Reset filters
-              </Button>
-            </div>
-          ) : null}
           {apartments.map((apartment: Apartment, index: number) => (
             <ApartmentCardShell
               key={apartment.id}
@@ -408,14 +375,6 @@ export function ApartmentGrid({
               onDelete={() => setDeleteApartmentId(apartment.id)}
             />
           ))}
-          {adminMode ? (
-            <AdminAddApartmentCard
-              onAdd={() => {
-                setEditingApartmentId(null)
-                setEditorOpen(true)
-              }}
-            />
-          ) : null}
         </div>
       )}
     </>
