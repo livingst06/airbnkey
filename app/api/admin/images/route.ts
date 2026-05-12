@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { isCurrentUserAdmin } from "@/lib/admin-auth"
+import { isRawApartmentUploadPath } from "@/lib/apartment-image-upload-path"
 import {
   ACCEPTED_IMAGE_MIME_TYPE_SET,
 } from "@/lib/apartment-image-constraints"
@@ -65,6 +66,9 @@ export async function POST(request: Request) {
       const sourcePath = body.sourcePath?.trim()
       if (!sourcePath) {
         return jsonError("Missing source path for image processing.", 400)
+      }
+      if (!isRawApartmentUploadPath(sourcePath)) {
+        return jsonError("Invalid source path for image processing.", 400)
       }
 
       const { data: sourceBlob, error: downloadError } = await supabase.storage
