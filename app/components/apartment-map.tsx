@@ -334,9 +334,11 @@ export function ApartmentMap({
       if (canUseMapHoverInteractions()) {
         setSelectedApartmentId(apartment.id)
       }
-      if (shouldOpenDialogFromMap()) {
-        openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
+      openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
+      try {
         popup.remove()
+      } catch {
+        // noop
       }
     })
 
@@ -375,14 +377,12 @@ export function ApartmentMap({
       if (canUseMapHoverInteractions()) {
         setSelectedApartmentId(apartment.id)
       }
-      if (shouldOpenDialogFromMap()) {
-        openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
+      openApartmentDialog(apartment.id, mapPinAnchorFromMarkerRoot(el))
+      try {
         popup.remove()
-        return
+      } catch {
+        // noop
       }
-      closeAllPopups()
-      popup.setLngLat([apartment.longitude, apartment.latitude])
-      popup.addTo(map)
     })
 
     el.addEventListener("keydown", (e) => {
