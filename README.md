@@ -25,6 +25,8 @@ pnpm start
 - `DATABASE_URL` : URL PostgreSQL utilisée par Prisma et les server actions.
 - `NEXT_PUBLIC_SITE_URL` : URL publique du site (ex. `https://airbnkey.vercel.app`).
 
+En production avec un domaine personnalisé, cette variable doit être l’URL canonique (ex. `https://airbnkey.fr`) : elle pilote les redirections OAuth (`sign-in` + `/auth/callback`) et les métadonnées. Pensez à **redéployer** après modification (`NEXT_PUBLIC_*` est intégré au build côté client).
+
 ### Variables optionnelles
 
 - `NEXT_PUBLIC_MAPTILER_API_KEY` : active le fond MapTiler ; sinon fallback Carto.

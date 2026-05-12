@@ -47,12 +47,7 @@ function AdminModeToggle() {
 
 type OAuthProvider = "google" | "facebook" | "apple"
 
-function resolveAuthRedirectOrigin() {
-  if (typeof window !== "undefined") {
-    // Use the host the user is actually on (e.g. airbnkey.fr vs airbnkey.vercel.app).
-    return window.location.origin
-  }
-
+function getPublicSiteOrigin(): string | null {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
   if (!siteUrl) return null
   try {
@@ -60,6 +55,10 @@ function resolveAuthRedirectOrigin() {
   } catch {
     return null
   }
+}
+
+function resolveAuthRedirectOrigin() {
+  return getPublicSiteOrigin()
 }
 
 function AuthControls() {
@@ -91,7 +90,7 @@ function AuthControls() {
         const origin = resolveAuthRedirectOrigin()
         if (!origin) {
           throw new Error(
-            "Sign-in unavailable: configure NEXT_PUBLIC_SITE_URL for server-side use.",
+            "Sign-in unavailable: set NEXT_PUBLIC_SITE_URL to your public site URL (e.g. https://airbnkey.fr).",
           )
         }
         const nextPath = pathname || "/"

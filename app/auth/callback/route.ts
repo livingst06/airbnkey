@@ -10,11 +10,23 @@ function safeNextPath(nextParam: string | null): string {
   return nextParam
 }
 
+function getPublicSiteOrigin(): string | null {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+  if (!siteUrl) return null
+  try {
+    return new URL(siteUrl).origin
+  } catch {
+    return null
+  }
+}
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
   const nextPath = safeNextPath(requestUrl.searchParams.get("next"))
-  const redirectUrl = new URL(nextPath, requestUrl.origin)
+  const siteOrigin = getPublicSiteOrigin()
+  const redirectBase = siteOrigin ?? requestUrl.origin
+  const redirectUrl = new URL(nextPath, redirectBase)
   const env = getSupabasePublicEnv()
 
   if (!code || !env) {
