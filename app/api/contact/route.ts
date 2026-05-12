@@ -37,6 +37,14 @@ export async function POST(request: Request) {
     )
   }
 
+  const emailFrom = process.env.EMAIL_FROM?.trim()
+  if (!emailFrom) {
+    return NextResponse.json(
+      { success: false, error: "Contact sender is not configured." },
+      { status: 500 },
+    )
+  }
+
   let body: unknown
   try {
     body = await request.json()
@@ -54,7 +62,7 @@ export async function POST(request: Request) {
   const resend = new Resend(apiKey)
   try {
     const { error } = await resend.emails.send({
-      from: "Airbnkey Contact <onboarding@resend.dev>",
+      from: `Airbnkey Contact <${emailFrom}>`,
       to: recipient,
       subject: `New contact message from ${userEmail}`,
       replyTo: userEmail,
