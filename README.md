@@ -43,14 +43,17 @@ En production avec un domaine personnalisé, cette variable doit être l’URL c
   - `airbnkey-dev` pour localhost et la base de dev
   - `airbnkey-prod` pour Vercel et la base de prod
 - Ne jamais partager les clés `NEXT_PUBLIC_SUPABASE_*` ni `DATABASE_URL` entre dev et prod.
-- En prod Vercel, `NEXT_PUBLIC_SITE_URL` doit pointer vers l'URL publique (`https://airbnkey.vercel.app` ou domaine custom).
+- En prod Vercel, `NEXT_PUBLIC_SITE_URL` doit être l’URL **canonique** du site (ex. `https://airbnkey.fr`). Elle doit **matcher** le **Site URL** Supabase (voir ci‑dessous).
 
 ### OAuth Google/Facebook/Apple (règles de redirect)
 
 - Côté provider (Google Cloud, Meta, Apple): redirect OAuth vers `https://<supabase-ref>/auth/v1/callback`.
-- Côté Supabase URL Configuration:
-  - DEV: `Site URL = http://localhost:3000`, redirect `http://localhost:3000/auth/callback`
-  - PROD: `Site URL = https://airbnkey.vercel.app`, redirect `https://airbnkey.vercel.app/auth/callback`
+- Côté Supabase **Authentication → URL Configuration** (projet **prod**) :
+  - **Site URL** : même origine que `NEXT_PUBLIC_SITE_URL` (ex. `https://airbnkey.fr`). Si cette valeur reste une URL Vercel (`*.vercel.app`), après OAuth l’utilisateur peut être renvoyé sur ce domaine même en ayant ouvert le site sur le nom de domaine custom.
+  - **Redirect URLs** : inclure au minimum `https://airbnkey.fr/auth/callback` (et `http://localhost:3000/auth/callback` pour le dev).
+- Rappels :
+  - DEV: `Site URL = http://localhost:3000`, redirect autorisé `http://localhost:3000/auth/callback`
+  - PROD avec domaine custom: `Site URL = https://airbnkey.fr`, redirects `https://airbnkey.fr/auth/callback` (éventuellement `https://www.airbnkey.fr/auth/callback` si utilisé)
 - Si un login prod redirige vers localhost, c'est généralement que la prod pointe encore vers le projet Supabase de dev.
 
 ### Architecture runtime
