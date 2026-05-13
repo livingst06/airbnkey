@@ -51,14 +51,6 @@ type FreezeDomSnapshot = {
   height: number
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-}
-
 /** Ancre modale côté carte : viewport du root du marker MapLibre, centrage horizontal sur le pin. */
 function mapPinAnchorFromMarkerRoot(el: HTMLElement): DialogAnchorRect {
   const r = el.getBoundingClientRect()
@@ -273,7 +265,10 @@ export function ApartmentMap({
     const inner = document.createElement("div")
     inner.className = MARKER_INNER_CLASS
     applyMarkerVisualState(inner, false)
-    inner.innerHTML = `<span class="max-w-[156px] truncate text-[12px] font-semibold leading-none">${escapeHtml(apartment.title)}</span>`
+    const titleLabel = document.createElement("span")
+    titleLabel.className = "max-w-[156px] truncate text-[12px] font-semibold leading-none"
+    titleLabel.textContent = apartment.title
+    inner.appendChild(titleLabel)
     el.appendChild(inner)
 
     const popup = new maplibregl.Popup({
@@ -289,17 +284,27 @@ export function ApartmentMap({
     const firstImage = getApartmentImageSrc(apartment.images)
     const popupContent = document.createElement("div")
     popupContent.className = "popup-card cursor-pointer"
-    popupContent.innerHTML = `
-      <img
-        src="${firstImage}"
-        alt="${escapeHtml(apartment.title)}"
-        class="popup-image"
-      />
-      <div class="popup-body">
-        <div class="popup-title">${escapeHtml(apartment.title)}</div>
-        <div class="popup-meta">${escapeHtml(meta)}</div>
-      </div>
-    `
+
+    const popupImage = document.createElement("img")
+    popupImage.setAttribute("src", firstImage)
+    popupImage.alt = apartment.title
+    popupImage.className = "popup-image"
+    popupContent.appendChild(popupImage)
+
+    const popupBody = document.createElement("div")
+    popupBody.className = "popup-body"
+
+    const popupTitle = document.createElement("div")
+    popupTitle.className = "popup-title"
+    popupTitle.textContent = apartment.title
+    popupBody.appendChild(popupTitle)
+
+    const popupMeta = document.createElement("div")
+    popupMeta.className = "popup-meta"
+    popupMeta.textContent = meta
+    popupBody.appendChild(popupMeta)
+
+    popupContent.appendChild(popupBody)
 
     const scheduleMapHoverLeave = () => {
       if (!canUseMapHoverInteractions()) return
