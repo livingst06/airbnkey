@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+---
+
+Global skills policy for this project:
+
+- For any coding, refactor, review, architecture, or UI task, proactively check and apply relevant global skills before proposing or writing code.
+- Read the corresponding `SKILL.md` file first, then follow its guidance.
+- Prioritize these global skills when relevant:
+  - `~/.agents/skills/vercel-react-best-practices`
+  - `~/.agents/skills/vercel-composition-patterns`
+  - `~/.agents/skills/clean-architecture`
+  - `~/.agents/skills/software-architecture`
+  - `~/.agents/skills/web-design-guidelines`
+  - `~/.agents/skills/frontend-design`
+  - `~/.agents/skills/ui-ux-pro-max`
+  - `~/.agents/skills/ckm-design`
+  - `~/.agents/skills/ckm-design-system`
+  - `~/.agents/skills/ckm-ui-styling`
+
+Execution expectations:
+
+- Choose the smallest relevant set of skills for the task.
+- Do not skip skill loading for non-trivial tasks.
+- If multiple skills overlap, combine them pragmatically and avoid over-engineering.
+- Preserve existing project architecture and conventions while applying skill guidance.

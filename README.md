@@ -18,6 +18,28 @@ pnpm build
 pnpm start
 ```
 
+## Restaurer la BDD de prod
+
+Cette restauration recharge les données de la table `Apartment` depuis un backup local généré dans `backups/prod-backup-*/database-public-schema.json`.
+
+> Attention: la commande supprime d'abord toutes les lignes actuelles de `Apartment` puis réinsère le contenu du backup.
+
+### Commande (backup le plus récent)
+
+```bash
+node scripts/restore-prod-db-from-backup.mjs --yes-i-understand
+```
+
+### Commande (backup précis)
+
+```bash
+node scripts/restore-prod-db-from-backup.mjs --backup=/home/livingst/dev/airbnkey/backups/prod-backup-2026-05-13T22-29-32-841Z --yes-i-understand
+```
+
+Pré-requis:
+- `DATABASE_URL` doit pointer vers la base de production à restaurer.
+- Vérifier que le serveur local n'exécute pas d'opérations d'écriture en parallèle pendant la restauration.
+
 ## Déploiement Vercel
 
 ### Variables d'environnement minimales
@@ -31,19 +53,32 @@ En production avec un domaine personnalisé, cette variable doit être l’URL c
 
 - `NEXT_PUBLIC_MAPTILER_API_KEY` : active le fond MapTiler ; sinon fallback Carto.
 - `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` : requis pour l'upload image vers Supabase Storage et l'auth sociale.
+- `SUPABASE_SERVICE_ROLE_KEY` : requis côté serveur pour les uploads image admin vers Supabase Storage.
 - `ADMIN_LIST` : emails admin autorisés, séparés par des virgules (ex: `admin1@example.com,admin2@example.com`).
 - `EMAIL_CEO` : destinataire des messages du formulaire de contact.
 - `EMAIL_FROM` : adresse expéditeur Resend (domaine vérifié), ex. `contact@airbnkey.fr`.
 - `RESEND_API_KEY` : clé API Resend utilisée côté serveur pour envoyer les messages de contact.
 - `NEXT_PUBLIC_IMAGE_UPLOAD_FALLBACK=dataurl` : fallback local / debug si l'upload Supabase n'est pas configuré.
 
-### Étanchéité DEV / PROD
+### Configuration actuelle DEV + PROD
 
-- Utiliser **deux projets Supabase distincts**:
-  - `airbnkey-dev` pour localhost et la base de dev
-  - `airbnkey-prod` pour Vercel et la base de prod
-- Ne jamais partager les clés `NEXT_PUBLIC_SUPABASE_*` ni `DATABASE_URL` entre dev et prod.
-- En prod Vercel, `NEXT_PUBLIC_SITE_URL` doit être l’URL **canonique** du site (ex. `https://airbnkey.fr`). Elle doit **matcher** le **Site URL** Supabase (voir ci‑dessous).
+- Le projet utilise actuellement **un seul projet Supabase de production** (`airbnkey-prod`) pour:
+  - localhost (`pnpm dev`)
+  - production (`https://airbnkey.fr`)
+- Toute écriture locale (admin, uploads, suppressions) impacte immédiatement la prod.
+- Conserver des sauvegardes régulières dans `backups/` avant toute opération sensible.
+- En prod Vercel, `NEXT_PUBLIC_SITE_URL` doit rester l’URL **canonique** du site (ex. `https://airbnkey.fr`) et matcher le **Site URL** Supabase.
+
+### Auth email (Supabase + Resend)
+
+- Supabase Auth est configuré avec **Custom SMTP** via Resend (Dashboard Supabase > Authentication > Email > SMTP Settings).
+- Paramètres SMTP attendus:
+  - host: `smtp.resend.com`
+  - port: `465`
+  - user: `resend`
+  - password: clé API Resend (`RESEND_API_KEY`)
+  - sender email: `EMAIL_FROM` (domaine vérifié)
+- Le réglage **"Prevent use of leaked passwords"** dépend du plan Supabase (Pro+).
 
 ### OAuth Google/Facebook/Apple (règles de redirect)
 
@@ -74,7 +109,10 @@ Puis :
 1. Créer une migration en dev: `pnpm db:migrate:dev --name <description>`.
 2. Tester localement et committer `prisma/migrations/*`.
 3. Vérifier le statut migration: `pnpm db:migrate:status`.
-4. Appliquer en production (avec `DATABASE_URL` prod): `pnpm db:migrate:deploy`.
+4. Appliquer en production (URL de session pooler `:5432`, pas transaction pooler `:6543`):
+   ```bash
+   DATABASE_URL="$(node -e 'require(\"dotenv\").config(); const u=process.env.DATABASE_URL||\"\"; console.log(u.replace(\":6543/\",\":5432/\") + (u.includes(\"?\")?\"&\":\"?\") + \"sslmode=require\")')" pnpm db:migrate:deploy
+   ```
 5. Déployer l'app sur Vercel.
 6. Vérifier le login OAuth et les droits admin whitelist en prod.
 
