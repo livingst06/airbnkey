@@ -7,6 +7,7 @@ import { getSupabasePublicEnv } from "@/lib/supabase/env"
 function safeNextPath(nextParam: string | null): string {
   if (!nextParam || !nextParam.startsWith("/")) return "/"
   if (nextParam.startsWith("//")) return "/"
+  if (nextParam.includes("\\")) return "/"
   return nextParam
 }
 
