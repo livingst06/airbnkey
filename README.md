@@ -38,6 +38,7 @@ node scripts/restore-prod-db-from-backup.mjs --backup=/home/livingst/dev/airbnke
 
 Pré-requis:
 - `DATABASE_URL` doit pointer vers la base de production à restaurer.
+- Par sécurité, le script refuse une restauration si l'hôte `DATABASE_URL` ne correspond pas à l'hôte enregistré dans le backup. Pour une migration volontaire vers un autre hôte, ajouter `--allow-cross-database-restore`.
 - Vérifier que le serveur local n'exécute pas d'opérations d'écriture en parallèle pendant la restauration.
 
 ## Déploiement Vercel
