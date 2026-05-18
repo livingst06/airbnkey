@@ -73,23 +73,30 @@ async function backupDatabase({ outputDir, supabase }) {
 
 async function listFilesRecursive(bucketClient, prefix = "") {
   const files = []
-  const { data, error } = await bucketClient.list(prefix, {
-    limit: 1000,
-    offset: 0,
-    sortBy: { column: "name", order: "asc" },
-  })
-  if (error) throw new Error(`Storage list failed at "${prefix}": ${error.message}`)
-  if (!data) return files
+  const pageSize = 1000
 
-  for (const entry of data) {
-    const fullPath = prefix ? `${prefix}/${entry.name}` : entry.name
-    const isFolder = entry.id == null
-    if (isFolder) {
-      files.push(...(await listFilesRecursive(bucketClient, fullPath)))
-    } else {
-      files.push(fullPath)
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await bucketClient.list(prefix, {
+      limit: pageSize,
+      offset,
+      sortBy: { column: "name", order: "asc" },
+    })
+    if (error) throw new Error(`Storage list failed at "${prefix}": ${error.message}`)
+
+    const page = data ?? []
+    for (const entry of page) {
+      const fullPath = prefix ? `${prefix}/${entry.name}` : entry.name
+      const isFolder = entry.id == null
+      if (isFolder) {
+        files.push(...(await listFilesRecursive(bucketClient, fullPath)))
+      } else {
+        files.push(fullPath)
+      }
     }
+
+    if (page.length < pageSize) break
   }
+
   return files
 }
 
